@@ -4,7 +4,7 @@
  *   POST /api/auth {action:"login", username, password} → 12 цагийн HttpOnly күүки
  *   POST /api/auth {action:"logout"}                 → күүкиг устгана
  */
-const { config, sessionUser, setSession, clearSession, sameText, send, readJson } = require('./_lib/session');
+const { config, problems, sessionUser, setSession, clearSession, sameText, send, readJson } = require('./_lib/session');
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -12,7 +12,9 @@ module.exports = async function handler(req, res) {
   const cfg = config();
   if (req.method === 'GET') {
     const user = sessionUser(req, cfg);
-    return send(res, 200, { configured: !!cfg, authenticated: !!user, user: user || null });
+    const body = { configured: !!cfg, authenticated: !!user, user: user || null };
+    if (!cfg) body.problems = problems();
+    return send(res, 200, body);
   }
   if (req.method !== 'POST') { res.setHeader('Allow', 'GET, POST'); return send(res, 405, { error: 'method' }); }
   if (!(req.headers['content-type'] || '').includes('application/json')) return send(res, 415, { error: 'json' });

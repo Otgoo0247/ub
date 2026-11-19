@@ -8,6 +8,15 @@ const crypto = require('crypto');
 const COOKIE = 'ub_session';
 const HOURS = 12;
 
+// Тохиргооны дутагдлыг утгыг нь ил гаргахгүйгээр нэрлэнэ (нэвтрэх хуудсанд тайлбар харуулахад).
+function problems() {
+  const out = [];
+  if (!('AUTH_USERNAME' in process.env)) out.push('AUTH_USERNAME_missing');
+  else if (!process.env.AUTH_USERNAME.trim()) out.push('AUTH_USERNAME_empty');
+  if (!('AUTH_PASSWORD' in process.env)) out.push('AUTH_PASSWORD_missing');
+  else if (process.env.AUTH_PASSWORD.length < 12) out.push('AUTH_PASSWORD_too_short');
+  return out;
+}
 function config() {
   const user = (process.env.AUTH_USERNAME || '').trim();
   const password = process.env.AUTH_PASSWORD || '';
@@ -57,4 +66,4 @@ async function readJson(req) {
   try { return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'); } catch { return {}; }
 }
 
-module.exports = { config, sessionUser, setSession, clearSession, sameText, send, readJson };
+module.exports = { config, problems, sessionUser, setSession, clearSession, sameText, send, readJson };

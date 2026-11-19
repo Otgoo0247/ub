@@ -14,7 +14,16 @@
 
   fetch('/api/auth', { credentials: 'same-origin' }).then((r) => r.json()).then((s) => {
     if (s.authenticated) location.replace(nextUrl());
-    else if (!s.configured) msg.textContent = 'Сервер тохируулагдаагүй байна: Vercel дээр AUTH_USERNAME, AUTH_PASSWORD-ийг тохируулна уу.';
+    else if (!s.configured) {
+      const text = {
+        AUTH_USERNAME_missing: 'AUTH_USERNAME хувьсагч олдсонгүй',
+        AUTH_USERNAME_empty: 'AUTH_USERNAME хоосон байна',
+        AUTH_PASSWORD_missing: 'AUTH_PASSWORD хувьсагч олдсонгүй',
+        AUTH_PASSWORD_too_short: 'AUTH_PASSWORD 12 тэмдэгтээс богино байна',
+      };
+      const list = (s.problems || []).map((p) => text[p] || p);
+      msg.textContent = `Сервер тохируулагдаагүй: ${list.join('; ') || 'AUTH_USERNAME, AUTH_PASSWORD'}. Vercel дээр засаад Redeploy хийнэ үү.`;
+    }
   }).catch(() => {});
   user.focus();
 

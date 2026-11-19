@@ -16,7 +16,7 @@
     members_scope: { url: 'data/members_scope.csv', format: 'csv' },
     members_monthly: { url: 'data/members_monthly.csv', format: 'csv' },
   };
-  const DEFAULTS = { district: '', khoroo: '', metric: 'dens', level: 'khoroo', base: 'carto' };
+  const DEFAULTS = { district: '', khoroo: '', metric: 'dens', level: 'khoroo', base: 'none' };
   const ALLOWED = {
     metric: ['dens', 'pop', 'hh', 'hhsize', 'members', 'mem_rate', 'gerpct'],
     level: ['khoroo', 'district'],
