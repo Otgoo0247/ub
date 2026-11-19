@@ -4,10 +4,23 @@
  */
 (function () {
   'use strict';
-  const M = window.UBMembers, X = window.UBXlsx;
   const btn = document.getElementById('ub-party');
-  if (!M || !X || !btn) return;
+  if (!btn) return;
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  /* members.js-ийн туслахууд; хөтчийн хуучин кэшээс болж байхгүй бол өөрийн орлуулгаар ажиллана */
+  const ownCache = {};
+  const FALLBACK = {
+    note: (t) => el('p', 'ub-note', t),
+    int: (v) => Number(v).toLocaleString('en-US'),
+    nameCell: (td, m) => { td.append(el('span', 'ub-name-txt', m.n)); },
+    fetchScope: (key, q) => ownCache[key] ? Promise.resolve(ownCache[key])
+      : fetch(`/api/members${q}`, { credentials: 'same-origin' }).then(async (r) => { const x = { status: r.status, data: await r.json().catch(() => ({})) }; if (r.ok) ownCache[key] = x; return x; }),
+  };
+  const M = new Proxy({}, { get: (_, k) => (window.UBMembers && window.UBMembers[k]) || FALLBACK[k] });
+  const X = { download: (...a) => {
+    if (!window.UBXlsx) { alert('Excel үүсгэх файл (js/xlsx-lite.js) ачаалагдаагүй байна. Хуудсыг Ctrl+F5-аар шинэчилнэ үү.'); return; }
+    window.UBXlsx.download(...a);
+  } };
   const norm = (c) => String(c || '').toUpperCase().replace(/[\s-]/g, '');
   const byMn = (a, b) => a.localeCompare(b, 'mn');
   const age = (dob) => { if (!dob) return null; const d = new Date(`${dob}T00:00:00`), n = new Date(); let a = n.getFullYear() - d.getFullYear(); if (n < new Date(n.getFullYear(), d.getMonth(), d.getDate())) a -= 1; return a; };
@@ -104,7 +117,8 @@
   }
 
   btn.addEventListener('click', () => {
-    const p = panel();
+    let p;
+    try { p = panel(); } catch (err) { console.error(err); alert('«Намын гишүүд» цонхыг нээж чадсангүй. Хуудсыг Ctrl+F5-аар шинэчилнэ үү.'); return; }
     if (!p.open) p.showModal();
     if (!members) p.querySelector('.ub-elx-body').replaceChildren(M.note('Ачаалж байна…'));
     Promise.all([
@@ -116,7 +130,7 @@
       members = mem.data;
       if (rg.status === 200) { regs = rg.d.rows || []; regsError = null; }
       else { regs = []; regsError = rg.status === 503 ? 'Бүртгэлийн сан холбогдоогүй байна (Vercel → Storage → Upstash for Redis).' : 'Бүртгүүлэгчдийг ачаалж чадсангүй.'; }
-      render();
-    });
+      try { render(); } catch (err) { console.error(err); p.querySelector('.ub-elx-body').replaceChildren(M.note(`Жагсаалтыг харуулж чадсангүй: ${err.message}. Хуудсыг Ctrl+F5-аар шинэчилнэ үү.`)); }
+    }).catch((err) => { console.error(err); p.querySelector('.ub-elx-body').replaceChildren(M.note('Сервертэй холбогдож чадсангүй.')); });
   });
 })();
