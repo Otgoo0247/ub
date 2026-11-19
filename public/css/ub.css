@@ -231,3 +231,36 @@
 .ub-lg-sub{display:flex;align-items:center;gap:6px;margin:4px 0 0 20px;font-size:11px;color:var(--color-fg-muted)}
 .ub-pt-sw{display:inline-block;width:11px;height:11px;border-radius:50%;background:var(--series-2);box-shadow:0 0 0 2px #fff inset;border:1px solid var(--series-2);flex:none}
 .ub-pt-sw.is-unknown{background:#fff;border:2px solid var(--series-2);box-shadow:none}
+/* Гишүүний нэр — дарж болох товч */
+.ub-name-btn{appearance:none;background:none;border:0;padding:0;font:inherit;font-weight:600;color:var(--color-fg);text-align:left;cursor:pointer;text-decoration:underline;text-decoration-color:color-mix(in oklab,var(--series-1) 35%,transparent);text-underline-offset:3px}
+.ub-name-btn:hover{color:var(--series-1);text-decoration-color:currentColor}
+.ub-name-btn:focus-visible{outline:2px solid var(--series-1);outline-offset:2px;border-radius:3px}
+/* Гишүүний дэлгэрэнгүй цонх */
+.ub-mdlg{width:min(560px,calc(100vw - 24px));max-height:calc(100vh - 32px);padding:0;border:0;border-radius:20px;background:var(--color-panel);color:var(--color-fg);box-shadow:0 24px 64px rgba(11,12,16,.28);font-family:inherit}
+.ub-mdlg::backdrop{background:rgba(11,12,16,.45)}
+.ub-mdlg-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:22px 24px 16px;border-bottom:1px solid var(--color-border-line)}
+.ub-mdlg-eyebrow{margin:0 0 4px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--series-1)}
+.ub-mdlg-t{margin:0;font-size:22px;font-weight:850;letter-spacing:-.02em;line-height:1.2}
+.ub-mdlg-sub{margin:6px 0 0;font-size:13px;color:var(--color-fg-muted);font-weight:500}
+.ub-mdlg-x{appearance:none;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);width:36px;height:36px;border-radius:50%;font-size:22px;line-height:1;cursor:pointer;flex:none}
+.ub-mdlg-x:hover{border-color:var(--color-fg-muted)}
+.ub-mdlg-dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 20px;margin:0;padding:18px 24px}
+.ub-mdlg-dl dt{font-size:12px;color:var(--color-fg-muted);font-weight:600}
+.ub-mdlg-dl dd{margin:2px 0 0;font-size:15px;font-weight:650}
+.ub-mdlg-ank{grid-column:1/-1}
+.ub-mdlg-ank dd{display:flex;align-items:center;gap:10px}
+.ub-mdlg-bar{flex:1;height:8px;border-radius:4px;background:color-mix(in oklab,var(--color-fg) 9%,transparent);overflow:hidden}
+.ub-mdlg-bar i{display:block;height:100%;background:var(--series-1);border-radius:4px}
+.ub-mdlg-inv{margin:0 16px 16px;padding:16px;border-radius:16px;background:var(--ub-brand-soft,#FDECEC)}
+.ub-mdlg-inv h3{margin:0 0 10px;font-size:14px;font-weight:800}
+.ub-mdlg-coderow,.ub-mdlg-linkrow{display:flex;gap:8px;align-items:stretch;margin-bottom:8px}
+.ub-mdlg-code{flex:1;display:flex;align-items:center;justify-content:center;font:800 24px/1.1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.08em;color:var(--series-1);background:var(--color-panel);border-radius:12px;padding:12px;user-select:all}
+.ub-mdlg-link{flex:1;min-width:0;font:inherit;font-size:13px;color:var(--color-fg);background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:12px;padding:10px 12px}
+.ub-mdlg-share{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.ub-mdlg-btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;font:inherit;font-size:13px;font-weight:700;color:var(--color-fg);background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:12px;padding:9px 14px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.ub-mdlg-btn:hover{border-color:var(--color-fg-muted)}
+.ub-mdlg-btn.is-brand{background:var(--series-1);border-color:var(--series-1);color:#fff}
+.ub-mdlg-btn.is-done{border-color:#1C8A4B;color:#1C8A4B}
+.ub-mdlg-btn.is-brand.is-done{background:#1C8A4B;color:#fff}
+.ub-mdlg-hint{margin:10px 0 0;font-size:12px;color:var(--color-fg-muted);line-height:1.45}
+@media (max-width:520px){.ub-mdlg-dl{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.ub-mdlg-coderow,.ub-mdlg-linkrow{flex-direction:column}}

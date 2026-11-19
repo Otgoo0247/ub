@@ -70,10 +70,31 @@
           "value": "private, no-cache"
         }
       ]
+    },
+    {
+      "source": "/invite",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        }
+      ]
     }
   ],
   "functions": {
     "api/members.js": {
+      "includeFiles": "private/members.enc",
+      "maxDuration": 10
+    },
+    "api/invite.js": {
       "includeFiles": "private/members.enc",
       "maxDuration": 10
     }

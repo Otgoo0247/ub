@@ -10,18 +10,24 @@ Environment Variables-д MEMBERS_KEY нэрээр хадгална. Түлхүү
 
 Гаралт: ../private/members.enc — AES-256-GCM шифртэй, gzip шахсан JSON:
     {"generated": "...", "khoroo": {"BGD_01": [{"n": нэр, "g": хүйс, "a": нас, "m": хөдөлгөөн,
-     "d": хөдөлгөөний огноо, "u": үүр, "k": анкет %}, ...]},
+     "d": хөдөлгөөний огноо, "u": үүр, "k": анкет %, "s": төлөв, "i": урилгын код}, ...]},
      "meta": {"BGD_01": {"district": "Баянгол", "no": 1, "name": "1-р хороо"}}}
 Регистр, утас, MEMBER_ID, зураг гаралтад ОРОХГҮЙ.
+
+Урилгын код: гишүүн бүрт тогтмол 10 тэмдэгтийн код (жишээ нь 7KQ2M-X9D4P) = HMAC-SHA256(members.key-ээс гаргасан
+түлхүүр, MEMBER_ID)-ийн эхний 50 бит, Crockford base32. Excel-ээ шинэчилсэн ч код өөрчлөгдөхгүй; MEMBER_ID-г кодоос
+сэргээх боломжгүй. АНХААР: --rotate-key хийвэл бүх урилгын код (тараасан холбоос) шинэчлэгдэж, хуучин нь ажиллахгүй.
 """
-import argparse, datetime as dt, gzip, json, os, secrets
+import argparse, datetime as dt, gzip, hashlib, hmac, json, os, secrets
 from pathlib import Path
 import pandas as pd
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 HERE = Path(__file__).resolve().parent
 MAGIC = b'UBM1'
-FIELDS = ['Бүтэн нэр', 'Нас', 'Хүйс', 'Хөдөлгөөн', 'Хөдөлгөөн.1', 'Аймаг/нийслэл', 'Сум/дүүрэг', 'Хороо', 'Үүр', 'Анкет %']
+FIELDS = ['Бүтэн нэр', 'Нас', 'Хүйс', 'Төлөв', 'Хөдөлгөөн', 'Хөдөлгөөн.1', 'Аймаг/нийслэл', 'Сум/дүүрэг', 'Хороо', 'Үүр', 'Анкет %',
+          'MEMBER_ID']  # MEMBER_ID зөвхөн урилгын код гаргахад; гаралтад орохгүй
+CROCKFORD = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
 
 ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 ap.add_argument('--excel', required=True)
@@ -38,6 +44,15 @@ if args.rotate_key or not key_path.exists():
     print(f'Шинэ түлхүүр үүсгэлээ: {key_path}  →  Vercel дээр MEMBERS_KEY-д хуулна.')
 key = bytes.fromhex(key_path.read_text().strip())
 assert len(key) == 32, 'Түлхүүр 64 тэмдэгт hex байх ёстой'
+inv_key = hmac.new(key, b'ubdash-invite-key-v1', hashlib.sha256).digest()
+
+
+def invite_code(member_id):
+    mid = str(member_id).strip()
+    if mid.endswith('.0'): mid = mid[:-2]
+    n = int.from_bytes(hmac.new(inv_key, f'invite-v1|{mid}'.encode(), hashlib.sha256).digest()[:8], 'big') >> 14  # 50 бит
+    c = ''.join(CROCKFORD[(n >> (5 * i)) & 31] for i in range(9, -1, -1))
+    return f'{c[:5]}-{c[5:]}'
 
 sheet = next(s for s in pd.ExcelFile(args.excel).sheet_names if 'гишүүн' in s.lower())
 g = pd.read_excel(args.excel, sheet_name=sheet, header=1, usecols=FIELDS)
@@ -56,6 +71,7 @@ def person(r):
         'n': ' '.join(str(r['Бүтэн нэр']).split()), 'g': r['Хүйс'], 'a': age, 'm': r['Хөдөлгөөн'],
         'd': when.strftime('%Y-%m-%d') if pd.notna(when) else None, 'u': r['Үүр'],
         'k': round(float(r['Анкет %']) * 100) if pd.notna(r['Анкет %']) else None,
+        's': r['Төлөв'] if pd.notna(r['Төлөв']) else None, 'i': invite_code(r['MEMBER_ID']),
     }
 
 
@@ -73,4 +89,6 @@ out.write_bytes(MAGIC + iv + ct)
 # Хяналт: буцааж тайлж тоолно
 back = json.loads(gzip.decompress(AESGCM(key).decrypt(out.read_bytes()[4:16], out.read_bytes()[16:], MAGIC)))
 assert sum(len(v) for v in back['khoroo'].values()) == len(g)
+codes = [m['i'] for v in back['khoroo'].values() for m in v]
+assert len(set(codes)) == len(codes), 'Урилгын код давхардлаа'
 print(f'Шифрлэлээ: {out} ({out.stat().st_size:,} байт), {len(g)} гишүүн, {len(by)} хороо.')
