@@ -29,6 +29,15 @@
         <label class="lg-field"><span>Нэр</span>
           <input type="text" name="first" id="iv-first" autocomplete="given-name" maxlength="40" required></label>
       </div>
+      <div class="iv-row">
+        <label class="lg-field"><span>Төрсөн он, сар, өдөр</span>
+          <input type="date" name="dob" id="iv-dob" min="1920-01-01" autocomplete="bday" required></label>
+        <fieldset class="lg-field iv-gender"><legend>Хүйс</legend>
+          <div class="iv-seg" id="iv-gender" role="radiogroup" aria-label="Хүйс">
+            <label><input type="radio" name="gender" value="Эрэгтэй"> Эрэгтэй</label>
+            <label><input type="radio" name="gender" value="Эмэгтэй"> Эмэгтэй</label>
+          </div></fieldset>
+      </div>
       <label class="lg-field"><span>Утасны дугаар</span>
         <input type="tel" name="phone" id="iv-phone" inputmode="numeric" autocomplete="tel-national" placeholder="99112233" maxlength="16" required></label>
 
@@ -49,7 +58,7 @@
       </fieldset>
 
       <label class="iv-consent"><input type="checkbox" id="iv-consent" required>
-        <span>Миний овог нэр, утас, хаягийг гишүүнчлэлийн бүртгэлд ашиглахыг зөвшөөрч байна.</span></label>
+        <span>Миний овог нэр, төрсөн огноо, хүйс, утас, хаягийг гишүүнчлэлийн бүртгэлд ашиглахыг зөвшөөрч байна.</span></label>
       <label class="iv-hp" aria-hidden="true">Вэбсайт <input type="text" name="website" id="iv-website" tabindex="-1" autocomplete="off"></label>
       <p class="lg-msg" id="iv-msg" role="alert"></p>
       <button type="submit" class="lg-btn" id="iv-btn">Бүртгүүлэх <span aria-hidden="true">→</span></button>

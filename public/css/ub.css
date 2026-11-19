@@ -269,12 +269,12 @@
 .ub-mdlg-reg{margin:0 16px 16px;padding:14px 16px;border:1px solid var(--color-border-line);border-radius:16px}
 .ub-mdlg-reg h3{margin:0 0 8px;font-size:14px;font-weight:800}
 .ub-mdlg-reglist{list-style:none;margin:0;padding:0;max-height:220px;overflow:auto}
-.ub-mdlg-reglist li{display:grid;grid-template-columns:minmax(0,1.3fr) auto minmax(0,1.4fr) auto;gap:4px 12px;align-items:baseline;padding:8px 0;border-top:1px solid var(--color-border-line);font-size:13px}
+.ub-mdlg-reglist li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 12px;align-items:baseline;padding:8px 0;border-top:1px solid var(--color-border-line);font-size:13px}
 .ub-mdlg-reglist li:first-child{border-top:0}
 .ub-mdlg-reglist a{color:var(--color-fg);font-variant-numeric:tabular-nums}
 .ub-mdlg-reglist span{color:var(--color-fg-muted)}
 .ub-mdlg-reglist time{color:var(--color-fg-muted);font-size:12px;font-variant-numeric:tabular-nums}
-@media (max-width:520px){.ub-mdlg-reglist li{grid-template-columns:minmax(0,1fr) auto}}
+@media (max-width:520px){.ub-mdlg-reglist li{grid-template-columns:minmax(0,1fr) auto}.ub-mdlg-reglist time{display:none}}
 /* Нэр + «Дэлгэрэнгүй» товч */
 .ub-namecell{white-space:nowrap}
 .ub-name-txt{font-weight:600;margin-right:8px}
@@ -302,3 +302,4 @@
 .ub-elx-table{min-width:860px}
 .ub-elx-table thead th{position:sticky;top:0;background:var(--color-panel);z-index:1}
 .ub-elx-has{color:var(--series-1);font-weight:800}
+.ub-mdlg-reglist .ub-mdlg-regmeta{grid-column:1/-1;font-size:12.5px}

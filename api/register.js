@@ -1,6 +1,6 @@
 /*
  * POST /api/register — урилгын холбоосоор орсон хүний бүртгэл (НИЙТЭД нээлттэй, урилгын код заавал).
- * Бие: { c, last, first, phone, addr: {type:'city', district, khoroo} | {type:'aimag', aimag, soum}, consent: true }
+ * Бие: { c, last, first, dob: 'YYYY-MM-DD', gender: 'Эрэгтэй'|'Эмэгтэй', phone, addr: {type:'city', district, khoroo} | {type:'aimag', aimag, soum}, consent: true }
  * Хамгаалалт: хүчинтэй урилгын код, хаяг жагсаалтаас, утас 8 оронтой, нэг утсаар нэг удаа,
  * IP тутамд цагт 10 оролдлого, урилгын код тутамд 200 бүртгэл, далд «website» талбар (бот).
  */
@@ -17,6 +17,15 @@ function phoneOf(raw) {
   let d = String(raw || '').replace(/[\s()-]/g, '');
   if (d.startsWith('+976')) d = d.slice(4); else if (d.startsWith('976') && d.length === 11) d = d.slice(3);
   return /^[5-9]\d{7}$/.test(d) ? d : null;
+}
+const GENDERS = ['Эрэгтэй', 'Эмэгтэй'];
+function dobOf(raw) {
+  const s = String(raw || '');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
+  const d = new Date(`${s}T00:00:00Z`);
+  if (Number.isNaN(+d) || d.toISOString().slice(0, 10) !== s) return null; // 2026-02-30 гэх мэт
+  if (s < '1920-01-01' || d.getTime() > Date.now()) return null;
+  return s;
 }
 function addressOf(a) {
   if (!a || typeof a !== 'object') return null;
@@ -46,9 +55,12 @@ module.exports = async function handler(req, res) {
   if (!hit) return send(res, 400, { error: 'invite', field: 'c' });
 
   const last = clean(b.last), first = clean(b.first), phone = phoneOf(b.phone), addr = addressOf(b.addr);
+  const dob = dobOf(b.dob), gender = GENDERS.includes(b.gender) ? b.gender : null;
   const bad = [];
   if (!NAME_RE.test(last)) bad.push('last');
   if (!NAME_RE.test(first)) bad.push('first');
+  if (!dob) bad.push('dob');
+  if (!gender) bad.push('gender');
   if (!phone) bad.push('phone');
   if (!addr) bad.push('addr');
   if (b.consent !== true) bad.push('consent');
@@ -63,7 +75,7 @@ module.exports = async function handler(req, res) {
     if (Number(codeCount || 0) >= PER_CODE) return send(res, 429, { error: 'invite_full' });
     const [fresh] = await pipeline([['SET', phoneKey(phone), '1', 'NX']]);
     if (fresh !== 'OK') return send(res, 409, { error: 'duplicate_phone' });
-    const rec = { t: new Date().toISOString(), invite: fmtInvite(c), last, first, phone, addr };
+    const rec = { t: new Date().toISOString(), invite: fmtInvite(c), last, first, dob, gender, phone, addr };
     try { await pipeline([['RPUSH', KEYS.list, seal(rec)], ['HINCRBY', KEYS.by, c, '1']]); }
     catch (e) { await pipeline([['DEL', phoneKey(phone)]]).catch(() => {}); throw e; }
     return send(res, 201, { ok: true });

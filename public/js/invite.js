@@ -1,7 +1,7 @@
 /*
  * invite.js — /invite?c=КОД нийтийн хуудас.
  * 1) Кодыг /api/invite-ээр шалгаж урьсан гишүүний товч нэрийг харуулна.
- * 2) Бүртгэлийн маягт: овог, нэр, утас, хаяг (Улаанбаатар → дүүрэг, хороо | аймаг → сум) → POST /api/register.
+ * 2) Бүртгэлийн маягт: овог, нэр, төрсөн огноо, хүйс, утас, хаяг (Улаанбаатар → дүүрэг, хороо | аймаг → сум) → POST /api/register.
  */
 (function () {
   'use strict';
@@ -41,12 +41,15 @@
       dist.required = city; kh.required = city; aim.required = !city; soum.required = !city;
     }));
     $('iv-phone').addEventListener('input', (e) => { e.target.value = e.target.value.replace(/[^\d+ ]/g, ''); });
-    form.addEventListener('input', (e) => { e.target.removeAttribute('aria-invalid'); if (!form.querySelector('[aria-invalid]')) $('iv-msg').textContent = ''; });
-    form.addEventListener('change', (e) => { e.target.removeAttribute('aria-invalid'); if (!form.querySelector('[aria-invalid]')) $('iv-msg').textContent = ''; });
+    form.addEventListener('input', (e) => { e.target.removeAttribute('aria-invalid'); const g = e.target.closest('[aria-invalid]'); if (g) g.removeAttribute('aria-invalid'); if (!form.querySelector('[aria-invalid]')) $('iv-msg').textContent = ''; });
+    form.addEventListener('change', (e) => { e.target.removeAttribute('aria-invalid'); const g = e.target.closest('[aria-invalid]'); if (g) g.removeAttribute('aria-invalid'); if (!form.querySelector('[aria-invalid]')) $('iv-msg').textContent = ''; });
+    const today = new Date(); const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    $('iv-dob').max = iso(today);
     form.hidden = false;
 
-    const LABEL = { last: 'овог', first: 'нэр', phone: 'утасны дугаар (8 оронтой)', addr: 'хаяг', consent: 'зөвшөөрөл' };
-    const FIELD = { last: 'iv-last', first: 'iv-first', phone: 'iv-phone', consent: 'iv-consent' };
+    const LABEL = { last: 'овог', first: 'нэр', dob: 'төрсөн он, сар, өдөр', gender: 'хүйс', phone: 'утасны дугаар (8 оронтой)', addr: 'хаяг', consent: 'зөвшөөрөл' };
+    const FIELD = { last: 'iv-last', first: 'iv-first', dob: 'iv-dob', gender: 'iv-gender', phone: 'iv-phone', consent: 'iv-consent' };
+    const gender = () => { const g = form.querySelector('input[name=gender]:checked'); return g ? g.value : ''; };
     const msg = $('iv-msg'), btn = $('iv-btn');
     function mark(fields) {
       form.querySelectorAll('[aria-invalid]').forEach((e) => e.removeAttribute('aria-invalid'));
@@ -61,6 +64,9 @@
       const name = /^[\p{L}][\p{L}\s.'’-]{0,39}$/u;
       if (!name.test($('iv-last').value.trim())) bad.push('last');
       if (!name.test($('iv-first').value.trim())) bad.push('first');
+      const dob = $('iv-dob').value;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dob) || dob < '1920-01-01' || dob > $('iv-dob').max) bad.push('dob');
+      if (!gender()) bad.push('gender');
       if (!/^(\+?976)?[5-9]\d{7}$/.test($('iv-phone').value.replace(/\s/g, ''))) bad.push('phone');
       if (atype() === 'city' ? !(dist.value && kh.value) : !(aim.value && soum.value)) bad.push('addr');
       if (!$('iv-consent').checked) bad.push('consent');
@@ -72,7 +78,7 @@
       if (bad.length) { msg.textContent = `Дараахыг шалгана уу: ${bad.map((f) => LABEL[f]).join(', ')}.`; mark(bad); return; }
       mark([]); msg.textContent = ''; btn.disabled = true; btn.firstChild.textContent = 'Илгээж байна… ';
       const body = {
-        c: code, last: $('iv-last').value.trim(), first: $('iv-first').value.trim(), phone: $('iv-phone').value, consent: true, website: $('iv-website').value,
+        c: code, last: $('iv-last').value.trim(), first: $('iv-first').value.trim(), dob: $('iv-dob').value, gender: gender(), phone: $('iv-phone').value, consent: true, website: $('iv-website').value,
         addr: atype() === 'city' ? { type: 'city', district: dist.value, khoroo: kh.value } : { type: 'aimag', aimag: aim.value, soum: soum.value },
       };
       fetch('/api/register', { method: 'POST', credentials: 'omit', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
