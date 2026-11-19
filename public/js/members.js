@@ -3,7 +3,7 @@
  * Юу ч сонгоогүй бол хотын бүх гишүүд, дүүрэг сонгоход дүүргийнх, хороо сонгоход хорооных.
  * Нэрс /api/members-ээс ирнэ; сайтад нэвтэрсэн хүнд л өгөгдөл буцаана.
  * Нэрийн ард «Дэлгэрэнгүй» товч: гишүүний мэдээлэл, урилгын код, холбоос (/invite?c=КОД) бүхий цонх.
- * «Сонгууль 2026» товч: бүх гишүүдийн жагсаалтыг (шүүлт, хайлттай) тусдаа цонхонд нээнэ.
+ * «Бүртгэл» товч: бүх гишүүдийн жагсаалтыг (шүүлт, хайлттай) тусдаа цонхонд нээнэ.
  */
 (function () {
   'use strict';
@@ -189,7 +189,7 @@
     rowsFor(box, res, level);
   }
 
-  /* ---------- «Сонгууль 2026»: бүх гишүүдийн жагсаалт ---------- */
+  /* ---------- «Бүртгэл»: бүх гишүүдийн жагсаалт ---------- */
   let elx = null;
   const elxState = { district: '', khoroo: '', q: '' };
   const byMn = (a, b) => a.localeCompare(b, 'mn');
@@ -199,7 +199,7 @@
     elx = el('dialog', 'ub-elx'); elx.setAttribute('aria-labelledby', 'ub-elx-t');
     const head = el('header', 'ub-elx-head');
     const hw = el('div');
-    const t = el('h2', 'ub-elx-t', 'Сонгууль 2026'); t.id = 'ub-elx-t';
+    const t = el('h2', 'ub-elx-t', 'Бүртгэл'); t.id = 'ub-elx-t';
     hw.append(el('p', 'ub-mdlg-eyebrow', 'Гишүүдийн жагсаалт'), t, el('p', 'ub-mdlg-sub ub-elx-sub', 'Ачаалж байна…'));
     const x = el('button', 'ub-mdlg-x', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Хаах'); x.addEventListener('click', () => elx.close());
     head.append(hw, x);

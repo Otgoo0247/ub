@@ -282,7 +282,7 @@
 .ub-more-btn::after{content:" ›"}
 .ub-more-btn:hover{background:var(--series-1);color:#fff;border-color:var(--series-1)}
 .ub-more-btn:focus-visible{outline:2px solid var(--series-1);outline-offset:2px}
-/* «Сонгууль 2026» */
+/* «Бүртгэл» */
 .ub-elx-open{appearance:none;margin-left:auto;align-self:flex-end;display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:14px;font-weight:800;letter-spacing:-.01em;color:#fff;background:var(--series-1);border:0;border-radius:12px;padding:0 18px;min-height:40px;cursor:pointer;box-shadow:0 6px 16px color-mix(in oklab,var(--series-1) 28%,transparent)}
 .ub-elx-open::before{content:"";width:8px;height:8px;border-radius:50%;background:#fff}
 .ub-elx-open:hover{filter:brightness(1.06)}
