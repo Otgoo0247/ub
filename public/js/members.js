@@ -142,7 +142,7 @@
       const mb = el('button', 'ub-mdlg-btn', 'Мессеж хуулах'); mb.type = 'button'; mb.addEventListener('click', () => copy(msg, mb));
       share.append(sms, mail, mb);
       reg = el('div', 'ub-mdlg-reg'); reg.hidden = true;
-      inv.append(codeRow, linkRow, share, el('p', 'ub-mdlg-hint', 'Энэ код, холбоос зөвхөн энэ гишүүнд хамаарна. Холбоосоор бүртгүүлсэн хүн энэ гишүүний урилгаар бүртгэгдэнэ. Гишүүн өөрөө нэвтрэх хуудасны «Гишүүнээр нэвтрэх» хэсэгт энэ код болон утасны дугаараа оруулж өөрийн хуудсаа харна.'));
+      inv.append(codeRow, linkRow, share, el('p', 'ub-mdlg-hint', 'Энэ код, холбоос зөвхөн энэ гишүүнд хамаарна. Холбоосоор бүртгүүлсэн хүн энэ гишүүний урилгаар бүртгэгдэнэ.'));
       d.dataset.member = m.i;
       fetch(`/api/registrations?invite=${encodeURIComponent(m.i)}`, { credentials: 'same-origin' }).then((r) => (r.ok ? r.json() : null)).then((j) => {
         if (!j || d.dataset.member !== m.i) return; // өөр гишүүний цонх нээгдсэн бол хаяна

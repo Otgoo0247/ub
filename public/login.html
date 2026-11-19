@@ -19,27 +19,27 @@
     </section>
     <div class="lg-card">
       <div class="lg-tabs" role="tablist" aria-label="Нэвтрэх төрөл">
-        <button type="button" role="tab" class="lg-tab" id="tab-member" aria-controls="lg-mform" aria-selected="true">Гишүүнээр нэвтрэх</button>
-        <button type="button" role="tab" class="lg-tab" id="tab-admin" aria-controls="lg-form" aria-selected="false">Нэвтрэх</button>
+        <button type="button" role="tab" class="lg-tab" id="tab-admin" aria-controls="lg-form" aria-selected="true">Нэвтрэх</button>
+        <button type="button" role="tab" class="lg-tab" id="tab-member" aria-controls="lg-mform" aria-selected="false">Гишүүнээр нэвтрэх</button>
       </div>
 
-      <form class="lg-pane" id="lg-mform" role="tabpanel" aria-labelledby="tab-member" novalidate>
-        <label class="lg-field"><span>Урилгын код</span>
-          <input type="text" name="code" id="lg-code" placeholder="XXXXX-XXXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="14" required></label>
-        <label class="lg-field"><span>Утасны дугаар</span>
-          <input type="tel" name="phone" id="lg-phone" inputmode="numeric" autocomplete="tel-national" placeholder="99112233" maxlength="16" required></label>
-        <p class="lg-msg" id="lg-mmsg" role="alert"></p>
-        <button type="submit" class="lg-btn" id="lg-mbtn">Нэвтрэх <span aria-hidden="true">→</span></button>
-        <p class="lg-note">Урилгын кодоо бүртгүүлэх үед эсвэл бүртгэл хариуцсан хүнээс авна.</p>
-      </form>
-
-      <form class="lg-pane" id="lg-form" role="tabpanel" aria-labelledby="tab-admin" novalidate hidden>
+      <form class="lg-pane" id="lg-form" role="tabpanel" aria-labelledby="tab-admin" novalidate>
         <label class="lg-field"><span>Нэвтрэх нэр</span>
           <input type="text" name="username" id="lg-user" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
         <label class="lg-field"><span>Нууц үг</span>
           <input type="password" name="password" id="lg-pass" autocomplete="current-password" required></label>
         <p class="lg-msg" id="lg-msg" role="alert"></p>
         <button type="submit" class="lg-btn" id="lg-btn">Нэвтрэх <span aria-hidden="true">→</span></button>
+      </form>
+
+      <form class="lg-pane" id="lg-mform" role="tabpanel" aria-labelledby="tab-member" novalidate hidden>
+        <label class="lg-field"><span>Урилгын код</span>
+          <input type="text" name="code" id="lg-code" placeholder="XXXXX-XXXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="14" required></label>
+        <label class="lg-field"><span>Утасны дугаар</span>
+          <input type="tel" name="phone" id="lg-phone" inputmode="numeric" autocomplete="tel-national" placeholder="99112233" maxlength="16" required></label>
+        <p class="lg-msg" id="lg-mmsg" role="alert"></p>
+        <button type="submit" class="lg-btn" id="lg-mbtn">Нэвтрэх <span aria-hidden="true">→</span></button>
+        <p class="lg-note">Урилгын холбоосоор бүртгүүлсэн хүмүүс бүртгүүлэх үед олгогдсон урилгын код, утасны дугаараараа нэвтэрнэ.</p>
       </form>
     </div>
   </main>

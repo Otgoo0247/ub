@@ -12,8 +12,7 @@ Environment Variables-д MEMBERS_KEY нэрээр хадгална. Түлхүү
     {"generated": "...", "khoroo": {"BGD_01": [{"n": нэр, "g": хүйс, "a": нас, "m": хөдөлгөөн,
      "d": хөдөлгөөний огноо, "u": үүр, "k": анкет %, "s": төлөв, "i": урилгын код}, ...]},
      "meta": {"BGD_01": {"district": "Баянгол", "no": 1, "name": "1-р хороо"}}}
-Регистр, утас, MEMBER_ID, зураг гаралтад ОРОХГҮЙ. Утасны дугаарын оронд "ph" = HMAC(түлхүүр, 8 оронтой дугаар) —
-гишүүн «Гишүүнээр нэвтрэх» хэсэгт урилгын код + утсаараа нэвтрэхэд тулгахад л хэрэглэнэ; дугаарыг сэргээх боломжгүй.
+Регистр, утас, MEMBER_ID, зураг гаралтад ОРОХГҮЙ.
 
 Урилгын код: гишүүн бүрт тогтмол 10 тэмдэгтийн код (жишээ нь 7KQ2M-X9D4P) = HMAC-SHA256(members.key-ээс гаргасан
 түлхүүр, MEMBER_ID)-ийн эхний 50 бит, Crockford base32. Excel-ээ шинэчилсэн ч код өөрчлөгдөхгүй; MEMBER_ID-г кодоос
@@ -27,7 +26,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 HERE = Path(__file__).resolve().parent
 MAGIC = b'UBM1'
 FIELDS = ['Бүтэн нэр', 'Нас', 'Хүйс', 'Төлөв', 'Хөдөлгөөн', 'Хөдөлгөөн.1', 'Аймаг/нийслэл', 'Сум/дүүрэг', 'Хороо', 'Үүр', 'Анкет %',
-          'MEMBER_ID', 'Утас']  # MEMBER_ID, Утас — зөвхөн код, hash гаргахад; гаралтад орохгүй
+          'MEMBER_ID']  # MEMBER_ID зөвхөн урилгын код гаргахад; гаралтад орохгүй
 CROCKFORD = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
 
 ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -46,15 +45,6 @@ if args.rotate_key or not key_path.exists():
 key = bytes.fromhex(key_path.read_text().strip())
 assert len(key) == 32, 'Түлхүүр 64 тэмдэгт hex байх ёстой'
 inv_key = hmac.new(key, b'ubdash-invite-key-v1', hashlib.sha256).digest()
-ph_key = hmac.new(key, b'ubdash-member-phone-v1', hashlib.sha256).digest()
-
-
-def phone_hash(raw):
-    if pd.isna(raw): return None
-    d = ''.join(ch for ch in str(raw).split('.')[0] if ch.isdigit())
-    if d.startswith('976') and len(d) == 11: d = d[3:]
-    if len(d) != 8 or d[0] not in '56789': return None
-    return hmac.new(ph_key, d.encode(), hashlib.sha256).hexdigest()[:32]
 
 
 def invite_code(member_id):
@@ -82,7 +72,6 @@ def person(r):
         'd': when.strftime('%Y-%m-%d') if pd.notna(when) else None, 'u': r['Үүр'],
         'k': round(float(r['Анкет %']) * 100) if pd.notna(r['Анкет %']) else None,
         's': r['Төлөв'] if pd.notna(r['Төлөв']) else None, 'i': invite_code(r['MEMBER_ID']),
-        'ph': phone_hash(r['Утас']),
     }
 
 
@@ -102,5 +91,4 @@ back = json.loads(gzip.decompress(AESGCM(key).decrypt(out.read_bytes()[4:16], ou
 assert sum(len(v) for v in back['khoroo'].values()) == len(g)
 codes = [m['i'] for v in back['khoroo'].values() for m in v]
 assert len(set(codes)) == len(codes), 'Урилгын код давхардлаа'
-print(f"Нэвтрэх боломжтой (утас бүртгэлтэй): {sum(1 for v in back['khoroo'].values() for m in v if m.get('ph'))}/{len(codes)}")
 print(f'Шифрлэлээ: {out} ({out.stat().st_size:,} байт), {len(g)} гишүүн, {len(by)} хороо.')

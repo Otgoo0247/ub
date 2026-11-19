@@ -1,5 +1,6 @@
 /*
- * /api/me — «Гишүүнээр нэвтрэх» (урилгын код + утасны дугаар) ба гишүүний өөрийн хуудас (/me).
+ * /api/me — «Гишүүнээр нэвтрэх» (урилгын код + утасны дугаар) ба өөрийн хуудас (/me).
+ * Зөвхөн УРИЛГААР ШИНЭЭР БҮРТГҮҮЛСЭН хүмүүс нэвтэрнэ; Excel-ийн 350 гишүүн энэ замаар нэвтрэхгүй.
  *   POST {action:'login', code, phone}  → ub_member күүки (7 хоног)
  *   POST {action:'logout'}
  *   GET  → {authenticated:false} эсвэл өөрийн мэдээлэл + өөрийн урилгаар бүртгүүлсэн хүмүүс
@@ -7,7 +8,7 @@
  */
 const crypto = require('crypto');
 const { send, readJson } = require('./_lib/session');
-const { normalizeInvite, INVITE_RE, fmtInvite, shortName, phoneOf, memberPhoneHash, loadMembers } = require('./_lib/members');
+const { normalizeInvite, INVITE_RE, fmtInvite, shortName, phoneOf, loadMembers } = require('./_lib/members');
 const { storeConfigured, pipeline, open, KEYS } = require('./_lib/store');
 const { findByCode, fullName } = require('./_lib/people');
 const { memberCode, setMember, clearMember } = require('./_lib/membersession');
@@ -29,7 +30,7 @@ async function login(req, res) {
   }
   let p = null;
   if (INVITE_RE.test(c) && phone) p = await findByCode(c);
-  const ok = p && (p.kind === 'member' ? eq(p.m.ph, memberPhoneHash(phone)) : eq(p.r.phone, phone));
+  const ok = p && p.kind === 'registrant' && eq(p.r.phone, phone);
   if (!ok) { await sleep(1200); return send(res, 401, { error: 'wrong_credentials' }); }
   setMember(req, res, c);
   return send(res, 200, { ok: true });
@@ -41,13 +42,9 @@ async function me(req, res) {
   const c = memberCode(req);
   if (!c) return send(res, 200, { authenticated: false });
   const p = await findByCode(c);
-  if (!p) { clearMember(req, res); return send(res, 200, { authenticated: false }); }
+  if (!p || p.kind !== 'registrant') { clearMember(req, res); return send(res, 200, { authenticated: false }); }
   let profile;
-  if (p.kind === 'member') {
-    const m = p.m;
-    profile = { kind: 'member', name: m.n, district: p.meta.district || null, khoroo: p.meta.name || null, cell: m.u || null,
-      age: m.a, gender: m.g, status: m.s || null, movement: m.m || null, movementDate: m.d || null, anket: m.k };
-  } else {
+  {
     const r = p.r;
     const inv = r.invite ? await findByCode(normalizeInvite(r.invite)).catch(() => null) : null;
     profile = { kind: 'registrant', name: `${r.last} ${r.first}`, dob: r.dob || null, age: age(r.dob), gender: r.gender || null,

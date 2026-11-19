@@ -43,10 +43,5 @@ function phoneOf(raw) {
   if (d.startsWith('+976')) d = d.slice(4); else if (d.startsWith('976') && d.length === 11) d = d.slice(3);
   return /^[5-9]\d{7}$/.test(d) ? d : null;
 }
-/* members.enc доторх "ph"-тэй ижил: HMAC(HMAC(MEMBERS_KEY, 'ubdash-member-phone-v1'), дугаар) */
-function memberPhoneHash(phone) {
-  const key = crypto.createHmac('sha256', Buffer.from((process.env.MEMBERS_KEY || '').trim(), 'hex')).update('ubdash-member-phone-v1').digest();
-  return crypto.createHmac('sha256', key).update(phone).digest('hex').slice(0, 32);
-}
 
-module.exports = { loadMembers, normalizeInvite, INVITE_RE, fmtInvite, shortName, phoneOf, memberPhoneHash };
+module.exports = { loadMembers, normalizeInvite, INVITE_RE, fmtInvite, shortName, phoneOf };
