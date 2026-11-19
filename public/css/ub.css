@@ -264,15 +264,41 @@
 .ub-mdlg-btn.is-brand.is-done{background:#1C8A4B;color:#fff}
 .ub-mdlg-hint{margin:10px 0 0;font-size:12px;color:var(--color-fg-muted);line-height:1.45}
 @media (max-width:520px){.ub-mdlg-dl{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.ub-mdlg-coderow,.ub-mdlg-linkrow{flex-direction:column}}
-/* Урилгаар бүртгүүлсэн */
-.ub-reg-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.ub-reg-csv{white-space:nowrap}
-.ub-reg-wrap{max-height:520px;overflow:auto}
-.ub-reg-table{min-width:720px}
-.ub-reg-when{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--color-fg-muted)}
-.ub-reg-name{font-weight:650}
-.ub-reg-table a{color:var(--color-fg);font-variant-numeric:tabular-nums}
-.ub-reg-code{display:block;font:600 11px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--color-fg-muted);letter-spacing:.04em}
 .ub-mdlg-count{margin:8px 0 0;font-size:13px;font-weight:600}
 .ub-mdlg-count b{color:var(--series-1)}
-.ub-reg-table th,.ub-reg-table td{padding:9px 12px;text-align:left;vertical-align:top}
+.ub-mdlg-reg{margin:0 16px 16px;padding:14px 16px;border:1px solid var(--color-border-line);border-radius:16px}
+.ub-mdlg-reg h3{margin:0 0 8px;font-size:14px;font-weight:800}
+.ub-mdlg-reglist{list-style:none;margin:0;padding:0;max-height:220px;overflow:auto}
+.ub-mdlg-reglist li{display:grid;grid-template-columns:minmax(0,1.3fr) auto minmax(0,1.4fr) auto;gap:4px 12px;align-items:baseline;padding:8px 0;border-top:1px solid var(--color-border-line);font-size:13px}
+.ub-mdlg-reglist li:first-child{border-top:0}
+.ub-mdlg-reglist a{color:var(--color-fg);font-variant-numeric:tabular-nums}
+.ub-mdlg-reglist span{color:var(--color-fg-muted)}
+.ub-mdlg-reglist time{color:var(--color-fg-muted);font-size:12px;font-variant-numeric:tabular-nums}
+@media (max-width:520px){.ub-mdlg-reglist li{grid-template-columns:minmax(0,1fr) auto}}
+/* Нэр + «Дэлгэрэнгүй» товч */
+.ub-namecell{white-space:nowrap}
+.ub-name-txt{font-weight:600;margin-right:8px}
+.ub-more-btn{appearance:none;font:inherit;font-size:11.5px;font-weight:700;line-height:1;color:var(--series-1);background:var(--ub-brand-soft,#FDECEC);border:1px solid color-mix(in oklab,var(--series-1) 22%,transparent);border-radius:999px;padding:5px 10px;cursor:pointer;vertical-align:1px}
+.ub-more-btn::after{content:" ›"}
+.ub-more-btn:hover{background:var(--series-1);color:#fff;border-color:var(--series-1)}
+.ub-more-btn:focus-visible{outline:2px solid var(--series-1);outline-offset:2px}
+/* «Сонгууль 2026» */
+.ub-elx-open{appearance:none;margin-left:auto;align-self:flex-end;display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:14px;font-weight:800;letter-spacing:-.01em;color:#fff;background:var(--series-1);border:0;border-radius:12px;padding:0 18px;min-height:40px;cursor:pointer;box-shadow:0 6px 16px color-mix(in oklab,var(--series-1) 28%,transparent)}
+.ub-elx-open::before{content:"";width:8px;height:8px;border-radius:50%;background:#fff}
+.ub-elx-open:hover{filter:brightness(1.06)}
+.ub-elx-open:focus-visible{outline:2px solid var(--color-fg);outline-offset:2px}
+@media (max-width:700px){.ub-elx-open{margin-left:0;width:100%;justify-content:center}}
+.ub-elx{width:min(1180px,calc(100vw - 24px));height:min(860px,calc(100vh - 24px));max-height:none;padding:0;border:0;border-radius:20px;background:var(--color-panel);color:var(--color-fg);box-shadow:0 24px 64px rgba(11,12,16,.28);font-family:inherit;overflow:hidden}
+.ub-elx[open]{display:flex;flex-direction:column}
+.ub-elx::backdrop{background:rgba(11,12,16,.45)}
+.ub-elx-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:20px 24px 12px}
+.ub-elx-t{margin:0;font-size:26px;font-weight:850;letter-spacing:-.03em}
+.ub-elx-bar{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;padding:0 24px 14px;border-bottom:1px solid var(--color-border-line)}
+.ub-elx-bar .ub-field{min-width:180px}
+.ub-elx-bar .ub-field select,.ub-elx-bar .ub-elx-q{min-height:38px}
+.ub-elx-body{flex:1;min-height:0;overflow:auto;padding:0 12px 12px}
+.ub-elx-body > .ub-note{padding:16px 12px}
+.ub-elx-wrap{max-height:none;overflow:visible}
+.ub-elx-table{min-width:860px}
+.ub-elx-table thead th{position:sticky;top:0;background:var(--color-panel);z-index:1}
+.ub-elx-has{color:var(--series-1);font-weight:800}

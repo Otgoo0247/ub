@@ -2,7 +2,8 @@
  * members.js — газрын зургийн хажууд гишүүдийн нэрсийг харуулна (зөвхөн Vercel хувилбар).
  * Юу ч сонгоогүй бол хотын бүх гишүүд, дүүрэг сонгоход дүүргийнх, хороо сонгоход хорооных.
  * Нэрс /api/members-ээс ирнэ; сайтад нэвтэрсэн хүнд л өгөгдөл буцаана.
- * Нэр дээр дарахад дэлгэрэнгүй цонх нээгдэж, гишүүний урилгын код, холбоос (/invite?c=КОД) гарна.
+ * Нэрийн ард «Дэлгэрэнгүй» товч: гишүүний мэдээлэл, урилгын код, холбоос (/invite?c=КОД) бүхий цонх.
+ * «Сонгууль 2026» товч: бүх гишүүдийн жагсаалтыг (шүүлт, хайлттай) тусдаа цонхонд нээнэ.
  */
 (function () {
   'use strict';
@@ -38,7 +39,7 @@
       cells.push([m.a == null ? '—' : m.a, 'n'], [m.g], [m.u || '—'], [m.d ? `${SHORT[m.m] || m.m} (${m.d})` : (SHORT[m.m] || m.m), null, m.m], [m.k == null ? '—' : `${m.k}%`, 'n']);
       cells.forEach(([v, c, full], j) => {
         const td = el('td', c || null, j === 1 ? null : String(v));
-        if (j === 1) { const b = el('button', 'ub-name-btn', String(v)); b.type = 'button'; b.title = 'Дэлгэрэнгүй, урилгын код'; b.addEventListener('click', () => openMember(m)); td.append(b); }
+        if (j === 1) nameCell(td, m);
         if (full && SHORT[full]) td.title = full; row.append(td);
       });
       return row;
@@ -48,6 +49,27 @@
       const td = el('td', 'ub-names-empty', q ? 'Хайлтад тохирох гишүүн алга.' : 'Энэ хүрээнд бүртгэлтэй гишүүн алга.');
       td.colSpan = 9; r.append(td); tb.append(r);
     }
+  }
+
+  /* Нэр + «Дэлгэрэнгүй» товч (нэрийн ард) */
+  function nameCell(td, m) {
+    td.classList.add('ub-namecell');
+    const b = el('button', 'ub-more-btn', 'Дэлгэрэнгүй'); b.type = 'button';
+    b.setAttribute('aria-label', `${m.n} — дэлгэрэнгүй мэдээлэл, урилгын код`);
+    b.addEventListener('click', () => openMember(m));
+    td.append(el('span', 'ub-name-txt', m.n), b);
+  }
+
+  /* /api/members-ийг хүрээгээр нь нэг удаа татаж санана */
+  const inflight = new Map();
+  function fetchScope(key, q) {
+    if (cache.has(key)) return Promise.resolve({ status: 200, data: cache.get(key) });
+    if (inflight.has(key)) return inflight.get(key);
+    const pr = fetch(API + q, { credentials: 'same-origin' }).then(async (r) => ({ status: r.status, data: await r.json().catch(() => ({})) }))
+      .then((x) => { if (x.status === 200) cache.set(key, x.data); return x; })
+      .finally(() => inflight.delete(key));
+    inflight.set(key, pr);
+    return pr;
   }
 
   /* ---------- Гишүүний дэлгэрэнгүй цонх ---------- */
@@ -74,7 +96,7 @@
     if (dlg) return dlg;
     dlg = el('dialog', 'ub-mdlg'); dlg.setAttribute('aria-labelledby', 'ub-mdlg-t');
     dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
-    document.body.append(dlg);
+    (document.getElementById('ub') || document.body).append(dlg);
     return dlg;
   }
 
@@ -96,7 +118,8 @@
 
     const inv = el('section', 'ub-mdlg-inv');
     inv.append(el('h3', null, 'Урилгын код'));
-    if (!m.i) { inv.append(el('p', 'ub-note', 'Урилгын код үүсээгүй байна. Өгөгдлийг шинэчилнэ үү.')); }
+    let reg = null;
+    if (!m.i) { inv.append(el('p', 'ub-note', 'Урилгын код олдсонгүй: GitHub дээрх private/members.enc файлыг шинэ хувилбараар сольж Redeploy хийнэ үү.')); }
     else {
       const codeRow = el('div', 'ub-mdlg-coderow');
       const code = el('output', 'ub-mdlg-code', m.i);
@@ -118,15 +141,29 @@
       const mail = el('a', 'ub-mdlg-btn', 'И-мэйлээр'); mail.href = `mailto:?subject=${encodeURIComponent('Урилга')}&body=${encodeURIComponent(msg)}`;
       const mb = el('button', 'ub-mdlg-btn', 'Мессеж хуулах'); mb.type = 'button'; mb.addEventListener('click', () => copy(msg, mb));
       share.append(sms, mail, mb);
-      const cnt = el('p', 'ub-mdlg-count'); cnt.hidden = true;
-      inv.append(codeRow, linkRow, share, cnt, el('p', 'ub-mdlg-hint', 'Холбоосыг нээсэн хүн овог нэр, утас, хаягаа бөглөж бүртгүүлнэ. Түүнд зөвхөн урьсан гишүүний товч нэр, дүүрэг харагдана.'));
-      fetch('/api/registrations?counts=1', { credentials: 'same-origin' }).then((r) => (r.ok ? r.json() : null)).then((j) => {
-        if (!j || !j.counts) return;
-        const n = j.counts[m.i.replace('-', '')] || 0;
-        cnt.replaceChildren(document.createTextNode('Энэ урилгаар бүртгүүлсэн: '), el('b', null, `${n} хүн`)); cnt.hidden = false;
+      reg = el('div', 'ub-mdlg-reg'); reg.hidden = true;
+      inv.append(codeRow, linkRow, share, el('p', 'ub-mdlg-hint', 'Энэ код, холбоос зөвхөн энэ гишүүнд хамаарна. Холбоосоор бүртгүүлсэн хүн энэ гишүүний урилгаар бүртгэгдэнэ. Нээсэн хүнд зөвхөн урьсан гишүүний товч нэр, дүүрэг харагдана.'));
+      d.dataset.member = m.i;
+      fetch(`/api/registrations?invite=${encodeURIComponent(m.i)}`, { credentials: 'same-origin' }).then((r) => (r.ok ? r.json() : null)).then((j) => {
+        if (!j || d.dataset.member !== m.i) return; // өөр гишүүний цонх нээгдсэн бол хаяна
+        reg.append(el('h3', null, `Энэ урилгаар бүртгүүлсэн: ${j.total} хүн`));
+        if (j.total) {
+          const ul = el('ul', 'ub-mdlg-reglist');
+          j.rows.forEach((r) => {
+            const li = el('li');
+            const a = r.addr || {};
+            const tel = el('a', null, r.phone); tel.href = `tel:${r.phone}`;
+            li.append(el('b', null, `${r.last} ${r.first}`), tel,
+              el('span', null, a.type === 'city' ? `${a.district}, ${a.khoroo}` : a.type === 'aimag' ? `${a.aimag}, ${a.soum} сум` : '—'),
+              el('time', null, String(r.t || '').slice(0, 10)));
+            ul.append(li);
+          });
+          reg.append(ul);
+        } else reg.append(el('p', 'ub-mdlg-hint', 'Одоогоор бүртгүүлсэн хүн алга.'));
+        reg.hidden = false;
       }).catch(() => {});
     }
-    d.replaceChildren(head, dl, inv);
+    d.replaceChildren(head, dl, inv, ...(reg ? [reg] : []));
     if (!d.open) d.showModal();
     close.focus();
   }
@@ -152,6 +189,91 @@
     rowsFor(box, res, level);
   }
 
+  /* ---------- «Сонгууль 2026»: бүх гишүүдийн жагсаалт ---------- */
+  let elx = null;
+  const elxState = { district: '', khoroo: '', q: '' };
+  const byMn = (a, b) => a.localeCompare(b, 'mn');
+
+  function electionPanel() {
+    if (elx) return elx;
+    elx = el('dialog', 'ub-elx'); elx.setAttribute('aria-labelledby', 'ub-elx-t');
+    const head = el('header', 'ub-elx-head');
+    const hw = el('div');
+    const t = el('h2', 'ub-elx-t', 'Сонгууль 2026'); t.id = 'ub-elx-t';
+    hw.append(el('p', 'ub-mdlg-eyebrow', 'Гишүүдийн жагсаалт'), t, el('p', 'ub-mdlg-sub ub-elx-sub', 'Ачаалж байна…'));
+    const x = el('button', 'ub-mdlg-x', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Хаах'); x.addEventListener('click', () => elx.close());
+    head.append(hw, x);
+    const bar = el('div', 'ub-elx-bar');
+    const field = (label, ctrl) => { const l = el('label', 'ub-field'); l.append(el('span', null, label), ctrl); return l; };
+    const dSel = el('select', 'dash-select ub-elx-d'), kSel = el('select', 'dash-select ub-elx-k'), q = el('input', 'ub-names-q ub-elx-q');
+    q.type = 'search'; q.placeholder = 'Нэрээр хайх'; q.setAttribute('aria-label', 'Гишүүний нэрээр хайх');
+    const reset = el('button', 'ub-reset ub-elx-reset', 'Бүгдийг харуулах'); reset.type = 'button';
+    bar.append(field('Дүүрэг', dSel), field('Хороо', kSel), field('Хайх', q), reset);
+    const body = el('div', 'ub-elx-body');
+    elx.append(head, bar, body);
+    elx.addEventListener('click', (e) => { if (e.target === elx) elx.close(); });
+    dSel.addEventListener('change', () => { elxState.district = dSel.value; elxState.khoroo = ''; renderElection(); });
+    kSel.addEventListener('change', () => { elxState.khoroo = kSel.value; renderElection(); });
+    q.addEventListener('input', () => { elxState.q = q.value; renderElection(true); });
+    reset.addEventListener('click', () => { elxState.district = ''; elxState.khoroo = ''; elxState.q = ''; q.value = ''; renderElection(); });
+    (document.getElementById('ub') || document.body).append(elx);
+    return elx;
+  }
+
+  let elxData = null, elxCounts = null;
+  function renderElection(keepFocus) {
+    const p = elx, all = elxData.members;
+    const dSel = p.querySelector('.ub-elx-d'), kSel = p.querySelector('.ub-elx-k');
+    const dists = [...new Set(all.map((m) => m.dist))].sort(byMn);
+    dSel.replaceChildren(new Option('Бүх дүүрэг', ''), ...dists.map((d) => new Option(d, d)));
+    dSel.value = elxState.district;
+    const khs = elxState.district ? [...new Map(all.filter((m) => m.dist === elxState.district).map((m) => [m.kh, m.kno])).entries()].sort((a, b) => a[1] - b[1]) : [];
+    kSel.replaceChildren(new Option(elxState.district ? 'Бүх хороо' : 'Эхлээд дүүрэг', ''), ...khs.map(([k]) => new Option(k, k)));
+    kSel.disabled = !elxState.district; kSel.value = elxState.khoroo;
+    const qq = elxState.q.trim().toLowerCase();
+    const list = all.filter((m) => (!elxState.district || m.dist === elxState.district) && (!elxState.khoroo || m.kh === elxState.khoroo) && (!qq || m.n.toLowerCase().includes(qq)));
+    const scope = elxState.khoroo ? `${elxState.district}, ${elxState.khoroo}` : elxState.district ? `${elxState.district} дүүрэг` : 'Улаанбаатар хот, бүх гишүүд';
+    p.querySelector('.ub-elx-sub').textContent = `${scope} · ${int(list.length)} гишүүн${list.length !== all.length ? ` (нийт ${int(all.length)})` : ''} · ${elxData.generated}-ны нэгтгэл`;
+    p.querySelector('.ub-elx-reset').hidden = !(elxState.district || elxState.q);
+    const body = p.querySelector('.ub-elx-body');
+    if (!list.length) { body.replaceChildren(note(qq ? 'Хайлтад тохирох гишүүн алга.' : 'Энэ хүрээнд бүртгэлтэй гишүүн алга.')); return; }
+    const wrap = el('div', 'ub-tablewrap ub-elx-wrap');
+    const t = el('table', 'ub-table ub-names-table ub-elx-table');
+    const tr = el('tr');
+    const cols = [['№', 'n'], ['Нэр'], ['Дүүрэг'], ['Хороо'], ['Үүр'], ['Нас', 'n'], ['Хүйс'], ['Анкет', 'n']];
+    if (elxCounts) cols.push(['Урьсан', 'n']);
+    cols.forEach(([h, c]) => { const th = el('th', c || null, h); th.scope = 'col'; tr.append(th); });
+    const thead = el('thead'); thead.append(tr);
+    const tb = el('tbody');
+    list.forEach((m, i) => {
+      const row = el('tr');
+      row.append(el('td', 'n', String(i + 1)));
+      const nc = el('td'); nameCell(nc, m); row.append(nc);
+      row.append(el('td', null, m.dist), el('td', null, m.kh), el('td', null, m.u || '—'), el('td', 'n', m.a == null ? '—' : String(m.a)), el('td', null, m.g), el('td', 'n', m.k == null ? '—' : `${m.k}%`));
+      if (elxCounts) { const n = elxCounts[(m.i || '').replace('-', '')] || 0; row.append(el('td', n ? 'n ub-elx-has' : 'n', String(n))); }
+      tb.append(row);
+    });
+    t.append(thead, tb); wrap.append(t); body.replaceChildren(wrap);
+    if (keepFocus) p.querySelector('.ub-elx-q').focus();
+  }
+
+  function openElection() {
+    const p = electionPanel();
+    if (!p.open) p.showModal();
+    const body = p.querySelector('.ub-elx-body');
+    if (!elxData) body.replaceChildren(note('Ачаалж байна…'));
+    Promise.all([
+      fetchScope('city', ''),
+      fetch('/api/registrations?counts=1', { credentials: 'same-origin' }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+    ]).then(([{ status, data }, counts]) => {
+      if (status === 401) { window.location.assign(`/login?next=${encodeURIComponent(location.pathname + location.search)}`); return; }
+      if (status !== 200) { body.replaceChildren(note(status === 503 ? 'Нэрсийн хэсэг тохируулагдаагүй байна: Vercel дээр MEMBERS_KEY-г тохируулна уу.' : 'Нэрсийг ачаалж чадсангүй.')); return; }
+      elxData = data; elxCounts = counts && counts.counts ? counts.counts : null;
+      renderElection();
+    });
+  }
+  document.querySelectorAll('#ub-election').forEach((b) => b.addEventListener('click', openElection));
+
   dash.draw('member-list', {
     mount() { return {}; },
     update(box) {
@@ -159,9 +281,9 @@
       if (cache.has(s.key)) { table(box, cache.get(s.key), s.level); return; }
       const my = ++token;
       box.replaceChildren(note('Ачаалж байна…'));
-      fetch(API + s.q, { credentials: 'same-origin' }).then(async (r) => ({ status: r.status, data: await r.json().catch(() => ({})) })).then(({ status, data }) => {
+      fetchScope(s.key, s.q).then(({ status, data }) => {
         if (my !== token) return;
-        if (status === 200) { cache.set(s.key, data); table(box, data, s.level); }
+        if (status === 200) table(box, data, s.level);
         else if (status === 401) window.location.assign(`/login?next=${encodeURIComponent(location.pathname + location.search)}`);
         else if (status === 503) box.replaceChildren(note('Нэрсийн хэсэг тохируулагдаагүй байна: Vercel дээр MEMBERS_KEY-г тохируулна уу.'));
         else box.replaceChildren(note('Нэрсийг ачаалж чадсангүй.'));
