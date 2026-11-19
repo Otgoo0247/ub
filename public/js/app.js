@@ -58,7 +58,7 @@
       const n = (k) => +r[k];
       return {
         code: r.code, district: r.district, khoroo: r.khoroo, khoroo_no: n('khoroo_no'),
-        pop: n('pop'), hh: n('hh'), area_km2: n('area_km2'), members: n('members'),
+        pop: n('pop'), hh: n('hh'), area_km2: n('area_km2'), members: n('members'), age18_25: n('age18_25'), vote18: n('vote18'),
         shp_pop: n('shp_pop'), shp_ger_pop: n('shp_ger_pop'),
         dens: n('pop') / n('area_km2'), hhsize: n('pop') / n('hh'),
         mem_rate: (1e4 * n('members')) / n('pop'), gerpct: (100 * n('shp_ger_pop')) / n('shp_pop'),
@@ -73,7 +73,7 @@
     fn: (rows) => Array.from(d3.group(rows || [], (r) => r.district), ([district, list]) => {
       const s = (k) => d3.sum(list, (r) => r[k]);
       return {
-        district, khoroo_n: list.length, pop: s('pop'), hh: s('hh'), area_km2: s('area_km2'), members: s('members'),
+        district, khoroo_n: list.length, pop: s('pop'), hh: s('hh'), area_km2: s('area_km2'), members: s('members'), age18_25: s('age18_25'), vote18: s('vote18'),
         dens: s('pop') / s('area_km2'), hhsize: s('pop') / s('hh'), mem_rate: (1e4 * s('members')) / s('pop'),
         gerpct: (100 * s('shp_ger_pop')) / s('shp_pop'), aptpct: 100 - (100 * s('shp_ger_pop')) / s('shp_pop'),
       };
@@ -93,6 +93,7 @@
       const scope = khoroo ? `${picked[0].district} дүүрэг, ${picked[0].khoroo}` : district ? `${district} дүүрэг` : 'Улаанбаатар хот';
       return [{
         scope, khoroo_n: picked.length, pop: s('pop'), hh: s('hh'), area_km2: s('area_km2'), members: s('members'),
+        age18_25: s('age18_25'), vote18: s('vote18'), y_pct: (100 * s('age18_25')) / s('pop'), vote_pct: (100 * s('vote18')) / s('pop'),
         dens: s('pop') / s('area_km2'), hhsize: s('pop') / s('hh'), mem_rate: (1e4 * s('members')) / s('pop'),
         khoroo_with_members: picked.filter((r) => r.members > 0).length,
         top_name: `${top.district} дүүргийн ${top.khoroo}`, top_dens: top.dens,
@@ -245,7 +246,6 @@
         st.host.classed('has-base', !!bm);
         st.gK.selectAll('path')
           .classed('nob', byDistrict)
-          .style('fill-opacity', bm ? bm.opacity : null)
           .style('fill', (d) => { const r = info.get(d.id); return cl.of(byDistrict ? dInfo.get(r.district)[metric] : r[metric]); })
           .style('opacity', (d) => (!p.district || info.get(d.id).district === p.district ? 1 : 0.28))
           .on('pointermove', (e, d) => {
@@ -620,6 +620,11 @@
   /* ---------- Удирдлага ---------- */
   document.querySelectorAll('#ub-metric').forEach((s) => s.addEventListener('change', () => dash.setParams({ metric: s.value })));
   document.querySelectorAll('#ub-base').forEach((s) => s.addEventListener('change', () => dash.setParams({ base: s.value })));
+  // Будгийн тод байдал: суурь зураг хэр харагдахыг хэрэглэгч өөрөө тохируулна (дахин зурах шаардлагагүй).
+  document.querySelectorAll('#ub-op').forEach((r) => {
+    const apply = () => document.querySelectorAll('.ub').forEach((u) => { u.style.setProperty('--ub-fill-op', String(r.value / 100)); });
+    r.addEventListener('input', apply); apply();
+  });
   document.querySelectorAll('.ub-seg-btn').forEach((b) => b.addEventListener('click', () => dash.setParams({ level: b.dataset.level })));
   document.querySelectorAll('#ub-reset').forEach((b) => b.addEventListener('click', () => dash.setParams({ district: '', khoroo: '' })));
   document.querySelectorAll('.ub').forEach((r) => { r.style.setProperty('--ub-accent', dash.colors[0]); r.style.setProperty('--ub-accent2', dash.colors[1]); });
@@ -632,6 +637,7 @@
     const canBase = !!(window.UB_CONFIG && window.UB_CONFIG.basemap && g && g.crs === 'EPSG:3857');
     document.querySelectorAll('.ub-field-base').forEach((f) => { f.hidden = !canBase; });
     document.querySelectorAll('#ub-base').forEach((s) => { s.value = BASEMAPS[p.base] ? p.base : 'none'; });
+    document.querySelectorAll('.ub-field-op').forEach((f) => { f.hidden = !canBase || !BASEMAPS[p.base]; });
     document.querySelectorAll('.ub-seg-btn').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.level === p.level)));
     document.querySelectorAll('#ub-reset').forEach((b) => { b.hidden = !(p.district || p.khoroo); });
     const zero = !!(mrow && mrow.members === 0);

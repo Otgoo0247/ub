@@ -1,7 +1,7 @@
 """Нэгтгэлийн Excel-ийг (хүн ам, өрх + гишүүдийн бүртгэл) дашбоардын өгөгдөл болгоно.
 
 Хэрэглээ (tools/ хавтаснаас):
-    python build_excel.py --excel 2026.11.19_Negtgel.xlsx
+    python build_excel.py --excel 2026.11.19_Negtgel.xlsx --ages 2026.11.19_Negtgel_V1.xlsx
 
 Оролт:
     Excel: "Өрх, хүн амын тоо, хороогоор" хуудас (Дүүрэг, Хорооны нэр, Нийт өрхийн тоо, Хүн амын тоо)
@@ -32,6 +32,7 @@ MOVES = {
 
 ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 ap.add_argument('--excel', required=True)
+ap.add_argument('--ages', help='«18-25», «Сонгуулийн нас 18+ дээш» баганатай Excel (анхдагч: --excel)')
 ap.add_argument('--base', default=str(HERE / 'khoroo_base.csv'))
 ap.add_argument('--out', default=str(HERE.parent / 'public' / 'data'))
 args = ap.parse_args()
@@ -53,6 +54,19 @@ k = base.merge(p[['district', 'khoroo_no', 'pop', 'hh']], on=['district', 'khoro
 missing = k[k._merge != 'both']
 assert missing.empty, f'Excel ба хилийн хороо таарахгүй байна:\n{missing[["district", "khoroo_no", "_merge"]]}'
 
+# 1б. Насны бүлэг: 18–25 ба сонгуулийн нас (18+)
+ages_file = args.ages or args.excel
+a = pd.read_excel(ages_file, sheet_name=next(s for s in pd.ExcelFile(ages_file).sheet_names if 'хүн ам' in s.lower()))
+a = a.rename(columns=lambda c: ' '.join(str(c).split()))
+a = a.rename(columns={'Дүүрэг': 'district', 'Хорооны нэр': 'khoroo', 'Хүн амын тоо, бүгд': 'pop_a', '18-25': 'age18_25', 'Сонгуулийн нас 18+ дээш': 'vote18'})
+assert {'age18_25', 'vote18'} <= set(a.columns), f'{ages_file}: «18-25», «Сонгуулийн нас 18+ дээш» багана олдсонгүй'
+a['district'] = a.district.str.strip()
+a['khoroo_no'] = a.khoroo.str.extract(r'^(\d+)-р хороо')[0].astype(int)
+k = k.drop(columns='_merge').merge(a[['district', 'khoroo_no', 'pop_a', 'age18_25', 'vote18']], on=['district', 'khoroo_no'], how='left')
+assert k.vote18.notna().all(), 'Насны файлд зарим хороо дутуу байна'
+assert (k['pop'] == k.pop_a).all(), 'Хоёр файлын хүн амын тоо зөрж байна'
+assert (k.age18_25 <= k.vote18).all() and (k.vote18 <= k['pop']).all(), 'Насны бүлгийн тоо логик бус байна'
+
 # 2. Гишүүд — зөвхөн нэгтгэлд хэрэгтэй багануудыг уншина
 g = pd.read_excel(args.excel, sheet_name=mem_sheet, header=1,
                   usecols=['Нас', 'Хүйс', 'Хөдөлгөөн', 'Хөдөлгөөн.1', 'Аймаг/нийслэл', 'Сум/дүүрэг', 'Хороо', 'Анкет %'])
@@ -67,7 +81,8 @@ k['members'] = k.code.map(g.groupby('code').size()).fillna(0).astype(int)
 out = pd.DataFrame({
     'code': k.code, 'khoroo_code': k.khoroo_code, 'district_code': k.district_code,
     'district': k.district, 'district_en': k.district_en, 'khoroo_no': k.khoroo_no, 'khoroo': k.khoroo,
-    'pop': k['pop'].astype(int), 'hh': k.hh.astype(int), 'area_km2': k.area_km2, 'members': k.members,
+    'pop': k['pop'].astype(int), 'hh': k.hh.astype(int), 'age18_25': k.age18_25.astype(int), 'vote18': k.vote18.astype(int),
+    'area_km2': k.area_km2, 'members': k.members,
     'shp_pop': k.pop_shp.astype(int), 'shp_ger_pop': k.ger_pop.astype(int),
 }).sort_values(['district', 'khoroo_no'])
 out.to_csv(OUT / 'khoroo.csv', index=False, encoding='utf-8')
@@ -134,7 +149,7 @@ city = scope.iloc[0]
 assert city.male + city.female == len(g)
 assert sum(int(city[b[0]]) for b in AGE_BINS) + int(city.age_unknown) == len(g)
 assert int(city.mv_new + city.mv_base + city.mv_moved + city.mv_other) == len(g)
-print(f'Хороо: {len(out)}, хүн ам: {out["pop"].sum():,}, өрх: {out.hh.sum():,}, гишүүд: {len(g)} '
+print(f'Хороо: {len(out)}, хүн ам: {out["pop"].sum():,}, 18–25: {out.age18_25.sum():,}, 18+: {out.vote18.sum():,}, өрх: {out.hh.sum():,}, гишүүд: {len(g)} '
       f'({(out.members > 0).sum()} хороонд), шинэ гишүүний сар: {len(monthly)}')
 lv = scope.groupby('level').agg(n=('scope', 'size'), shown=('suppressed', lambda x: int((x == 0).sum())))
 print(lv.to_string())

@@ -21,7 +21,7 @@
     <noscript><p class="dash-status is-error">Энэ дашбоард JavaScript шаарддаг.</p></noscript>
     <div class="ub" id="ub">
       <header class="ub-head" id="ub-head">
-        <p class="ub-eyebrow">2026.11.19-ний нэгтгэлээр</p>
+        <p class="ub-eyebrow">2026.11.19-ний нэгтгэл · Улаанбаатар</p>
         <h1 class="ub-title">Улаанбаатар хотын хүн ам, өрх, гишүүнчлэлийн дашбоард</h1>
       </header>
 
@@ -47,6 +47,8 @@
             <option value="sat">Хиймэл дагуул (Esri)</option>
             <option value="none">Байхгүй</option>
           </select></label>
+        <label class="ub-field ub-field-op" hidden><span>Будгийн тод байдал</span>
+          <input type="range" class="ub-range" id="ub-op" min="15" max="100" step="5" value="50" aria-label="Хороодын будгийн тод байдал"></label>
         <div class="ub-field"><span id="ub-level-label">Зургийн түвшин</span>
           <div class="ub-seg" role="group" aria-labelledby="ub-level-label">
             <button type="button" class="ub-seg-btn" data-level="khoroo">Хороо</button>
@@ -56,15 +58,21 @@
       </div>
 
       <section class="ub-kpis" id="ub-kpis" aria-label="Гол үзүүлэлтүүд">
-        <div class="ub-kpi" id="kpi-pop"><span class="ub-kpi-l">Хүн ам</span>
+        <div class="ub-kpi" id="kpi-pop"><span class="ub-kpi-l">Хүн ам, бүгд</span>
           <b class="ub-kpi-v" data-draw="sum" data-k="pop" data-f="int" data-source="summary" data-field="pop" data-row="0">—</b><span class="ub-kpi-u">хүн</span></div>
+        <div class="ub-kpi" id="kpi-y"><span class="ub-kpi-l">18–25 насны хүн ам</span>
+          <b class="ub-kpi-v" data-draw="sum" data-k="age18_25" data-f="int" data-source="summary" data-field="age18_25" data-row="0">—</b><span class="ub-kpi-u">хүн</span>
+          <span class="ub-kpi-s">хүн амын <b data-draw="sum" data-k="y_pct" data-f="pct" data-source="summary" data-field="y_pct" data-row="0">—</b>%</span></div>
+        <div class="ub-kpi" id="kpi-vote"><span class="ub-kpi-l">Сонгуулийн нас (18+)</span>
+          <b class="ub-kpi-v" data-draw="sum" data-k="vote18" data-f="int" data-source="summary" data-field="vote18" data-row="0">—</b><span class="ub-kpi-u">хүн</span>
+          <span class="ub-kpi-s">хүн амын <b data-draw="sum" data-k="vote_pct" data-f="pct" data-source="summary" data-field="vote_pct" data-row="0">—</b>%</span></div>
         <div class="ub-kpi" id="kpi-hh"><span class="ub-kpi-l">Өрх</span>
           <b class="ub-kpi-v" data-draw="sum" data-k="hh" data-f="int" data-source="summary" data-field="hh" data-row="0">—</b><span class="ub-kpi-u">өрх</span></div>
         <div class="ub-kpi" id="kpi-dens"><span class="ub-kpi-l">Хүн амын нягтрал</span>
           <b class="ub-kpi-v" data-draw="sum" data-k="dens" data-f="int" data-source="summary" data-field="dens" data-row="0">—</b><span class="ub-kpi-u">хүн/км²</span></div>
         <div class="ub-kpi" id="kpi-size"><span class="ub-kpi-l">Өрхийн дундаж хэмжээ</span>
           <b class="ub-kpi-v" data-draw="sum" data-k="hhsize" data-f="dec2" data-source="summary" data-field="hhsize" data-row="0">—</b><span class="ub-kpi-u">хүн/өрх</span></div>
-        <div class="ub-kpi" id="kpi-mem"><span class="ub-kpi-l">Гишүүд</span>
+        <div class="ub-kpi is-brand" id="kpi-mem"><span class="ub-kpi-l">Гишүүд</span>
           <b class="ub-kpi-v" data-draw="sum" data-k="members" data-f="int" data-source="summary" data-field="members" data-row="0">—</b><span class="ub-kpi-u">гишүүн</span></div>
         <div class="ub-kpi" id="kpi-rate"><span class="ub-kpi-l">10 000 хүнд ногдох гишүүн</span>
           <b class="ub-kpi-v" data-draw="sum" data-k="mem_rate" data-f="dec1" data-source="summary" data-field="mem_rate" data-row="0">—</b><span class="ub-kpi-u">гишүүн</span></div>
@@ -203,7 +211,7 @@
       <details class="ub-notes" id="ub-notes">
         <summary>Өгөгдөл, тооцооллын тайлбар</summary>
         <ul>
-          <li><b>Хүн ам, өрх:</b> 2026.11.19_Negtgel.xlsx файлын «Өрх, хүн амын тоо, хороогоор» хуудас.</li>
+          <li><b>Хүн ам, өрх:</b> 2026.11.19_Negtgel.xlsx файлын «Өрх, хүн амын тоо, хороогоор» хуудас. <b>18–25 насны</b> ба <b>сонгуулийн насны (18+)</b> хүн амыг 2026.11.19_Negtgel_V1.xlsx файлаас авсан (нас тус бүрийн нийлбэртэй таарч байгааг шалгасан).</li>
           <li><b>Гишүүд:</b> мөн файлын «Гишүүнчлэл» хуудас. Дашбоардад зөвхөн нэгтгэсэн тоо орсон; нэр, регистр, утас зэрэг хувь хүний мэдээлэл ороогүй. Хот, дүүрэг, хороо бүрийн гишүүдийн тоог харуулна. Хүйс, нас, хөдөлгөөний задаргааг 5-аас цөөн гишүүнтэй хүрээнд, мөн дээд хүрээний дүнгээс хасаж тооцоолох боломжтой хүрээнд нууцалсан. Нас нь буруу бүртгэгдсэн (0 эсвэл сөрөг) гишүүдийг «Тодорхойгүй» гэж тооцсон.</li>
           <li><b>10 000 хүнд ногдох гишүүн</b> = гишүүд ÷ хүн ам × 10 000. <b>Нягтрал</b> = хүн ам ÷ талбай (км²). <b>Өрхийн дундаж хэмжээ</b> = хүн ам ÷ өрх.</li>
           <li><b>Гэр хорооллын хувь:</b> шинэ нэгтгэлд байхгүй тул 204_Shine_hil_shinechilsen1 хилийн файлын (2024) мэдээгээр тооцсон.</li>

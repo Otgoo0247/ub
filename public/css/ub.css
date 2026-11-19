@@ -159,3 +159,35 @@
 .ub-btn:disabled{opacity:.6;cursor:wait}
 .ub-btn-ghost{background:transparent;color:var(--color-fg);border:1px solid var(--color-border-line);padding:4px 10px;min-height:28px}
 .ub-names-table th{padding:8px 10px;color:var(--color-fg-muted);font-weight:var(--cds-font-weight-medium)}
+.ub-map.has-base .ub-kpath{fill-opacity:var(--ub-fill-op,.5)}
+.ub-range{width:100%;min-height:34px;accent-color:var(--ub-accent);cursor:pointer}
+.ub [hidden]{display:none !important}
+
+/* ===== Брэндийн загвар: улаан, цагаан карт, тод хар гарчиг ===== */
+.ub{--ub-radius:16px}
+.ub-card,.ub-kpi{border-radius:var(--ub-radius);border-color:transparent;box-shadow:0 1px 2px rgba(11,12,16,.04)}
+.ub-eyebrow{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;padding:6px 14px;border-radius:999px;background:var(--ub-brand-soft);border:1px solid color-mix(in oklab,var(--ub-accent) 25%,transparent);color:var(--ub-accent);font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.ub-eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.ub-title{font-family:var(--font-anthropic-sans);font-weight:850;letter-spacing:-.035em;line-height:1.02;font-size:clamp(1.9rem,4.2vw,3.1rem)}
+.ub-h2{font-weight:750;letter-spacing:-.01em}
+.ub-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:900px){.ub-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ub-kpi{padding:14px 16px}
+.ub-kpi-l{font-weight:600}
+.ub-kpi-v{font-family:var(--font-anthropic-sans);font-weight:800;letter-spacing:-.03em;font-size:clamp(1.5rem,2.5vw,2rem)}
+.ub-kpi-s{grid-column:1/-1;margin-top:4px;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.ub-kpi-s b{color:var(--ub-accent);font-weight:700;font-variant-numeric:tabular-nums}
+.ub-kpi.is-brand{background:var(--ub-accent);color:#fff}
+.ub-kpi.is-brand .ub-kpi-l,.ub-kpi.is-brand .ub-kpi-u{color:rgba(255,255,255,.85)}
+.ub-kpi.is-brand .ub-kpi-v{color:#fff}
+.ub-seg-btn[aria-pressed="true"]{background:var(--ub-accent);color:#fff}
+.ub-reset{border-color:var(--ub-accent);color:var(--ub-accent);font-weight:600}
+.ub-sel-grid div{border-radius:12px}
+.ub-sel-grid dd{font-family:var(--font-anthropic-sans);font-weight:800;letter-spacing:-.02em}
+.ub-sel-grid dd b{font-weight:800}
+.ub-sel-t{font-weight:800;letter-spacing:-.01em}
+.ub-map{border-radius:14px}
+.ub-tip{border-radius:12px}
+.ub-table th{background:var(--color-panel)}
+.ub-table tbody tr.sel{background:var(--ub-brand-soft)}
+.ub-btn{border-radius:12px}
