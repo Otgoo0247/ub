@@ -55,14 +55,6 @@
     $('me-link').addEventListener('focus', (e) => e.target.select());
     $('me-copy-code').addEventListener('click', (e) => copy(d.code, e.currentTarget));
     $('me-copy-link').addEventListener('click', (e) => copy(link, e.currentTarget));
-    const first = p.name.split(/\s+/).slice(-1)[0] || p.name;
-    const msg = `Сайн байна уу! ${p.name.charAt(0)}. ${first.charAt(0) + first.slice(1).toLocaleLowerCase('mn')} таныг гишүүнээр элсэхийг урьж байна. Урилгын код: ${d.code}. Холбоос: ${link}`;
-    const share = $('me-share');
-    if (navigator.share) { const b = el('button', 'me-btn', 'Илгээх…'); b.type = 'button'; b.addEventListener('click', () => navigator.share({ title: 'Урилга', text: msg.replace(/ Холбоос: .*$/, ''), url: link }).catch(() => {})); share.append(b); }
-    const sms = el('a', 'me-btn', 'SMS-ээр'); sms.href = `sms:?&body=${encodeURIComponent(msg)}`;
-    const mail = el('a', 'me-btn', 'И-мэйлээр'); mail.href = `mailto:?subject=${encodeURIComponent('Урилга')}&body=${encodeURIComponent(msg)}`;
-    const mb = el('button', 'me-btn', 'Мессеж хуулах'); mb.type = 'button'; mb.addEventListener('click', (e) => copy(msg, e.currentTarget));
-    share.append(sms, mail, mb);
     $('me-invite').hidden = false;
 
     $('me-people-t').textContent = d.storage ? `Миний урилгаар бүртгүүлсэн: ${d.invitees.length} хүн` : 'Миний урилгаар бүртгүүлсэн';
