@@ -45,7 +45,7 @@
     return BASEMAPS[P().base] || null;
   }
   const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const P = () => ({ district: '', khoroo: '', metric: 'dens', level: 'khoroo', base: 'none', ...dash.params() });
+  const P = () => ({ district: '', khoroo: '', metric: 'dens', level: 'khoroo', base: 'none', uni: '1', ...dash.params() });
   const M = () => METRICS[P().metric] || METRICS.dens;
   const ok = (id) => { const d = dash.data(id); return d.status === 'ok' && d.data ? d.data : null; };
 
@@ -200,14 +200,14 @@
         const root = svg.append('g');
         const st = {
           svg, root, host, gT: root.append('g').attr('class', 'ub-tiles'), gK: root.append('g'), gD: root.append('g'), gS: root.append('g'),
-          gL: svg.append('g'), vp: detail ? null : svg.append('rect').attr('class', 'ub-vp'),
+          gP: svg.append('g').attr('class', 'ub-pts'), gL: svg.append('g'), vp: detail ? null : svg.append('rect').attr('class', 'ub-vp'),
           tip: host.append('div').attr('class', 'ub-tip').attr('hidden', true),
           w: 0, h: 0, t: d3.zoomIdentity, scopeKey: null,
         };
         if (detail) {
           st.zoom = d3.zoom().scaleExtent([1, 260])
             .filter((e) => (e.type === 'wheel' ? e.ctrlKey || e.metaKey : e.type === 'touchstart' ? e.touches.length > 1 : !e.button))
-            .on('zoom', (e) => { st.t = e.transform; root.attr('transform', st.t); paintTiles(st); placeLabels(st); publishView(st); });
+            .on('zoom', (e) => { st.t = e.transform; root.attr('transform', st.t); paintTiles(st); placePoints(st); placeLabels(st); publishView(st); });
           svg.call(st.zoom).on('dblclick.zoom', null);
           const bind = (sel, fn) => document.querySelectorAll(sel).forEach((b) => { b.onclick = fn; });
           const dur = () => (reduced() ? 0 : 250);
@@ -272,6 +272,7 @@
         st.gL.selectAll('text').data(labels, (d) => d.kind + d.id).join('text')
           .attr('class', (d) => (d.kind === 'k' ? 'ub-lab k' : 'ub-lab')).text((d) => d.text);
         st.p = p;
+        if (detail) drawPoints(st, el);
 
         if (detail) {
           const key = `${p.district}|${p.khoroo}|${w}|${h}`;
@@ -281,7 +282,7 @@
             const t = scopeTransform(st, g, p, kRows);
             if (first || reduced()) st.svg.call(st.zoom.transform, t);
             else st.svg.transition().duration(450).call(st.zoom.transform, t);
-          } else { paintTiles(st); placeLabels(st); publishView(st); }
+          } else { paintTiles(st); placePoints(st); placeLabels(st); publishView(st); }
         } else { paintTiles(st); placeLabels(st); paintViewport(st); }
       },
     };
@@ -331,6 +332,37 @@
     const dx = Math.max(1, pts[1][0] - pts[0][0]), dy = Math.max(1, pts[1][1] - pts[0][1]);
     const k = Math.min(260, Math.max(1, 0.94 / Math.max(dx / st.w, dy / st.h)));
     return d3.zoomIdentity.translate(st.w / 2 - (k * (pts[0][0] + pts[1][0])) / 2, st.h / 2 - (k * (pts[0][1] + pts[1][1])) / 2).scale(k);
+  }
+
+  /* Их, дээд сургуулийн цэг: дэлгэц дээр тогтмол хэмжээтэй, хилтэй ижил проекцоор байрлана. */
+  function drawPoints(st, el) {
+    const rows = P().uni === '0' ? null : ok('universities');
+    const p = P(), int0 = d3.format(',.0f');
+    const data = (rows || []).map((r) => ({ ...r, px: st.proj([+r.x, +r.y]) }));
+    const g = st.gP.selectAll('g.ub-pt').data(data, (d) => d.id).join((enter) => {
+      const e = enter.append('g').attr('class', 'ub-pt');
+      e.append('circle').attr('class', 'ub-pt-hit').attr('r', 11);
+      e.append('circle').attr('class', 'ub-pt-dot').attr('r', 5.5);
+      return e;
+    });
+    g.classed('is-unknown', (d) => d.known !== '1').classed('is-dim', (d) => !!p.district && d.district !== p.district)
+      .on('pointermove', (e, d) => {
+        const lines = [];
+        if (d.known !== '1' && d.nearest) lines.push(['Ойрын сургууль', d.nearest]);
+        lines.push(['Байршил', `${d.district}, ${d.khoroo}`]);
+        if (d.street) lines.push(['Гудамж', d.street]);
+        if (d.area_m2) lines.push(['Газрын талбай', `${int0(+d.area_m2)} м²`]);
+        if (d.right) lines.push(['Газрын эрх', d.right]);
+        if (d.known === '1') lines.push(['Нэрийн тохирол', `${d.confidence}${d.match_m ? ` (${d.match_m} м)` : ''}`]);
+        showTip(st.tip, el, e, d.known === '1' ? d.name : 'Нэр тодорхойгүй сургалтын газар', lines);
+      })
+      .on('pointerleave', () => st.tip.attr('hidden', true))
+      .on('click', (e, d) => { e.stopPropagation(); dash.setParams({ district: d.district, khoroo: d.khoroo_code }); });
+    placePoints(st);
+  }
+  function placePoints(st) {
+    const t = st.t;
+    st.gP.selectAll('g.ub-pt').attr('transform', (d) => `translate(${t.applyX(d.px[0])},${t.applyY(d.px[1])})`);
   }
 
   function placeLabels(st) {
@@ -620,6 +652,8 @@
   /* ---------- Удирдлага ---------- */
   document.querySelectorAll('#ub-metric').forEach((s) => s.addEventListener('change', () => dash.setParams({ metric: s.value })));
   document.querySelectorAll('#ub-base').forEach((s) => s.addEventListener('change', () => dash.setParams({ base: s.value })));
+  document.querySelectorAll('#ub-uni').forEach((c) => c.addEventListener('change', () => dash.setParams({ uni: c.checked ? '1' : '0' })));
+  dash.draw('uni-count', (el) => { const rows = ok('universities'); el.textContent = rows ? String(rows.length) : '—'; });
   // Будгийн тод байдал: суурь зураг хэр харагдахыг хэрэглэгч өөрөө тохируулна (дахин зурах шаардлагагүй).
   document.querySelectorAll('#ub-op').forEach((r) => {
     const apply = () => document.querySelectorAll('.ub').forEach((u) => { u.style.setProperty('--ub-fill-op', String(r.value / 100)); });
@@ -637,6 +671,7 @@
     const canBase = !!(window.UB_CONFIG && window.UB_CONFIG.basemap && g && g.crs === 'EPSG:3857');
     document.querySelectorAll('.ub-field-base').forEach((f) => { f.hidden = !canBase; });
     document.querySelectorAll('#ub-base').forEach((s) => { s.value = BASEMAPS[p.base] ? p.base : 'none'; });
+    document.querySelectorAll('#ub-uni').forEach((c) => { c.checked = p.uni !== '0'; });
     document.querySelectorAll('.ub-field-op').forEach((f) => { f.hidden = !canBase || !BASEMAPS[p.base]; });
     document.querySelectorAll('.ub-seg-btn').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.level === p.level)));
     document.querySelectorAll('#ub-reset').forEach((b) => { b.hidden = !(p.district || p.khoroo); });

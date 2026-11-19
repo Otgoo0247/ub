@@ -28,11 +28,13 @@ ub-dashboard/
 │       ├── khoroo.csv          # 204 хорооны хүн ам, өрх, талбай, гишүүдийн тоо
 │       ├── members_scope.csv   # Хот, дүүрэг, хорооны гишүүдийн задаргаа (нууцлалтай)
 │       ├── members_monthly.csv # Сар бүрийн шинэ гишүүд
+│       ├── universities.csv    # Их, дээд сургуулийн 40 цэг (нэр, дүүрэг, хороо, газрын талбай)
 │       └── boundaries.json     # Хороо, дүүргийн хялбарчилсан хил (Web Mercator EPSG:3857, метр)
 └── tools/                 # Өгөгдөл бэлтгэх хэрэгсэл (вэбд гарахгүй)
     ├── build_data.py      # shapefile → boundaries.json, khoroo_base.csv
     ├── build_excel.py     # Нэгтгэлийн Excel → khoroo.csv, members_*.csv
     ├── build_members_secure.py # Нэгтгэлийн Excel → private/members.enc (шифртэй нэрс)
+    ├── build_points.py    # Их, дээд сургуулийн цэгэн shapefile → universities.csv
     ├── khoroo_base.csv    # Хорооны код, талбай, хилийн файлын гэр хорооллын хүн ам
     ├── requirements-data.txt
     └── package.json
@@ -128,7 +130,7 @@ Vercel → төсөл → **Settings → Environment Variables** (Production, Pr
 
 ## Гишүүдийн нэрс
 
-Хороо сонгоход «Сонгосон хүрээ» самбарын доод хэсэгт тухайн хорооны гишүүдийн нэр, нас, хүйс, үүр, хөдөлгөөн, анкетын хувь гарна (сайтад нэвтэрсэн хүнд). Регистр, утас, MEMBER_ID огт харагдахгүй. Нэрс `private/members.enc` файлд AES-256-GCM-ээр шифрлэгдсэн; тайлах түлхүүр (`MEMBERS_KEY`) зөвхөн Vercel-д хадгалагдана. Түлхүүрийн файлыг GitHub руу **ХЭЗЭЭ Ч** бүү оруул.
+Газрын зургийн хажууд гишүүдийн нэрс шууд харагдана: юу ч сонгоогүй үед хотын бүх гишүүн, дүүрэг сонгоход тухайн дүүргийнх, хороо сонгоход тухайн хорооных. Нэр, нас, хүйс, үүр, хөдөлгөөн, анкетын хувь гарах ба нэрээр хайж болно (сайтад нэвтэрсэн хүнд). Регистр, утас, MEMBER_ID огт харагдахгүй. Нэрс `private/members.enc` файлд AES-256-GCM-ээр шифрлэгдсэн; тайлах түлхүүр (`MEMBERS_KEY`) зөвхөн Vercel-д хадгалагдана. Түлхүүрийн файлыг GitHub руу **ХЭЗЭЭ Ч** бүү оруул.
 
 ### Нэрсийг шинэчлэх
 
@@ -146,6 +148,12 @@ python build_excel.py --excel /зам/шинэ_нэгтгэл.xlsx            # 
 - **Түлхүүр солих** (алдагдсан гэж сэжиглэвэл): `python build_members_secure.py --excel … --rotate-key` → шинэ `members.key`-г `MEMBERS_KEY`-д хуулж, шинэ `members.enc`-ийг оруулаад Redeploy.
 
 > Репо public хэвээр байвал шифртэй файл түүхэнд үлдэнэ. 256 битийн санамсаргүй түлхүүртэй тул тайлах боломжгүй ч репогоо **Private** болгохыг зөвлөж байна.
+
+## Их, дээд сургуулийн цэг
+
+Газрын зураг дээр цэнхэр цэгээр их, дээд сургууль, коллежийн байршил гарна. Хулгана аваачихад нэр, дүүрэг/хороо, гудамж, газрын талбай, эрхийн төрөл; дарахад тухайн хороо сонгогдоно. Цагаан (хөндий) цэг нь кадастрт нэр нь тодорхойгүй боловсролын газар — хамгийн ойрын сургууль, зайг нь харуулна. Домгийн доорх чагтаар асааж/унтраана (`uni=0`).
+
+Шинэчлэх: `python build_points.py --shp /зам/сургууль.shp` → `public/data/universities.csv`. Нэрийг кадастрын эзэмшигчийн нэр болон Google Maps-ийн байршилтай тулгаж тогтоосон (`confidence`: өндөр/дунд/бага).
 
 ## Суурь зураг
 
@@ -172,9 +180,10 @@ python build_excel.py --excel /зам/шинэ_нэгтгэл.xlsx            # 
 /?district=Хан-Уул&khoroo=HUD_21&metric=pop
 /?level=district&metric=hhsize
 /?district=Сүхбаатар&base=sat
+/?uni=0
 ```
 
-`metric`: `dens`, `pop`, `hh`, `hhsize`, `members`, `mem_rate`, `gerpct` · `base`: `carto`, `osm`, `sat`, `none` · `level`: `khoroo`, `district`.
+`metric`: `dens`, `pop`, `hh`, `hhsize`, `members`, `mem_rate`, `gerpct` · `base`: `carto`, `osm`, `sat`, `none` · `level`: `khoroo`, `district` · `uni`: `1`, `0`.
 
 ## Кодын тухай
 

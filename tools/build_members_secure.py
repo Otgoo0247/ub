@@ -10,7 +10,8 @@ Environment Variables-д MEMBERS_KEY нэрээр хадгална. Түлхүү
 
 Гаралт: ../private/members.enc — AES-256-GCM шифртэй, gzip шахсан JSON:
     {"generated": "...", "khoroo": {"BGD_01": [{"n": нэр, "g": хүйс, "a": нас, "m": хөдөлгөөн,
-     "d": хөдөлгөөний огноо, "u": үүр, "k": анкет %}, ...]}}
+     "d": хөдөлгөөний огноо, "u": үүр, "k": анкет %}, ...]},
+     "meta": {"BGD_01": {"district": "Баянгол", "no": 1, "name": "1-р хороо"}}}
 Регистр, утас, MEMBER_ID, зураг гаралтад ОРОХГҮЙ.
 """
 import argparse, datetime as dt, gzip, json, os, secrets
@@ -61,7 +62,8 @@ def person(r):
 by = {}
 for code, d in g.sort_values(['code', 'Бүтэн нэр']).groupby('code'):
     by[code] = [person(r) for _, r in d.iterrows()]
-payload = {'generated': dt.date.today().isoformat(), 'source': Path(args.excel).name, 'khoroo': by}
+meta = {r.code: {'district': r.district, 'no': int(r.khoroo_no), 'name': r.khoroo} for r in base.itertuples() if r.code in by}
+payload = {'generated': dt.date.today().isoformat(), 'source': Path(args.excel).name, 'khoroo': by, 'meta': meta}
 raw = gzip.compress(json.dumps(payload, ensure_ascii=False, separators=(',', ':')).encode('utf-8'), mtime=0)
 iv = secrets.token_bytes(12)
 ct = AESGCM(key).encrypt(iv, raw, MAGIC)          # ct = шифр + 16 байт tag
