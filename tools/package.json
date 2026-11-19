@@ -1,0 +1,8 @@
+{
+  "name": "ub-dashboard-data-tools",
+  "private": true,
+  "description": "Хилийн өгөгдлийг хялбарчлахад хэрэглэх mapshaper (зөвхөн өгөгдөл бэлтгэхэд).",
+  "devDependencies": {
+    "mapshaper": "^0.8.5"
+  }
+}

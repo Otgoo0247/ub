@@ -1,0 +1,113 @@
+/* Дашбоардын өнгө, үсэг, зайн токенууд. Гэрэл ба харанхуй горимыг системийн тохиргоогоор сонгоно. */
+:root {
+  color-scheme: light;
+  --color-bg: #f7f6f2;
+  --color-panel: #fffefb;
+  --color-fg: #1a1a18;
+  --color-fg-muted: #64635d;
+  --color-border-line: #e3e1d9;
+  --color-ok: #0ca30c;
+  --color-warn: #fab219;
+  --color-bad: #d03b3b;
+
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+
+  --font-anthropic-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --font-anthropic-serif: "Iowan Old Style", "Palatino Linotype", Georgia, "Noto Serif", serif;
+  --cds-font-size-caption: 12px;
+  --cds-font-size-body: 14px;
+  --cds-font-size-heading: 15px;
+  --cds-font-size-title: 28px;
+  --cds-font-weight-medium: 600;
+  --cds-gap-xs: 4px;
+  --cds-gap-sm: 8px;
+  --cds-gap-md: 12px;
+  --cds-gap-lg: 16px;
+  --cds-gap-xl: 24px;
+  --cds-pad-xs: 4px;
+  --cds-pad-sm: 8px;
+  --cds-pad-md: 12px;
+  --cds-pad-lg: 16px;
+  --cds-pad-xl: 24px;
+  --cds-radius: 8px;
+
+  --cds-surface-popover: #ffffff;
+  --cds-border: #e3e1d9;
+  --cds-shadow-popover: 0 6px 18px rgba(20, 20, 18, 0.14);
+  --cds-text-secondary: #52514e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --color-bg: #121211;
+    --color-panel: #1c1c1a;
+    --color-fg: #f0efec;
+    --color-fg-muted: #a9a8a0;
+    --color-border-line: #33332f;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --cds-surface-popover: #262624;
+    --cds-border: #3a3a36;
+    --cds-shadow-popover: 0 6px 18px rgba(0, 0, 0, 0.5);
+    --cds-text-secondary: #c3c2b7;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-anthropic-sans);
+  font-size: var(--cds-font-size-body);
+  line-height: 1.4;
+}
+#dash-root {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: clamp(14px, 3vw, 32px);
+}
+
+.dash-select {
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  font-size: var(--cds-font-size-body);
+  color: var(--color-fg);
+  background-color: var(--color-panel);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5l3 3 3-3' fill='none' stroke='%23888780' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  border: 1px solid var(--color-border-line);
+  border-radius: var(--cds-radius);
+  padding: 7px 30px 7px 10px;
+  min-height: 34px;
+  cursor: pointer;
+}
+.dash-select:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.dash-status {
+  margin: 0 0 var(--cds-gap-lg);
+  padding: var(--cds-pad-sm) var(--cds-pad-md);
+  border: 1px solid var(--color-border-line);
+  border-radius: var(--cds-radius);
+  background: var(--color-panel);
+  color: var(--color-fg-muted);
+  font-size: var(--cds-font-size-caption);
+}
+.dash-status.is-error {
+  color: var(--color-fg);
+  border-color: var(--color-bad);
+}
+.dash-footer {
+  margin-top: var(--cds-gap-xl);
+  font-size: var(--cds-font-size-caption);
+  color: var(--color-fg-muted);
+}

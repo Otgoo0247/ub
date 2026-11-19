@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="mn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Улаанбаатар хотын хүн ам, өрх, гишүүнчлэлийн дашбоард</title>
+  <meta name="description" content="Улаанбаатар хотын 9 дүүрэг, 204 хорооны хүн ам, өрх, нягтрал, гишүүнчлэлийг газрын зураг, графикаар харуулсан дашбоард.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/ub.css">
+  <script src="js/d3.min.js" defer></script>
+  <script src="js/dash-runtime.js" defer></script>
+  <script src="js/config.js" defer></script>
+  <script src="js/app.js" defer></script>
+  <script src="js/members.js" defer></script>
+</head>
+<body>
+  <main id="dash-root">
+    <p class="dash-status" id="dash-status" role="status">Өгөгдөл ачаалж байна…</p>
+    <noscript><p class="dash-status is-error">Энэ дашбоард JavaScript шаарддаг.</p></noscript>
+    <div class="ub" id="ub">
+      <header class="ub-head" id="ub-head">
+        <p class="ub-eyebrow">2026.11.19-ний нэгтгэлээр</p>
+        <h1 class="ub-title">Улаанбаатар хотын хүн ам, өрх, гишүүнчлэлийн дашбоард</h1>
+      </header>
+
+      <div class="ub-filters" id="ub-filters" role="group" aria-label="Шүүлтүүр">
+        <label class="ub-field"><span>Дүүрэг</span>
+          <select class="dash-select" data-draw="sel-district" data-source="district_m" aria-label="Дүүрэг сонгох"></select></label>
+        <label class="ub-field"><span>Хороо</span>
+          <select class="dash-select" data-draw="sel-khoroo" data-source="khoroo_m" aria-label="Хороо сонгох"></select></label>
+        <label class="ub-field ub-field-wide"><span>Үзүүлэлт</span>
+          <select class="dash-select" id="ub-metric" aria-label="Үзүүлэлт сонгох">
+            <option value="dens">Хүн амын нягтрал</option>
+            <option value="pop">Хүн амын тоо</option>
+            <option value="hh">Өрхийн тоо</option>
+            <option value="hhsize">Өрхийн дундаж хэмжээ</option>
+            <option value="members">Гишүүдийн тоо</option>
+            <option value="mem_rate">10 000 хүнд ногдох гишүүн</option>
+            <option value="gerpct">Гэр хорооллын хүн амын хувь (хилийн файл)</option>
+          </select></label>
+        <label class="ub-field ub-field-base" hidden><span>Суурь зураг</span>
+          <select class="dash-select" id="ub-base" aria-label="Суурь зураг сонгох">
+            <option value="carto">Цайвар (CARTO)</option>
+            <option value="osm">OpenStreetMap</option>
+            <option value="sat">Хиймэл дагуул (Esri)</option>
+            <option value="none">Байхгүй</option>
+          </select></label>
+        <div class="ub-field"><span id="ub-level-label">Зургийн түвшин</span>
+          <div class="ub-seg" role="group" aria-labelledby="ub-level-label">
+            <button type="button" class="ub-seg-btn" data-level="khoroo">Хороо</button>
+            <button type="button" class="ub-seg-btn" data-level="district">Дүүрэг</button>
+          </div></div>
+        <button type="button" class="ub-reset" id="ub-reset" hidden>Шүүлтүүр цэвэрлэх</button>
+      </div>
+
+      <section class="ub-kpis" id="ub-kpis" aria-label="Гол үзүүлэлтүүд">
+        <div class="ub-kpi" id="kpi-pop"><span class="ub-kpi-l">Хүн ам</span>
+          <b class="ub-kpi-v" data-draw="sum" data-k="pop" data-f="int" data-source="summary" data-field="pop" data-row="0">—</b><span class="ub-kpi-u">хүн</span></div>
+        <div class="ub-kpi" id="kpi-hh"><span class="ub-kpi-l">Өрх</span>
+          <b class="ub-kpi-v" data-draw="sum" data-k="hh" data-f="int" data-source="summary" data-field="hh" data-row="0">—</b><span class="ub-kpi-u">өрх</span></div>
+        <div class="ub-kpi" id="kpi-dens"><span class="ub-kpi-l">Хүн амын нягтрал</span>
+          <b class="ub-kpi-v" data-draw="sum" data-k="dens" data-f="int" data-source="summary" data-field="dens" data-row="0">—</b><span class="ub-kpi-u">хүн/км²</span></div>
+        <div class="ub-kpi" id="kpi-size"><span class="ub-kpi-l">Өрхийн дундаж хэмжээ</span>
+          <b class="ub-kpi-v" data-draw="sum" data-k="hhsize" data-f="dec2" data-source="summary" data-field="hhsize" data-row="0">—</b><span class="ub-kpi-u">хүн/өрх</span></div>
+        <div class="ub-kpi" id="kpi-mem"><span class="ub-kpi-l">Гишүүд</span>
+          <b class="ub-kpi-v" data-draw="sum" data-k="members" data-f="int" data-source="summary" data-field="members" data-row="0">—</b><span class="ub-kpi-u">гишүүн</span></div>
+        <div class="ub-kpi" id="kpi-rate"><span class="ub-kpi-l">10 000 хүнд ногдох гишүүн</span>
+          <b class="ub-kpi-v" data-draw="sum" data-k="mem_rate" data-f="dec1" data-source="summary" data-field="mem_rate" data-row="0">—</b><span class="ub-kpi-u">гишүүн</span></div>
+      </section>
+
+      <section class="ub-card ub-mapcard" id="ub-map-card">
+        <div class="ub-card-head">
+          <h2 class="ub-h2"><span data-draw="metric-label">—</span></h2>
+          <p class="ub-note">Хороо эсвэл дүүрэг дээр дарж сонгоно. Зургийг чирж зөөнө, Ctrl + хулганы дугуйгаар томруулна.</p>
+        </div>
+        <div class="ub-mapgrid">
+          <figure class="ub-mapfig" id="ub-detail">
+            <figcaption class="ub-mapcap">Томруулсан харагдац</figcaption>
+            <div class="ub-mapbox">
+              <div class="ub-map ub-map-detail" data-draw="map-detail" data-source="boundaries khoroo_m district_m"></div>
+              <div class="ub-attr" data-draw="map-attr"></div>
+              <div class="ub-zoom" role="group" aria-label="Зураг томруулах">
+                <button type="button" id="ub-zi" aria-label="Томруулах">+</button>
+                <button type="button" id="ub-zo" aria-label="Жижигрүүлэх">−</button>
+                <button type="button" id="ub-z0" aria-label="Анхны харагдац руу буцах">⟲</button>
+              </div>
+            </div>
+          </figure>
+          <div class="ub-mapside">
+            <figure class="ub-mapfig" id="ub-overview">
+              <figcaption class="ub-mapcap">Хотын бүх нутаг</figcaption>
+              <div class="ub-map ub-map-over" data-draw="map-over" data-source="boundaries khoroo_m district_m"></div>
+            </figure>
+            <div class="ub-legend" id="ub-legend">
+              <p class="ub-legend-t"><span data-draw="metric-unit">—</span></p>
+              <div class="ub-legend-list" data-draw="legend" data-source="khoroo_m district_m"></div>
+            </div>
+              <section class="ub-sel" id="ub-sel" aria-labelledby="ub-sel-t">
+                <p class="ub-sel-k">Сонгосон хүрээ</p>
+                <h3 class="ub-sel-t" id="ub-sel-t"><span data-draw="scope-name" data-source="summary" data-field="scope" data-row="0">—</span></h3>
+                <p class="ub-sel-hint ub-sel-none">Газрын зураг, график эсвэл хүснэгтээс дүүрэг, хороо дээр дарж сонгоно уу.</p>
+                <dl class="ub-sel-grid">
+                  <div><dt>Гишүүд</dt><dd><b data-draw="sum" data-k="members" data-f="int" data-source="summary" data-field="members" data-row="0">—</b></dd></div>
+                  <div><dt>10 000 хүнд</dt><dd><b data-draw="sum" data-k="mem_rate" data-f="dec1" data-source="summary" data-field="mem_rate" data-row="0">—</b></dd></div>
+                  <div><dt>Хүн ам</dt><dd><b data-draw="sum" data-k="pop" data-f="int" data-source="summary" data-field="pop" data-row="0">—</b></dd></div>
+                  <div><dt>Өрх</dt><dd><b data-draw="sum" data-k="hh" data-f="int" data-source="summary" data-field="hh" data-row="0">—</b></dd></div>
+                </dl>
+                <p class="ub-supp ub-mem-zero" hidden>Энэ хүрээнд бүртгэлтэй гишүүн алга.</p>
+                <p class="ub-supp ub-mem-supp" hidden>Хувь хүнийг таних эрсдэлээс сэргийлж энэ хүрээний хүйс, нас, хөдөлгөөний задаргааг нууцалсан.</p>
+                <div class="ub-mem-detail">
+                  <div class="ub-split">
+                    <p class="ub-split-t">Хүйс</p>
+                    <div class="ub-splitbar" data-draw="split" data-a="malepct" data-source="mem_scope"></div>
+                    <div class="ub-split-v">
+                      <span><i class="ub-swatch ub-c1"></i>Эрэгтэй <b data-draw="sum" data-k="male" data-f="int" data-source="mem_scope" data-field="male" data-row="0">—</b> · <b data-draw="sum" data-k="malepct" data-f="pct" data-source="mem_scope" data-field="malepct" data-row="0">—</b>%</span>
+                      <span><i class="ub-swatch ub-c2"></i>Эмэгтэй <b data-draw="sum" data-k="female" data-f="int" data-source="mem_scope" data-field="female" data-row="0">—</b> · <b data-draw="sum" data-k="femalepct" data-f="pct" data-source="mem_scope" data-field="femalepct" data-row="0">—</b>%</span>
+                    </div>
+                  </div>
+                  <div class="ub-msub">
+                    <p class="ub-split-t">Насны бүлэг</p>
+                    <div class="ub-chart ub-chart-s" data-draw="mem-age" data-source="mem_scope"></div>
+                  </div>
+                  <div class="ub-msub">
+                    <p class="ub-split-t">Хөдөлгөөн</p>
+                    <div class="ub-chart ub-chart-s" data-draw="mem-move" data-source="mem_scope"></div>
+                  </div>
+                  <p class="ub-anket">Анкетын дундаж бөглөлт <b data-draw="sum" data-k="anket_avg" data-f="pct" data-source="mem_scope" data-field="anket_avg" data-row="0">—</b>%,
+                    бүрэн бөглөсөн <b data-draw="sum" data-k="anket_full" data-f="int" data-source="mem_scope" data-field="anket_full" data-row="0">—</b> гишүүн.</p>
+                </div>
+                <div class="ub-sel-kh" hidden>
+                  <p class="ub-split-t">Хороодын гишүүд</p>
+                  <div class="ub-chart ub-chart-s" data-draw="mem-khoroos" data-source="khoroo_m"></div>
+                  <p class="ub-note" data-draw="mem-khoroos-note">—</p>
+                </div>
+                <div class="ub-names" id="ub-names">
+                  <p class="ub-split-t">Гишүүдийн нэрс <span class="ub-lock" title="Нууц үгээр хамгаалсан">🔒</span></p>
+                  <div data-draw="member-list"></div>
+                </div>
+              </section>
+          </div>
+        </div>
+      </section>
+
+      <div class="ub-grid2">
+        <section class="ub-card" id="ub-rank-district">
+          <h2 class="ub-h2">Дүүргийн харьцуулалт</h2>
+          <p class="ub-note"><span data-draw="metric-label">—</span>, <span data-draw="metric-unit">—</span>. Дүүрэг дээр дарж шүүнэ.</p>
+          <div class="ub-chart" data-draw="chart-district" data-source="district_m"></div>
+        </section>
+        <section class="ub-card" id="ub-rank-khoroo">
+          <h2 class="ub-h2">Эхний 10 хороо</h2>
+          <p class="ub-note"><span data-draw="metric-label">—</span>, <span data-draw="metric-unit">—</span>. Хамрах хүрээ: <span data-draw="top-scope">—</span>.</p>
+          <div class="ub-chart" data-draw="chart-top" data-source="khoroo_m"></div>
+        </section>
+      </div>
+
+      <section class="ub-card" id="ub-monthly">
+        <h2 class="ub-h2">Шинээр бүртгэгдсэн гишүүд, сараар</h2>
+        <p class="ub-note">Хот даяар, «Шинэ» төлөвтэй гишүүдийн бүртгэлийн огноогоор.</p>
+        <div class="ub-chart ub-chart-m" data-draw="chart-monthly" data-source="members_monthly"></div>
+      </section>
+
+      <section class="ub-card" id="ub-housing">
+        <h2 class="ub-h2">Хүн амын амьдрах орчин, дүүргээр</h2>
+        <p class="ub-note">Хилийн файлын (2024) мэдээгээр; шинэ нэгтгэлд энэ задаргаа байхгүй. Баруун талын тоо нь гэр хорооллын хүн амын хувь.</p>
+        <div class="ub-keys" aria-hidden="true">
+          <span class="ub-key"><i class="ub-swatch ub-c1"></i>Орон сууцны хороолол</span>
+          <span class="ub-key"><i class="ub-swatch ub-c2"></i>Гэр хороолол</span>
+        </div>
+        <div class="ub-chart ub-chart-h" data-draw="chart-housing" data-source="district_m"></div>
+      </section>
+
+      <section class="ub-card" id="ub-table-card">
+        <div class="ub-table-head">
+          <div>
+            <h2 class="ub-h2">Хорооны жагсаалт</h2>
+            <p class="ub-note"><b data-draw="table-count">—</b> хороо. Баганын нэр дээр дарж эрэмбэлнэ.</p>
+          </div>
+          <label class="ub-search"><span class="ub-vh">Хороо хайх</span>
+            <input type="search" id="ub-q" placeholder="Хороо, дүүрэг хайх" autocomplete="off"></label>
+        </div>
+        <div class="ub-tablewrap">
+          <table class="ub-table" id="ub-table" data-source="khoroo_m" data-row-key="code">
+            <thead><tr>
+              <th scope="col" data-field="district" data-sort="district"><button type="button">Дүүрэг</button></th>
+              <th scope="col" data-field="khoroo" data-sort="khoroo_no"><button type="button">Хороо</button></th>
+              <th scope="col" class="n" data-field="pop" data-sort="pop"><button type="button">Хүн ам</button></th>
+              <th scope="col" class="n" data-field="hh" data-sort="hh"><button type="button">Өрх</button></th>
+              <th scope="col" class="n" data-field="area_km2" data-sort="area_km2"><button type="button">Талбай, км²</button></th>
+              <th scope="col" class="n" data-field="dens" data-sort="dens"><button type="button">Нягтрал, хүн/км²</button></th>
+              <th scope="col" class="n" data-field="hhsize" data-sort="hhsize"><button type="button">Өрхийн хэмжээ</button></th>
+              <th scope="col" class="n" data-field="members" data-sort="members"><button type="button">Гишүүд</button></th>
+              <th scope="col" class="n" data-field="mem_rate" data-sort="mem_rate"><button type="button">10 000 хүнд</button></th>
+              <th scope="col" class="n" data-field="gerpct" data-sort="gerpct"><button type="button">Гэр хороолол, % (2024)</button></th>
+            </tr></thead>
+            <tbody data-draw="table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <details class="ub-notes" id="ub-notes">
+        <summary>Өгөгдөл, тооцооллын тайлбар</summary>
+        <ul>
+          <li><b>Хүн ам, өрх:</b> 2026.11.19_Negtgel.xlsx файлын «Өрх, хүн амын тоо, хороогоор» хуудас.</li>
+          <li><b>Гишүүд:</b> мөн файлын «Гишүүнчлэл» хуудас. Дашбоардад зөвхөн нэгтгэсэн тоо орсон; нэр, регистр, утас зэрэг хувь хүний мэдээлэл ороогүй. Хот, дүүрэг, хороо бүрийн гишүүдийн тоог харуулна. Хүйс, нас, хөдөлгөөний задаргааг 5-аас цөөн гишүүнтэй хүрээнд, мөн дээд хүрээний дүнгээс хасаж тооцоолох боломжтой хүрээнд нууцалсан. Нас нь буруу бүртгэгдсэн (0 эсвэл сөрөг) гишүүдийг «Тодорхойгүй» гэж тооцсон.</li>
+          <li><b>10 000 хүнд ногдох гишүүн</b> = гишүүд ÷ хүн ам × 10 000. <b>Нягтрал</b> = хүн ам ÷ талбай (км²). <b>Өрхийн дундаж хэмжээ</b> = хүн ам ÷ өрх.</li>
+          <li><b>Гэр хорооллын хувь:</b> шинэ нэгтгэлд байхгүй тул 204_Shine_hil_shinechilsen1 хилийн файлын (2024) мэдээгээр тооцсон.</li>
+          <li><b>Суурь зураг:</b> газрын зургийн tile-ийг сонгосон үйлчилгээ (CARTO, OpenStreetMap эсвэл Esri) үзэгчийн хөтөч рүү шууд илгээдэг; эх сурвалжийг зургийн буланд заасан.</li>
+          <li><b>Хил:</b> 9 дүүргийн хилийг хорооны хилээс нэгтгэж гаргасан (Dvvreg_hil_last9 файлд 7 дүүрэг нэг полигон байсан). Баянзүрхийн 10-р, Хан-Уулын 21-р хороо хоёр хэсэгтэй. Талбайг WGS 84 эллипсоид дээр тооцож, зургийн хилийг 15 м-ээр хялбарчилсан.</li>
+        </ul>
+      </details>
+    </div>
+    <footer class="dash-footer">Эх өгөгдөл: 2026.11.19_Negtgel.xlsx (нэгтгэсэн тоо), 204_Shine_hil_shinechilsen1, Dvvreg_hil_last9 shapefile. Дэлгэрэнгүйг дээрх «Өгөгдөл, тооцооллын тайлбар» хэсгээс үзнэ үү.</footer>
+  </main>
+</body>
+</html>
