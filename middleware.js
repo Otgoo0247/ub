@@ -11,7 +11,8 @@ export const config = { matcher: '/:path*', runtime: 'nodejs' };
 const COOKIE = 'ub_session';
 const PUBLIC = [/^\/login\/?$/, /^\/login\.html$/, /^\/api\/auth\/?$/, /^\/css\/(tokens|login)\.css$/, /^\/fonts\//, /^\/favicon\.svg$/, /^\/js\/login\.js$/,
   // Урилгын холбоос — нийтэд нээлттэй (зөвхөн урьсан гишүүний товч нэр, дүүрэг харагдана)
-  /^\/invite\/?$/, /^\/invite\.html$/, /^\/api\/invite\/?$/, /^\/js\/invite\.js$/];
+  /^\/invite\/?$/, /^\/invite\.html$/, /^\/api\/invite\/?$/, /^\/js\/invite\.js$/,
+  /^\/api\/register\/?$/, /^\/js\/invite-address\.json$/];
 const enc = new TextEncoder();
 
 const next = () => new Response(null, { headers: { 'x-middleware-next': '1' } });

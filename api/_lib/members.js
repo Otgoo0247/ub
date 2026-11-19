@@ -23,4 +23,18 @@ function loadMembers() {
   return cache;
 }
 
-module.exports = { loadMembers };
+/* Урилгын кодыг жигдлэнэ: жижиг үсэг, зураас, I/L→1, O→0 (Crockford base32). */
+function normalizeInvite(raw) {
+  return String(raw || '').toUpperCase().replace(/[\s-]/g, '').replace(/[IL]/g, '1').replace(/O/g, '0').replace(/U/g, 'V');
+}
+const INVITE_RE = /^[0-9A-HJKMNP-TV-Z]{10}$/;
+const fmtInvite = (c) => `${c.slice(0, 5)}-${c.slice(5)}`;
+/* «Хишигтогтох НАМЖИЛМАА» → «Х. Намжилмаа» */
+function shortName(full) {
+  const parts = String(full).split(/\s+/).filter(Boolean);
+  const title = (w) => w.charAt(0).toLocaleUpperCase('mn') + w.slice(1).toLocaleLowerCase('mn');
+  if (parts.length < 2) return title(parts[0] || '');
+  return `${parts[0].charAt(0).toLocaleUpperCase('mn')}. ${parts.slice(1).map(title).join(' ')}`;
+}
+
+module.exports = { loadMembers, normalizeInvite, INVITE_RE, fmtInvite, shortName };

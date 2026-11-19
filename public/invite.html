@@ -18,15 +18,50 @@
       <p class="lg-pill">Урилга</p>
       <h1 class="lg-title">Танд <span>урилга</span> ирлээ</h1>
       <p class="lg-lead" id="iv-lead">Урилгыг шалгаж байна…</p>
+      <p class="iv-codeline" id="iv-codeline" hidden>Урилгын код: <b id="iv-code"></b></p>
     </section>
-    <section class="lg-card" id="iv-card" hidden>
-      <h2 class="lg-h2">Урилгын код</h2>
-      <p class="iv-code" id="iv-code"></p>
-      <button type="button" class="iv-copy" id="iv-copy">Кодыг хуулах</button>
-      <a class="lg-btn iv-join" id="iv-join" hidden>Бүртгүүлэх <span aria-hidden="true">→</span></a>
-      <p class="lg-note" id="iv-note">Бүртгүүлэхдээ энэ кодыг «Урилгын код» хэсэгт оруулна уу.</p>
+
+    <form class="lg-card" id="iv-form" novalidate hidden>
+      <h2 class="lg-h2">Бүртгүүлэх</h2>
+      <div class="iv-row">
+        <label class="lg-field"><span>Овог</span>
+          <input type="text" name="last" id="iv-last" autocomplete="family-name" maxlength="40" required></label>
+        <label class="lg-field"><span>Нэр</span>
+          <input type="text" name="first" id="iv-first" autocomplete="given-name" maxlength="40" required></label>
+      </div>
+      <label class="lg-field"><span>Утасны дугаар</span>
+        <input type="tel" name="phone" id="iv-phone" inputmode="numeric" autocomplete="tel-national" placeholder="99112233" maxlength="16" required></label>
+
+      <fieldset class="iv-addr">
+        <legend>Оршин суугаа хаяг</legend>
+        <div class="iv-seg" role="radiogroup" aria-label="Хаягийн төрөл">
+          <label><input type="radio" name="atype" value="city" checked> Улаанбаатар хот</label>
+          <label><input type="radio" name="atype" value="aimag"> Аймаг</label>
+        </div>
+        <div class="iv-row" id="iv-city">
+          <label class="lg-field"><span>Дүүрэг</span><select id="iv-district" required><option value="">Сонгох…</option></select></label>
+          <label class="lg-field"><span>Хороо</span><select id="iv-khoroo" required disabled><option value="">Эхлээд дүүрэг</option></select></label>
+        </div>
+        <div class="iv-row" id="iv-aimag" hidden>
+          <label class="lg-field"><span>Аймаг</span><select id="iv-aimagsel"><option value="">Сонгох…</option></select></label>
+          <label class="lg-field"><span>Сум</span><select id="iv-soum" disabled><option value="">Эхлээд аймаг</option></select></label>
+        </div>
+      </fieldset>
+
+      <label class="iv-consent"><input type="checkbox" id="iv-consent" required>
+        <span>Миний овог нэр, утас, хаягийг гишүүнчлэлийн бүртгэлд ашиглахыг зөвшөөрч байна.</span></label>
+      <label class="iv-hp" aria-hidden="true">Вэбсайт <input type="text" name="website" id="iv-website" tabindex="-1" autocomplete="off"></label>
+      <p class="lg-msg" id="iv-msg" role="alert"></p>
+      <button type="submit" class="lg-btn" id="iv-btn">Бүртгүүлэх <span aria-hidden="true">→</span></button>
+      <p class="lg-note">Таны мэдээлэл шифрлэгдэж хадгалагдах ба зөвхөн бүртгэл хариуцсан хүмүүст харагдана.</p>
+    </form>
+
+    <section class="lg-card iv-done" id="iv-done" hidden>
+      <p class="iv-check" aria-hidden="true">✓</p>
+      <h2 class="lg-h2">Бүртгэл амжилттай</h2>
+      <p class="lg-note iv-done-t" id="iv-done-t">Баярлалаа! Бүртгэл хариуцсан хүн тантай удахгүй холбогдоно.</p>
     </section>
   </main>
-  <noscript><p class="lg-msg">Урилгыг харахад JavaScript шаардлагатай.</p></noscript>
+  <noscript><p class="lg-msg">Бүртгүүлэхэд JavaScript шаардлагатай.</p></noscript>
 </body>
 </html>

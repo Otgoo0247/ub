@@ -97,6 +97,14 @@
     "api/invite.js": {
       "includeFiles": "private/members.enc",
       "maxDuration": 10
+    },
+    "api/register.js": {
+      "includeFiles": "private/members.enc",
+      "maxDuration": 10
+    },
+    "api/registrations.js": {
+      "includeFiles": "private/members.enc",
+      "maxDuration": 10
     }
   }
 }

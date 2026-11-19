@@ -118,7 +118,13 @@
       const mail = el('a', 'ub-mdlg-btn', 'И-мэйлээр'); mail.href = `mailto:?subject=${encodeURIComponent('Урилга')}&body=${encodeURIComponent(msg)}`;
       const mb = el('button', 'ub-mdlg-btn', 'Мессеж хуулах'); mb.type = 'button'; mb.addEventListener('click', () => copy(msg, mb));
       share.append(sms, mail, mb);
-      inv.append(codeRow, linkRow, share, el('p', 'ub-mdlg-hint', 'Холбоосыг нээсэн хүнд зөвхөн урьсан гишүүний товч нэр, дүүрэг, урилгын код харагдана.'));
+      const cnt = el('p', 'ub-mdlg-count'); cnt.hidden = true;
+      inv.append(codeRow, linkRow, share, cnt, el('p', 'ub-mdlg-hint', 'Холбоосыг нээсэн хүн овог нэр, утас, хаягаа бөглөж бүртгүүлнэ. Түүнд зөвхөн урьсан гишүүний товч нэр, дүүрэг харагдана.'));
+      fetch('/api/registrations?counts=1', { credentials: 'same-origin' }).then((r) => (r.ok ? r.json() : null)).then((j) => {
+        if (!j || !j.counts) return;
+        const n = j.counts[m.i.replace('-', '')] || 0;
+        cnt.replaceChildren(document.createTextNode('Энэ урилгаар бүртгүүлсэн: '), el('b', null, `${n} хүн`)); cnt.hidden = false;
+      }).catch(() => {});
     }
     d.replaceChildren(head, dl, inv);
     if (!d.open) d.showModal();
