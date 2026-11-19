@@ -1,6 +1,6 @@
 /*
  * members.js — «Сонгосон хүрээ» самбарт хорооны гишүүдийн нэрсийг харуулна (зөвхөн Vercel хувилбар).
- * Нэрс /api/members-ээс ирнэ; API нь нууц үгээр нэвтэрсэн хүнд л өгөгдөл буцаана.
+ * Нэрс /api/members-ээс ирнэ; сайтад нэвтэрсэн хүнд л өгөгдөл буцаана.
  */
 (function () {
   'use strict';
@@ -22,35 +22,9 @@
     return { status: r.status, data };
   }
 
-  function loginForm(box) {
-    const form = el('form', 'ub-login');
-    const label = el('label', 'ub-login-l');
-    label.append(el('span', null, 'Нэрсийг харахын тулд нууц үгээ оруулна уу'));
-    const input = el('input'); input.type = 'password'; input.autocomplete = 'current-password'; input.required = true; input.name = 'password';
-    label.append(input);
-    const btn = el('button', 'ub-btn', 'Нэвтрэх'); btn.type = 'submit';
-    const msg = el('p', 'ub-login-msg'); msg.setAttribute('role', 'alert');
-    form.append(label, btn, msg);
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      btn.disabled = true; msg.textContent = 'Шалгаж байна…';
-      try {
-        const { status, data } = await api('POST', { action: 'login', password: input.value });
-        if (status === 200) { input.value = ''; cache.clear(); dash.draw('member-list'); return; }
-        msg.textContent = data.error === 'wrong_password' ? 'Нууц үг буруу байна.' : data.error === 'not_configured'
-          ? 'Сервер тохируулагдаагүй байна (MEMBERS_KEY, MEMBERS_PASSWORD).' : 'Нэвтэрч чадсангүй. Дахин оролдоно уу.';
-      } catch { msg.textContent = 'Сервертэй холбогдож чадсангүй.'; }
-      btn.disabled = false; input.focus();
-    });
-    box.replaceChildren(form);
-  }
-
   function table(box, code, res) {
     const head = el('div', 'ub-names-head');
     head.append(el('span', 'ub-names-count', `${res.members.length} гишүүн · ${res.generated}-ны нэгтгэл`));
-    const out = el('button', 'ub-btn ub-btn-ghost', 'Гарах'); out.type = 'button';
-    out.addEventListener('click', async () => { await api('POST', { action: 'logout' }); cache.clear(); dash.draw('member-list'); });
-    head.append(out);
     if (!res.members.length) { box.replaceChildren(head, note('Энэ хороонд бүртгэлтэй гишүүн алга.')); return; }
     const wrap = el('div', 'ub-tablewrap ub-names-wrap');
     const t = el('table', 'ub-table ub-names-table');
@@ -80,8 +54,8 @@
       api('GET', null, `?khoroo=${encodeURIComponent(code)}`).then(({ status, data }) => {
         if (my !== token) return;
         if (status === 200) { cache.set(code, data); table(box, code, data); }
-        else if (status === 401) loginForm(box);
-        else if (status === 503) box.replaceChildren(note('Нэрсийн хэсэг тохируулагдаагүй байна: Vercel дээр MEMBERS_KEY, MEMBERS_PASSWORD-ийг тохируулна уу.'));
+        else if (status === 401) window.location.assign(`/login?next=${encodeURIComponent(location.pathname + location.search)}`);
+        else if (status === 503) box.replaceChildren(note('Нэрсийн хэсэг тохируулагдаагүй байна: Vercel дээр MEMBERS_KEY-г тохируулна уу.'));
         else box.replaceChildren(note('Нэрсийг ачаалж чадсангүй.'));
       }).catch(() => { if (my === token) box.replaceChildren(note('Сервертэй холбогдож чадсангүй.')); });
     },

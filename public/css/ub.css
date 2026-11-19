@@ -191,3 +191,10 @@
 .ub-table th{background:var(--color-panel)}
 .ub-table tbody tr.sel{background:var(--ub-brand-soft)}
 .ub-btn{border-radius:12px}
+.ub-kpis{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media (max-width:1000px){.ub-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:640px){.ub-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ub-head{position:relative}
+.ub-userbar{position:absolute;top:0;right:0;display:flex;align-items:center;gap:10px;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.ub-user:not(:empty)::before{content:"● ";color:var(--ub-accent)}
+@media (max-width:640px){.ub-userbar{position:static;justify-content:flex-end}}
