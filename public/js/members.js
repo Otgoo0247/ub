@@ -274,6 +274,8 @@
     });
   }
   document.querySelectorAll('#ub-election').forEach((b) => b.addEventListener('click', openElection));
+  // party.js («Намын гишүүд») хуваалцан ашиглана
+  window.UBMembers = { fetchScope, openMember, nameCell, note, int };
 
   dash.draw('member-list', {
     mount() { return {}; },

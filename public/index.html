@@ -14,6 +14,8 @@
   <script src="js/config.js" defer></script>
   <script src="js/app.js" defer></script>
   <script src="js/members.js" defer></script>
+  <script src="js/xlsx-lite.js" defer></script>
+  <script src="js/party.js" defer></script>
   <script src="js/session.js" defer></script>
 </head>
 <body>
@@ -57,7 +59,10 @@
             <button type="button" class="ub-seg-btn" data-level="district">Дүүрэг</button>
           </div></div>
         <button type="button" class="ub-reset" id="ub-reset" hidden>Шүүлтүүр цэвэрлэх</button>
-        <button type="button" class="ub-elx-open" id="ub-election" aria-haspopup="dialog">Бүртгэл</button>
+        <div class="ub-actions">
+          <button type="button" class="ub-elx-open is-alt" id="ub-party" aria-haspopup="dialog">Намын гишүүд</button>
+          <button type="button" class="ub-elx-open" id="ub-election" aria-haspopup="dialog">Бүртгэл</button>
+        </div>
       </div>
 
       <section class="ub-kpis" id="ub-kpis" aria-label="Гол үзүүлэлтүүд">

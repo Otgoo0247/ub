@@ -283,11 +283,11 @@
 .ub-more-btn:hover{background:var(--series-1);color:#fff;border-color:var(--series-1)}
 .ub-more-btn:focus-visible{outline:2px solid var(--series-1);outline-offset:2px}
 /* «Бүртгэл» */
-.ub-elx-open{appearance:none;margin-left:auto;align-self:flex-end;display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:14px;font-weight:800;letter-spacing:-.01em;color:#fff;background:var(--series-1);border:0;border-radius:12px;padding:0 18px;min-height:40px;cursor:pointer;box-shadow:0 6px 16px color-mix(in oklab,var(--series-1) 28%,transparent)}
+.ub-elx-open{appearance:none;display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:14px;font-weight:800;letter-spacing:-.01em;color:#fff;background:var(--series-1);border:0;border-radius:12px;padding:0 18px;min-height:40px;cursor:pointer;box-shadow:0 6px 16px color-mix(in oklab,var(--series-1) 28%,transparent)}
 .ub-elx-open::before{content:"";width:8px;height:8px;border-radius:50%;background:#fff}
 .ub-elx-open:hover{filter:brightness(1.06)}
 .ub-elx-open:focus-visible{outline:2px solid var(--color-fg);outline-offset:2px}
-@media (max-width:700px){.ub-elx-open{margin-left:0;width:100%;justify-content:center}}
+@media (max-width:700px){.ub-actions{margin-left:0;width:100%}.ub-actions .ub-elx-open{flex:1;justify-content:center}}
 .ub-elx{width:min(1180px,calc(100vw - 24px));height:min(860px,calc(100vh - 24px));max-height:none;padding:0;border:0;border-radius:20px;background:var(--color-panel);color:var(--color-fg);box-shadow:0 24px 64px rgba(11,12,16,.28);font-family:inherit;overflow:hidden}
 .ub-elx[open]{display:flex;flex-direction:column}
 .ub-elx::backdrop{background:rgba(11,12,16,.45)}
@@ -303,3 +303,21 @@
 .ub-elx-table thead th{position:sticky;top:0;background:var(--color-panel);z-index:1}
 .ub-elx-has{color:var(--series-1);font-weight:800}
 .ub-mdlg-reglist .ub-mdlg-regmeta{grid-column:1/-1;font-size:12.5px}
+.ub-actions{margin-left:auto;align-self:flex-end;display:flex;gap:8px}
+.ub-elx-open.is-alt{background:var(--color-panel);color:var(--series-1);border:1.5px solid var(--series-1);box-shadow:none}
+.ub-elx-open.is-alt::before{background:var(--series-1)}
+.ub-elx-open.is-alt:hover{background:var(--ub-brand-soft,#FDECEC);filter:none}
+.ub-pm-only{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--color-fg);padding-bottom:9px;cursor:pointer}
+.ub-pm-only input{accent-color:var(--series-1);width:16px;height:16px;margin:0}
+.ub-pm-all{margin-left:auto}
+.ub-xl-btn{appearance:none;font:inherit;font-size:12px;font-weight:700;color:#1C7A43;background:color-mix(in oklab,#1C8A4B 10%,var(--color-panel));border:1px solid color-mix(in oklab,#1C8A4B 35%,transparent);border-radius:8px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+.ub-xl-btn::before{content:"⤓ "}
+.ub-xl-btn:hover:not(:disabled){background:#1C8A4B;color:#fff;border-color:#1C8A4B}
+.ub-xl-btn:disabled{opacity:.35;cursor:default}
+.ub-xl-btn.is-big{font-size:13px;padding:9px 14px;border-radius:10px}
+/* Шүүлтүүр + үйлдлийн товчнууд нэг мөрөнд багтах */
+.ub-filters > .ub-field{flex:1 1 140px;min-width:118px;max-width:230px}
+.ub-filters > .ub-field:has(.ub-seg){flex:0 0 auto;min-width:0}
+.ub-actions .ub-elx-open{padding:0 14px;font-size:13.5px;white-space:nowrap}
+.ub-filters > .ub-field-wide{flex-basis:190px;min-width:172px}
+.ub-elx-bar .ub-pm-q{min-height:38px}
