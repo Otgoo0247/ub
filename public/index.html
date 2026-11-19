@@ -96,48 +96,56 @@
             </div>
           </figure>
           <div class="ub-mapside">
-              <section class="ub-sel" id="ub-sel" aria-labelledby="ub-sel-t">
-                <p class="ub-sel-k">Сонгосон хүрээ</p>
-                <h3 class="ub-sel-t" id="ub-sel-t"><span data-draw="scope-name" data-source="summary" data-field="scope" data-row="0">—</span></h3>
-                <p class="ub-sel-hint ub-sel-none">Газрын зураг, график эсвэл хүснэгтээс дүүрэг, хороо дээр дарж сонгоно уу.</p>
-                <dl class="ub-sel-grid">
-                  <div><dt>Гишүүд</dt><dd><b data-draw="sum" data-k="members" data-f="int" data-source="summary" data-field="members" data-row="0">—</b></dd></div>
-                  <div><dt>10 000 хүнд</dt><dd><b data-draw="sum" data-k="mem_rate" data-f="dec1" data-source="summary" data-field="mem_rate" data-row="0">—</b></dd></div>
-                  <div><dt>Хүн ам</dt><dd><b data-draw="sum" data-k="pop" data-f="int" data-source="summary" data-field="pop" data-row="0">—</b></dd></div>
-                  <div><dt>Өрх</dt><dd><b data-draw="sum" data-k="hh" data-f="int" data-source="summary" data-field="hh" data-row="0">—</b></dd></div>
-                </dl>
-                <p class="ub-supp ub-mem-zero" hidden>Энэ хүрээнд бүртгэлтэй гишүүн алга.</p>
-                <p class="ub-supp ub-mem-supp" hidden>Хувь хүнийг таних эрсдэлээс сэргийлж энэ хүрээний хүйс, нас, хөдөлгөөний задаргааг нууцалсан.</p>
-                <div class="ub-mem-detail">
-                  <div class="ub-split">
-                    <p class="ub-split-t">Хүйс</p>
-                    <div class="ub-splitbar" data-draw="split" data-a="malepct" data-source="mem_scope"></div>
-                    <div class="ub-split-v">
-                      <span><i class="ub-swatch ub-c1"></i>Эрэгтэй <b data-draw="sum" data-k="male" data-f="int" data-source="mem_scope" data-field="male" data-row="0">—</b> · <b data-draw="sum" data-k="malepct" data-f="pct" data-source="mem_scope" data-field="malepct" data-row="0">—</b>%</span>
-                      <span><i class="ub-swatch ub-c2"></i>Эмэгтэй <b data-draw="sum" data-k="female" data-f="int" data-source="mem_scope" data-field="female" data-row="0">—</b> · <b data-draw="sum" data-k="femalepct" data-f="pct" data-source="mem_scope" data-field="femalepct" data-row="0">—</b>%</span>
-                    </div>
-                  </div>
-                  <div class="ub-msub">
-                    <p class="ub-split-t">Насны бүлэг</p>
-                    <div class="ub-chart ub-chart-s" data-draw="mem-age" data-source="mem_scope"></div>
-                  </div>
-                  <div class="ub-msub">
-                    <p class="ub-split-t">Хөдөлгөөн</p>
-                    <div class="ub-chart ub-chart-s" data-draw="mem-move" data-source="mem_scope"></div>
-                  </div>
-                  <p class="ub-anket">Анкетын дундаж бөглөлт <b data-draw="sum" data-k="anket_avg" data-f="pct" data-source="mem_scope" data-field="anket_avg" data-row="0">—</b>%,
-                    бүрэн бөглөсөн <b data-draw="sum" data-k="anket_full" data-f="int" data-source="mem_scope" data-field="anket_full" data-row="0">—</b> гишүүн.</p>
+            <section class="ub-names-side" id="ub-names-side" aria-labelledby="ub-names-t">
+              <p class="ub-sel-k">Гишүүдийн нэрс <span class="ub-lock" title="Нэвтэрсэн хэрэглэгчид л харагдана">🔒</span></p>
+              <h3 class="ub-sel-t" id="ub-names-t"><span data-draw="scope-name" data-source="summary" data-field="scope" data-row="0">—</span></h3>
+              <div class="ub-names" id="ub-names">
+                <div data-draw="member-list"></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="ub-card" id="ub-members">
+        <div class="ub-card-head">
+          <h2 class="ub-h2">Гишүүдийн бүтэц</h2>
+          <p class="ub-note"><span data-draw="scope-name" data-source="mem_scope" data-field="scope" data-row="0">—</span>:
+            <b data-draw="sum" data-k="members" data-f="int" data-source="mem_scope" data-field="members" data-row="0">—</b> гишүүн.</p>
+        </div>
+        <p class="ub-supp ub-mem-zero" hidden>Энэ хүрээнд бүртгэлтэй гишүүн алга.</p>
+        <p class="ub-supp ub-mem-supp" hidden>Хувь хүнийг таних эрсдэлээс сэргийлж энэ хүрээний хүйс, нас, хөдөлгөөний задаргааг нууцалсан.</p>
+        <div class="ub-mem-grid">
+          <div class="ub-mem-detail">
+            <div class="ub-mem-col">
+              <div class="ub-split">
+                <p class="ub-split-t">Хүйс</p>
+                <div class="ub-splitbar" data-draw="split" data-a="malepct" data-source="mem_scope"></div>
+                <div class="ub-split-v">
+                  <span><i class="ub-swatch ub-c1"></i>Эрэгтэй <b data-draw="sum" data-k="male" data-f="int" data-source="mem_scope" data-field="male" data-row="0">—</b> · <b data-draw="sum" data-k="malepct" data-f="pct" data-source="mem_scope" data-field="malepct" data-row="0">—</b>%</span>
+                  <span><i class="ub-swatch ub-c2"></i>Эмэгтэй <b data-draw="sum" data-k="female" data-f="int" data-source="mem_scope" data-field="female" data-row="0">—</b> · <b data-draw="sum" data-k="femalepct" data-f="pct" data-source="mem_scope" data-field="femalepct" data-row="0">—</b>%</span>
                 </div>
-                <div class="ub-sel-kh" hidden>
-                  <p class="ub-split-t">Хороодын гишүүд</p>
-                  <div class="ub-chart ub-chart-s" data-draw="mem-khoroos" data-source="khoroo_m"></div>
-                  <p class="ub-note" data-draw="mem-khoroos-note">—</p>
-                </div>
-                <div class="ub-names" id="ub-names">
-                  <p class="ub-split-t">Гишүүдийн нэрс <span class="ub-lock" title="Нууц үгээр хамгаалсан">🔒</span></p>
-                  <div data-draw="member-list"></div>
-                </div>
-              </section>
+              </div>
+              <p class="ub-anket">Анкетын дундаж бөглөлт <b data-draw="sum" data-k="anket_avg" data-f="pct" data-source="mem_scope" data-field="anket_avg" data-row="0">—</b>%,
+                бүрэн бөглөсөн <b data-draw="sum" data-k="anket_full" data-f="int" data-source="mem_scope" data-field="anket_full" data-row="0">—</b> гишүүн.</p>
+            </div>
+            <div class="ub-mem-col">
+              <div class="ub-msub">
+                <p class="ub-split-t">Насны бүлэг</p>
+                <div class="ub-chart ub-chart-s" data-draw="mem-age" data-source="mem_scope"></div>
+              </div>
+            </div>
+            <div class="ub-mem-col">
+              <div class="ub-msub">
+                <p class="ub-split-t">Хөдөлгөөн</p>
+                <div class="ub-chart ub-chart-s" data-draw="mem-move" data-source="mem_scope"></div>
+              </div>
+            </div>
+          </div>
+          <div class="ub-sel-kh" hidden>
+            <p class="ub-split-t">Хороодын гишүүд</p>
+            <div class="ub-chart ub-chart-s" data-draw="mem-khoroos" data-source="khoroo_m"></div>
+            <p class="ub-note" data-draw="mem-khoroos-note">—</p>
           </div>
         </div>
       </section>

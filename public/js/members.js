@@ -7,6 +7,8 @@
   const API = '/api/members';
   const cache = new Map();
   let token = 0;
+  // Нарийн баганад багтаахын тулд урт хөдөлгөөний нэрийг товчилно (бүтэн нэр нь title-д).
+  const SHORT = { 'Намын хороо дотор үүр солигдсон': 'Үүр солигдсон', 'Намын баг/хороо солигдсон': 'Хороо солигдсон', 'Гишүүнчлэл сэргээсэн': 'Сэргээсэн', 'Шилжих хүсэлт илгээсэн': 'Шилжих хүсэлт' };
 
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
   const note = (text) => el('p', 'ub-note ub-names-note', text);
@@ -34,8 +36,8 @@
     const tb = el('tbody');
     res.members.forEach((m, i) => {
       const row = el('tr');
-      [[i + 1, 'n'], [m.n], [m.a == null ? '—' : m.a, 'n'], [m.g], [m.u || '—'], [m.d ? `${m.m} (${m.d})` : m.m], [m.k == null ? '—' : `${m.k}%`, 'n']]
-        .forEach(([v, c]) => row.append(el('td', c || null, String(v))));
+      [[i + 1, 'n'], [m.n], [m.a == null ? '—' : m.a, 'n'], [m.g], [m.u || '—'], [m.d ? `${SHORT[m.m] || m.m} (${m.d})` : (SHORT[m.m] || m.m), null, m.m], [m.k == null ? '—' : `${m.k}%`, 'n']]
+        .forEach(([v, c, full]) => { const td = el('td', c || null, String(v)); if (full && SHORT[full]) td.title = full; row.append(td); });
       tb.append(row);
     });
     t.append(thead, tb); wrap.append(t);
