@@ -13,7 +13,7 @@ const url = () => env('KV_REST_API_URL', 'UPSTASH_REDIS_REST_URL').replace(/\/+$
 const token = () => env('KV_REST_API_TOKEN', 'UPSTASH_REDIS_REST_TOKEN');
 const storeConfigured = () => (/^https:\/\//.test(url()) || /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(url())) && !!token() && /^[0-9a-fA-F]{64}$/.test((process.env.MEMBERS_KEY || '').trim());
 
-const KEYS = { list: 'ubreg:v1:list', phone: 'ubreg:v1:phone:', by: 'ubreg:v1:by', rate: 'ubreg:v1:rl:' };
+const KEYS = { list: 'ubreg:v1:list', phone: 'ubreg:v1:phone:', by: 'ubreg:v1:by', rate: 'ubreg:v1:rl:', code: 'ubreg:v1:code:', login: 'ubreg:v1:rlm:' };
 
 function subKey(label) {
   return crypto.createHmac('sha256', Buffer.from((process.env.MEMBERS_KEY || '').trim(), 'hex')).update(label).digest();
@@ -46,4 +46,18 @@ async function pipeline(cmds) {
   return out.map((x) => x.result);
 }
 
-module.exports = { storeConfigured, pipeline, seal, open, phoneKey, KEYS };
+/* Бүртгүүлэгчийн өөрийн урилгын кодоор бичлэгийг авна (код: жигдэлсэн 10 тэмдэгт). */
+async function registrantByCode(c) {
+  if (!storeConfigured()) return null;
+  const [raw] = await pipeline([['GET', KEYS.code + c]]);
+  return raw ? open(raw) : null;
+}
+const CROCKFORD = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+function randomCode() {
+  const b = crypto.randomBytes(10);
+  let out = '';
+  for (let i = 0; i < 10; i += 1) out += CROCKFORD[b[i] & 31];
+  return out;
+}
+
+module.exports = { storeConfigured, pipeline, seal, open, phoneKey, KEYS, registrantByCode, randomCode };

@@ -37,4 +37,16 @@ function shortName(full) {
   return `${parts[0].charAt(0).toLocaleUpperCase('mn')}. ${parts.slice(1).map(title).join(' ')}`;
 }
 
-module.exports = { loadMembers, normalizeInvite, INVITE_RE, fmtInvite, shortName };
+/* Утасны дугаарыг 8 оронтой болгож жигдлэнэ (+976, зай, зураас хасна). Буруу бол null. */
+function phoneOf(raw) {
+  let d = String(raw || '').replace(/[\s()-]/g, '');
+  if (d.startsWith('+976')) d = d.slice(4); else if (d.startsWith('976') && d.length === 11) d = d.slice(3);
+  return /^[5-9]\d{7}$/.test(d) ? d : null;
+}
+/* members.enc доторх "ph"-тэй ижил: HMAC(HMAC(MEMBERS_KEY, 'ubdash-member-phone-v1'), дугаар) */
+function memberPhoneHash(phone) {
+  const key = crypto.createHmac('sha256', Buffer.from((process.env.MEMBERS_KEY || '').trim(), 'hex')).update('ubdash-member-phone-v1').digest();
+  return crypto.createHmac('sha256', key).update(phone).digest('hex').slice(0, 32);
+}
+
+module.exports = { loadMembers, normalizeInvite, INVITE_RE, fmtInvite, shortName, phoneOf, memberPhoneHash };

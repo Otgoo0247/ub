@@ -46,3 +46,10 @@
 .iv-gender .iv-seg{min-height:46px}
 .lg-field input[type=date]{min-height:46px;width:100%}
 .iv-seg[aria-invalid="true"]{border-color:var(--series-1);outline:2px solid color-mix(in oklab,var(--series-1) 35%,transparent)}
+/* Нэвтрэх табууд */
+.lg-card > .lg-pane{display:flex;flex-direction:column;gap:14px}
+.lg-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--color-bg);border:1px solid var(--color-border-line);border-radius:14px;padding:4px;margin-bottom:6px}
+.lg-tab{appearance:none;border:0;background:transparent;font:inherit;font-size:14px;font-weight:700;color:var(--color-fg-muted);border-radius:10px;padding:10px 8px;min-height:42px;cursor:pointer}
+.lg-tab[aria-selected="true"]{background:var(--series-1);color:#fff;box-shadow:0 4px 12px color-mix(in oklab,var(--series-1) 25%,transparent)}
+.lg-tab:focus-visible{outline:2px solid var(--color-fg);outline-offset:2px}
+#lg-code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.08em;font-weight:700}

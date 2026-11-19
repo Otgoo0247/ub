@@ -87,6 +87,23 @@
           "value": "no-referrer"
         }
       ]
+    },
+    {
+      "source": "/me",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        }
+      ]
     }
   ],
   "functions": {
@@ -103,6 +120,10 @@
       "maxDuration": 10
     },
     "api/registrations.js": {
+      "includeFiles": "private/members.enc",
+      "maxDuration": 10
+    },
+    "api/me.js": {
       "includeFiles": "private/members.enc",
       "maxDuration": 10
     }

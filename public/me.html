@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="mn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="light dark">
+  <title>Миний бүртгэл</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/me.css">
+  <script src="/js/me.js" defer></script>
+</head>
+<body>
+  <main class="me">
+    <header class="me-top">
+      <p class="me-pill">Гишүүний хуудас</p>
+      <button type="button" class="me-ghost" id="me-logout" hidden>Гарах</button>
+    </header>
+    <p class="me-welcome" id="me-welcome" role="status" hidden></p>
+    <p class="me-note" id="me-status">Ачаалж байна…</p>
+
+    <section class="me-card" id="me-profile" hidden>
+      <p class="me-eyebrow">Миний мэдээлэл</p>
+      <h1 class="me-name" id="me-name"></h1>
+      <p class="me-sub" id="me-sub"></p>
+      <dl class="me-dl" id="me-dl"></dl>
+    </section>
+
+    <section class="me-card me-inv" id="me-invite" hidden>
+      <h2 class="me-h2">Миний урилгын код</h2>
+      <div class="me-row">
+        <output class="me-code" id="me-code"></output>
+        <button type="button" class="me-btn" id="me-copy-code">Код хуулах</button>
+      </div>
+      <div class="me-row">
+        <input class="me-link" id="me-link" type="text" readonly aria-label="Урилгын холбоос">
+        <button type="button" class="me-btn is-brand" id="me-copy-link">Холбоос хуулах</button>
+      </div>
+      <div class="me-share" id="me-share"></div>
+      <p class="me-hint">Энэ холбоосоор бүртгүүлсэн хүн таны урилгаар бүртгэгдэж, доорх жагсаалтад гарна. Дахин нэвтрэхдээ «Гишүүнээр нэвтрэх» хэсэгт урилгын код, утасны дугаараа оруулна.</p>
+    </section>
+
+    <section class="me-card" id="me-people" hidden>
+      <h2 class="me-h2" id="me-people-t"></h2>
+      <ul class="me-list" id="me-list"></ul>
+    </section>
+  </main>
+</body>
+</html>

@@ -81,10 +81,15 @@
         c: code, last: $('iv-last').value.trim(), first: $('iv-first').value.trim(), dob: $('iv-dob').value, gender: gender(), phone: $('iv-phone').value, consent: true, website: $('iv-website').value,
         addr: atype() === 'city' ? { type: 'city', district: dist.value, khoroo: kh.value } : { type: 'aimag', aimag: aim.value, soum: soum.value },
       };
-      fetch('/api/register', { method: 'POST', credentials: 'omit', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      fetch('/api/register', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
         .then(async (r) => ({ status: r.status, d: await r.json().catch(() => ({})) }))
         .then(({ status, d }) => {
-          if (status === 201 || status === 200) { form.hidden = true; $('iv-done').hidden = false; $('iv-done').querySelector('h2').focus?.(); return; }
+          if (status === 201 || status === 200) {
+            form.hidden = true; $('iv-done').hidden = false;
+            $('iv-done-t').textContent = d.code ? `Таны урилгын код: ${d.code}. Өөрийн хуудас руу шилжиж байна…` : 'Баярлалаа!';
+            if (d.code) setTimeout(() => location.assign('/me?welcome=1'), 1500);
+            return;
+          }
           const t = {
             409: 'Энэ утасны дугаараар аль хэдийн бүртгүүлсэн байна.',
             429: d.error === 'invite_full' ? 'Энэ урилгын кодоор бүртгэх дээд хязгаарт хүрсэн байна.' : 'Хэт олон оролдлого хийлээ. Түр хүлээгээд дахин оролдоно уу.',

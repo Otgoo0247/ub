@@ -25,7 +25,43 @@
       msg.textContent = `Сервер тохируулагдаагүй: ${list.join('; ') || 'AUTH_USERNAME, AUTH_PASSWORD'}. Vercel дээр засаад Redeploy хийнэ үү.`;
     }
   }).catch(() => {});
-  user.focus();
+
+  /* ---------- Табууд: «Гишүүнээр нэвтрэх» | «Нэвтрэх» (админ) ---------- */
+  const tabs = { member: [document.getElementById('tab-member'), document.getElementById('lg-mform')], admin: [document.getElementById('tab-admin'), form] };
+  function show(which, focus) {
+    Object.entries(tabs).forEach(([k, [t, pane]]) => { const on = k === which; t.setAttribute('aria-selected', String(on)); t.tabIndex = on ? 0 : -1; pane.hidden = !on; });
+    try { localStorage.setItem('ub-login-tab', which); } catch (e) { /* */ }
+    if (focus) (which === 'admin' ? user : document.getElementById('lg-code')).focus();
+  }
+  Object.entries(tabs).forEach(([k, [t]]) => t.addEventListener('click', () => show(k, true)));
+  document.querySelector('.lg-tabs').addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { const next = tabs.member[0].getAttribute('aria-selected') === 'true' ? 'admin' : 'member'; show(next, false); tabs[next][0].focus(); }
+  });
+  const qs = new URLSearchParams(location.search);
+  let saved = null; try { saved = localStorage.getItem('ub-login-tab'); } catch (e) { /* */ }
+  show(qs.get('as') === 'member' ? 'member' : qs.get('next') ? 'admin' : saved === 'admin' ? 'admin' : 'member', true);
+
+  /* ---------- Гишүүнээр нэвтрэх: урилгын код + утас → /me ---------- */
+  const mform = document.getElementById('lg-mform'), code = document.getElementById('lg-code'), phone = document.getElementById('lg-phone');
+  const mbtn = document.getElementById('lg-mbtn'), mmsg = document.getElementById('lg-mmsg');
+  code.addEventListener('input', () => { const p = code.selectionStart; code.value = code.value.toUpperCase(); code.setSelectionRange(p, p); });
+  fetch('/api/me', { credentials: 'same-origin' }).then((r) => (r.ok ? r.json() : {})).then((d) => { if (d.authenticated && qs.get('as') !== 'member' && !qs.get('next')) location.replace('/me'); }).catch(() => {});
+  mform.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const c = code.value.replace(/[\s-]/g, '');
+    if (c.length !== 10) { mmsg.textContent = 'Урилгын код 10 тэмдэгт (жишээ нь 7KQ2M-X9D4P) байна.'; code.focus(); return; }
+    if (!/^(\+?976)?[5-9]\d{7}$/.test(phone.value.replace(/[\s-]/g, ''))) { mmsg.textContent = 'Утасны дугаараа 8 оронтойгоор оруулна уу.'; phone.focus(); return; }
+    mbtn.disabled = true; mmsg.textContent = '';
+    try {
+      const r = await fetch('/api/me', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'login', code: code.value, phone: phone.value }) });
+      if (r.ok) { location.replace('/me'); return; }
+      const d = await r.json().catch(() => ({}));
+      mmsg.textContent = r.status === 401 ? 'Урилгын код эсвэл утасны дугаар таарахгүй байна.'
+        : r.status === 429 ? 'Хэт олон оролдлого хийлээ. Нэг цагийн дараа дахин оролдоно уу.'
+        : r.status === 503 ? 'Сервер тохируулагдаагүй байна.' : `Нэвтэрч чадсангүй (${d.error || r.status}).`;
+    } catch (err) { mmsg.textContent = 'Сервертэй холбогдож чадсангүй.'; }
+    mbtn.disabled = false;
+  });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
