@@ -7,7 +7,7 @@
  *   GET хариунд admin:{user}|null, member:{user,kind}|null — хоёр сешн зэрэг байж болно
  */
 const { config, problems, sessionUser, setSession, clearSession, sameText, send, readJson } = require('./_lib/session');
-const { memberCode, clearMember } = require('./_lib/membersession');
+const { memberSession, clearMember } = require('./_lib/membersession');
 const { findByCode, fullName } = require('./_lib/people');
 const { shortName } = require('./_lib/members');
 
@@ -20,9 +20,9 @@ module.exports = async function handler(req, res) {
     // Админ, гишүүний сешн тус тусдаа — зэрэг нэвтэрсэн байж болно
     const body = { configured: !!cfg, admin: user ? { user } : null, member: null };
     if (!cfg) body.problems = problems();
-    const c = memberCode(req);
-    if (c) {
-      const p = await findByCode(c).catch(() => null);
+    const ms = memberSession(req);
+    if (ms) {
+      const p = await findByCode(ms.code).catch(() => null);
       if (p) body.member = { user: shortName(fullName(p)), kind: p.kind };
       else clearMember(req, res);
     }

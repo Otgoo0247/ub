@@ -19,6 +19,7 @@
       status.replaceChildren(document.createTextNode('Ирцийг гишүүд өөрийн кодоор нэвтэрч бүртгүүлнэ. Ирцийн бүртгэлийг '), Object.assign(el('a', null, 'админ хэсгийн «Ирц» табаас'), { href: '/admin#irts' }), document.createTextNode(' харна.'));
       return;
     }
+    if (s.member.kind === 'registrant') { location.replace('/me'); return; }
     st.user = s.member.user || '';
     $('ir-who').textContent = st.user;
     load();

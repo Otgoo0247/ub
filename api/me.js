@@ -1,8 +1,9 @@
 /*
  * /api/me — гишүүний нэвтрэлт (/login — нэвтрэх нэр + нууц үг) ба өөрийн хуудас (/me).
- * Намын гишүүд (members.enc) болон урилгаар бүртгүүлэгчид аль аль нь нэвтэрнэ. Эрхийг админ /admin → «Нэвтрэх эрх»-өөс
- * үүсгэнэ; бүртгүүлэгчид бүртгүүлмэгц автоматаар олгогдоно (api/_lib/creds.js).
- *   POST {action:'login', username, password} → ub_member күүки (7 хоног) — дашбоардын статистик, /me, ирц, зарлал
+ * Намын гишүүдийн нэвтрэх эрхийг админ /admin → «Нэвтрэх эрх»-өөс үүсгэнэ (api/_lib/creds.js).
+ * АНХААР: бүртгүүлэгчийн урилгын код түүний урилгын холбоосонд ил явдаг тул холбоос авсан хүн түүний хуудсыг нээж чадна.
+ *   POST {action:'login', username, password} → НАМЫН ГИШҮҮН: ub_member күүки (7 хоног) — дашбоардын статистик, /me, ирц, зарлал
+ *   POST {action:'login', code}               → УРИЛГААР БҮРТГҮҮЛЭГЧ өөрийн урилгын кодоор: зөвхөн өөрийн хуудас (/me)
  *   POST {action:'logout'}                    → зөвхөн гишүүний сешнийг хаана (админых хэвээр)
  *   GET  → {authenticated:false} эсвэл өөрийн мэдээлэл, нэвтрэх эрх, өөрийн урилгаар бүртгүүлсэн хүмүүс
  * IP тутамд цагт 20, нэг нэвтрэх нэрд цагт 10 оролдлого; буруу бол 1.2 сек хүлээлгэнэ.
@@ -28,15 +29,23 @@ async function login(req, res) {
   if (!storeConfigured()) return send(res, 503, { error: 'storage_not_configured' });
   try {
     const hour = Math.floor(Date.now() / 3600000);
-    const k = `${KEYS.login}${hour}:${ipOf(req)}`, ku = `${KEYS.login}u:${hour}:${u.slice(0, 20)}`;
+    const who = b.code != null ? `c:${normalizeInvite(b.code).slice(0, 12)}` : `u:${u.slice(0, 20)}`;
+    const k = `${KEYS.login}${hour}:${ipOf(req)}`, ku = `${KEYS.login}${hour}:${who}`;
     const [n, , nu] = await pipeline([['INCR', k], ['EXPIRE', k, '3600'], ['INCR', ku], ['EXPIRE', ku, '3600']]);
     if (n > PER_IP_HOUR || nu > 10) return send(res, 429, { error: 'rate_limited' });
   } catch (e) { /* сан түр алдаатай бол хязгааргүйгээр үргэлжилнэ */ }
-  const c = await verify(u, b.password).catch(() => null);
-  const p = c ? await findByCode(c).catch(() => null) : null;
+  let c = null, p = null;
+  if (b.code != null) {
+    // Урилгаар бүртгүүлэгч — өөрийн урилгын кодоор
+    const cc = normalizeInvite(b.code);
+    if (INVITE_RE.test(cc)) { const x = await findByCode(cc).catch(() => null); if (x && x.kind === 'registrant') { c = cc; p = x; } }
+  } else {
+    c = await verify(u, b.password).catch(() => null);
+    p = c ? await findByCode(c).catch(() => null) : null;
+  }
   if (!p) { await sleep(1200); return send(res, 401, { error: 'wrong_credentials' }); }
-  setMember(req, res, c);
-  return send(res, 200, { ok: true });
+  setMember(req, res, c, p.kind);
+  return send(res, 200, { ok: true, kind: p.kind });
 }
 
 const age = (dob) => { if (!dob) return null; const d = new Date(`${dob}T00:00:00Z`), n = new Date(); let a = n.getUTCFullYear() - d.getUTCFullYear(); if (n.getUTCMonth() < d.getUTCMonth() || (n.getUTCMonth() === d.getUTCMonth() && n.getUTCDate() < d.getUTCDate())) a -= 1; return a; };
@@ -83,7 +92,7 @@ async function me(req, res) {
   }
   // Өөрийн нэвтрэх эрх (байхгүй бол одоо үүсгэнэ)
   let cred = null;
-  try { const x = await ensureCred(c, givenOf(p)); if (x) cred = { username: x.u, password: x.pw }; } catch (e) { /* */ }
+  if (p.kind === 'member') { try { const x = await ensureCred(c, givenOf(p)); if (x) cred = { username: x.u, password: x.pw }; } catch (e) { /* */ } }
   // Facebook групп — урилгаар бүртгүүлэгчдийн хуудсанд
   let group = null;
   if (p.kind === 'registrant') { try { const g = await readGroup(); if (g.fbUrl) group = g; } catch (e) { /* */ } }

@@ -2,7 +2,8 @@
  * Vercel Routing Middleware — бүх хүсэлтийг файл руу хүрэхээс өмнө шалгана.
  *   • Нийтэд нээлттэй (PUBLIC): нэвтрэх хуудсууд (/login — гишүүн, /admin-login — админ), урилга, /me, тэдгээрийн CSS/JS.
  *   • Зөвхөн админ (ADMIN_ONLY): /admin, нэрсийн /api/members, бүртгэлийн /api/registrations → /admin-login.
- *   • Бусад (дашбоард, data/*.csv, js): админ ЭСВЭЛ гишүүний (ub_member, урилгын кодоор) сешн → эс бөгөөс /login.
+ *   • Бусад (дашбоард, data/*.csv, /irts, js): админ ЭСВЭЛ намын гишүүний сешн → эс бөгөөс /login.
+ *     Урилгаар бүртгүүлэгч (ub_member төрөл r) зөвхөн /me (PUBLIC) — бусад хуудсаас /me руу шилжинэ.
  * Тохиргоо дутуу бол хаалттай хэвээр үлдэнэ (fail closed).
  *
  * Environment Variables: AUTH_USERNAME, AUTH_PASSWORD (12+ тэмдэгт), MEMBERS_KEY.
@@ -52,23 +53,24 @@ async function sessionUser(request) {
   return diff === 0 ? u : null;
 }
 
-/* Гишүүний сешн: ub_member = v1.<код>.<дуусах>.<HMAC(HMAC(MEMBERS_KEY,'ubdash-member-session-v1'), 'v1.код.дуусах')> */
-async function memberOk(request) {
+/* Гишүүний сешн: ub_member = v2.<код>.<m|r>.<дуусах>.<HMAC(HMAC(MEMBERS_KEY,'ubdash-member-session-v1'), 'v2.код.төрөл.дуусах')>
+ * Буцаах: 'm' (намын гишүүн), 'r' (урилгаар бүртгүүлэгч) эсвэл null */
+async function memberKind(request) {
   const hex = (process.env.MEMBERS_KEY || '').trim();
-  if (!/^[0-9a-fA-F]{64}$/.test(hex)) return false;
+  if (!/^[0-9a-fA-F]{64}$/.test(hex)) return null;
   const raw = request.headers.get('cookie') || '';
   const part = raw.split(/;\s*/).find((c) => c.startsWith(`${MCOOKIE}=`));
-  const [v, code, exp, mac] = (part ? decodeURIComponent(part.slice(MCOOKIE.length + 1)) : '').split('.');
-  if (v !== 'v1' || !/^[0-9A-HJKMNP-TV-Z]{10}$/.test(code || '') || !/^\d+$/.test(exp || '') || Number(exp) < Date.now() / 1000 || !mac) return false;
+  const [v, code, kind, exp, mac] = (part ? decodeURIComponent(part.slice(MCOOKIE.length + 1)) : '').split('.');
+  if (v !== 'v2' || !/^[0-9A-HJKMNP-TV-Z]{10}$/.test(code || '') || !/^[mr]$/.test(kind || '') || !/^\d+$/.test(exp || '') || Number(exp) < Date.now() / 1000 || !mac) return null;
   const bytes = new Uint8Array(hex.match(/../g).map((h) => parseInt(h, 16)));
   const k0 = await crypto.subtle.importKey('raw', bytes, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
   const seed = await crypto.subtle.sign('HMAC', k0, enc.encode('ubdash-member-session-v1'));
   const k1 = await crypto.subtle.importKey('raw', seed, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-  const want = b64url(await crypto.subtle.sign('HMAC', k1, enc.encode(`v1.${code}.${exp}`)));
-  if (want.length !== mac.length) return false;
+  const want = b64url(await crypto.subtle.sign('HMAC', k1, enc.encode(`v2.${code}.${kind}.${exp}`)));
+  if (want.length !== mac.length) return null;
   let diff = 0;
   for (let i = 0; i < want.length; i += 1) diff |= want.charCodeAt(i) ^ mac.charCodeAt(i);
-  return diff === 0;
+  return diff === 0 ? kind : null;
 }
 
 export default async function middleware(request) {
@@ -76,9 +78,15 @@ export default async function middleware(request) {
   if (PUBLIC.some((r) => r.test(url.pathname))) return next();
   if (await sessionUser(request)) return next();
   const adminOnly = ADMIN_ONLY.some((r) => r.test(url.pathname));
-  if (!adminOnly && await memberOk(request)) return next();
-
+  const kind = adminOnly ? null : await memberKind(request);
+  if (kind === 'm') return next();
   const wantsPage = request.method === 'GET' && (request.headers.get('accept') || '').includes('text/html');
+  // Урилгаар бүртгүүлэгч зөвхөн өөрийн хуудсаа (/me) харна
+  if (kind === 'r') {
+    if (wantsPage) return new Response(null, { status: 302, headers: { Location: '/me', 'Cache-Control': 'no-store' } });
+    return new Response(JSON.stringify({ error: 'members_only' }), { status: 403, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
+  }
+
   if (wantsPage) {
     const to = new URL(adminOnly ? '/admin-login' : '/login', url);
     const back = url.pathname + url.search;

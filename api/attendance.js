@@ -16,7 +16,7 @@
  */
 const crypto = require('crypto');
 const { sessionUser, send, readJson } = require('./_lib/session');
-const { memberCode } = require('./_lib/membersession');
+const { memberSession } = require('./_lib/membersession');
 const { storeConfigured, pipeline, seal, open } = require('./_lib/store');
 const { findByCode, fullName } = require('./_lib/people');
 const { fmtInvite } = require('./_lib/members');
@@ -130,8 +130,9 @@ async function adminDelete(req, res) {
 module.exports = async function handler(req, res) {
   // Админ, гишүүний сешн зэрэг байж болно: ирц бүртгэх нь ГИШҮҮНИЙ сешнээр, бүртгэл харах/устгах нь АДМИНЫ сешнээр
   const admin = sessionUser(req);
-  const c = memberCode(req);
-  if (!admin && !c) return send(res, 401, { error: 'login_required' });
+  const ms = memberSession(req);
+  const c = ms && ms.kind === 'member' ? ms.code : null; // ирцийг зөвхөн намын гишүүд бүртгүүлнэ
+  if (!admin && !c) return send(res, ms ? 403 : 401, { error: ms ? 'members_only' : 'login_required' });
   if (!storeConfigured()) return send(res, 503, { error: 'storage_not_configured' });
   const q = new URL(req.url, 'http://x').searchParams;
   try {

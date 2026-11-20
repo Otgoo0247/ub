@@ -7,9 +7,9 @@
   <meta name="color-scheme" content="light dark">
   <title>Нэвтрэх · Улаанбаатар хотын дашбоард</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/tokens.css?v=20261120-4">
-  <link rel="stylesheet" href="css/login.css?v=20261120-4">
-  <script src="js/login.js?v=20261120-4" defer></script>
+  <link rel="stylesheet" href="css/tokens.css?v=20261120-5">
+  <link rel="stylesheet" href="css/login.css?v=20261120-5">
+  <script src="js/login.js?v=20261120-5" defer></script>
 </head>
 <body data-login="member">
   <main class="lg">
@@ -18,15 +18,25 @@
       <h1 class="lg-title">Хүн ам, гишүүнчлэлийн <span>дашбоард</span></h1>
     </section>
     <div class="lg-card">
-      <h2 class="lg-h2">Гишүүнээр нэвтрэх</h2>
-      <form class="lg-pane" id="lg-mform" novalidate>
+      <div class="lg-tabs" role="tablist" aria-label="Нэвтрэх төрөл">
+        <button type="button" role="tab" class="lg-tab" id="tab-member" aria-controls="lg-mform" aria-selected="true">Намын гишүүн</button>
+        <button type="button" role="tab" class="lg-tab" id="tab-code" aria-controls="lg-cform" aria-selected="false">Урилгаар бүртгүүлсэн</button>
+      </div>
+      <form class="lg-pane" id="lg-mform" role="tabpanel" aria-labelledby="tab-member" novalidate>
         <label class="lg-field"><span>Нэвтрэх нэр</span>
           <input type="text" name="username" id="lg-muser" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="24" placeholder="жишээ нь: amarzayaa482" required></label>
         <label class="lg-field"><span>Нууц үг</span>
           <input type="password" name="password" id="lg-mpass" autocomplete="current-password" maxlength="32" required></label>
         <p class="lg-msg" id="lg-mmsg" role="alert"></p>
         <button type="submit" class="lg-btn" id="lg-mbtn">Нэвтрэх <span aria-hidden="true">→</span></button>
-        <p class="lg-note">Нэвтрэх нэр, нууц үгээ мэдэхгүй бол хариуцсан админдаа хандана уу. Урилгаар бүртгүүлсэн бол «Миний мэдээлэл» хуудсандаа харагдана.</p>
+        <p class="lg-note">Нэвтрэх нэр, нууц үгээ мэдэхгүй бол хариуцсан админдаа хандана уу.</p>
+      </form>
+      <form class="lg-pane" id="lg-cform" role="tabpanel" aria-labelledby="tab-code" novalidate hidden>
+        <label class="lg-field"><span>Урилгын код</span>
+          <input type="text" name="code" id="lg-code" class="lg-code" placeholder="XXXXX-XXXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="14" required></label>
+        <p class="lg-msg" id="lg-cmsg" role="alert"></p>
+        <button type="submit" class="lg-btn" id="lg-cbtn">Нэвтрэх <span aria-hidden="true">→</span></button>
+        <p class="lg-note">Бүртгүүлэх үед танд олгогдсон өөрийн урилгын кодыг (жишээ нь 7KQ2M-X9D4P) оруулна уу. Энэ нь «Миний мэдээлэл» хуудсанд тань харагддаг.</p>
       </form>
     </div>
   </main>

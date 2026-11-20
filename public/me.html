@@ -9,19 +9,19 @@
   <title>Миний бүртгэл</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/css/tokens.css?v=20261119-4">
-  <link rel="stylesheet" href="/css/me.css?v=20261120-10">
+  <link rel="stylesheet" href="/css/me.css?v=20261120-11">
   <link rel="stylesheet" href="/css/tree.css?v=20261120-5">
-  <link rel="stylesheet" href="/css/ann.css?v=20261120-10">
+  <link rel="stylesheet" href="/css/ann.css?v=20261120-11">
   <script src="/js/d3.min.js?v=20261120-5" defer></script>
   <script src="/js/tree.js?v=20261120-5" defer></script>
-  <script src="/js/ann.js?v=20261120-10" defer></script>
-  <script src="/js/me.js?v=20261120-10" defer></script>
+  <script src="/js/ann.js?v=20261120-11" defer></script>
+  <script src="/js/me.js?v=20261120-11" defer></script>
 </head>
 <body>
   <main class="me">
     <header class="me-top">
       <p class="me-pill">Гишүүний хуудас</p>
-      <div class="me-topr"><a class="me-ghost" href="/">← Дашбоард</a><a class="me-ghost me-irts" href="/irts">Ирц бүртгүүлэх</a><button type="button" class="me-ghost" id="me-logout" hidden>Гарах</button></div>
+      <div class="me-topr"><a class="me-ghost" href="/" id="me-dash" hidden>← Дашбоард</a><a class="me-ghost me-irts" href="/irts" id="me-irts" hidden>Ирц бүртгүүлэх</a><button type="button" class="me-ghost" id="me-logout" hidden>Гарах</button></div>
     </header>
     <p class="me-welcome" id="me-welcome" role="status" hidden></p>
     <p class="me-note" id="me-status">Ачаалж байна…</p>
@@ -36,8 +36,9 @@
     <section class="me-card me-cred" id="me-cred" hidden>
       <h2 class="me-h2">Миний нэвтрэх эрх</h2>
       <p class="me-hint" id="me-cred-hint">Дараа дахин нэвтрэхдээ <b>/login</b> хуудсанд энэ нэр, нууц үгийг ашиглана.</p>
-      <div class="me-credrow"><span>Нэвтрэх нэр</span><output id="me-cu"></output><button type="button" class="me-btn" id="me-cu-copy">Хуулах</button></div>
-      <div class="me-credrow"><span>Нууц үг</span><output id="me-cp">••••••••</output><button type="button" class="me-btn" id="me-cp-show">Харах</button><button type="button" class="me-btn" id="me-cp-copy">Хуулах</button></div>
+      <div class="me-credrow" id="me-cu-row"><span>Нэвтрэх нэр</span><output id="me-cu"></output><button type="button" class="me-btn" id="me-cu-copy">Хуулах</button></div>
+      <div class="me-credrow" id="me-cp-row"><span>Нууц үг</span><output id="me-cp">••••••••</output><button type="button" class="me-btn" id="me-cp-show">Харах</button><button type="button" class="me-btn" id="me-cp-copy">Хуулах</button></div>
+      <div class="me-credrow" id="me-cc-row" hidden><span>Нэвтрэх код</span><output id="me-cc"></output><button type="button" class="me-btn" id="me-cc-copy">Хуулах</button></div>
     </section>
 
     <section class="me-card me-inv" id="me-invite" hidden>

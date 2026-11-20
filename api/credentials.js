@@ -1,7 +1,7 @@
 /*
  * /api/credentials — гишүүдийн нэвтрэх эрх (зөвхөн админ).
  *   GET                                  → { items:[{ code, name, kind, place, username, password, t }] }
- *                                          Намын бүх гишүүн (members.enc) + урилгаар бүртгүүлэгч бүр (эрхгүй бол username хоосон)
+ *                                          Намын бүх гишүүн (members.enc); эрхгүй бол username хоосон
  *   POST {action:'generate'}             → эрхгүй бүх хүнд нэвтрэх нэр, санамсаргүй нууц үг үүсгэнэ
  *   POST {action:'generate', codes:[…]}  → зөвхөн заасан хүмүүст (эрхгүй бол)
  *   POST {action:'reset', code}          → нууц үгийг шинэчилнэ (нэвтрэх нэр хэвээр)
@@ -23,13 +23,7 @@ async function people() {
     const mk = meta[k] || {};
     out.push({ code: normalizeInvite(m.i), name: m.n, given: given(m.n), kind: 'member', place: [mk.district, mk.name].filter(Boolean).join(', ') });
   }));
-  const [raw] = await pipeline([['LRANGE', KEYS.list, '0', '-1']]);
-  (raw || []).map(open).filter(Boolean).forEach((r) => {
-    if (!r.own) return;
-    const a = r.addr || {};
-    out.push({ code: normalizeInvite(r.own), name: `${r.last} ${r.first}`, given: r.first, kind: 'registrant',
-      place: a.type === 'city' ? `${a.district}, ${a.khoroo}` : a.type === 'aimag' ? `${a.aimag} аймаг, ${a.soum} сум` : '', t0: r.t });
-  });
+  // Урилгаар бүртгүүлэгчид өөрийн урилгын кодоор нэвтэрдэг тул энд ороогүй
   return out;
 }
 

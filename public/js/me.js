@@ -30,7 +30,7 @@
     const welcome = new URLSearchParams(location.search).get('welcome') === '1';
     if (welcome) {
       const w = $('me-welcome'); w.hidden = false;
-      w.replaceChildren(el('b', null, '✓ Бүртгэл амжилттай!'), document.createTextNode(' Танд нэвтрэх нэр, нууц үг болон өөрийн урилгын код олгогдлоо.'));
+      w.replaceChildren(el('b', null, '✓ Бүртгэл амжилттай!'), document.createTextNode(' Танд өөрийн урилгын код олгогдлоо — дараа энэ кодоороо нэвтэрнэ.'));
       history.replaceState(null, '', '/me');
     }
     $('me-name').textContent = p.name;
@@ -67,7 +67,18 @@
     }
     $('me-profile').hidden = false;
 
-    // Нэвтрэх эрх (нэр + нууц үг)
+    // Намын гишүүнд дашбоард, ирц нээлттэй; урилгаар бүртгүүлэгч зөвхөн энэ хуудсаа харна
+    $('me-dash').hidden = $('me-irts').hidden = p.kind !== 'member';
+    // Бүртгүүлэгч: дараа өөрийн урилгын кодоор нэвтэрнэ
+    if (p.kind === 'registrant') {
+      $('me-cu-row').hidden = true; $('me-cp-row').hidden = true; $('me-cc-row').hidden = false;
+      $('me-cc').textContent = d.code;
+      $('me-cc-copy').addEventListener('click', (e) => copy(d.code, e.currentTarget));
+      $('me-cred-hint').replaceChildren(document.createTextNode('Дараа дахин нэвтрэхдээ '), el('b', null, '/login'), document.createTextNode(' хуудасны «Урилгаар бүртгүүлсэн» табаас энэ кодоо оруулна.'));
+      if (welcome) { $('me-cred').classList.add('is-new'); $('me-cred-hint').prepend(el('b', null, 'Энэ кодыг заавал тэмдэглэж аваарай. ')); }
+      $('me-cred').hidden = false;
+    }
+    // Нэвтрэх эрх (нэр + нууц үг) — намын гишүүн
     if (d.cred) {
       $('me-cu').textContent = d.cred.username;
       let shown = false;

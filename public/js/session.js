@@ -2,7 +2,7 @@
  * Админ, гишүүний сешн тус тусдаа, зэрэг байж болно:
  *   • body[data-require="admin"] (/admin) — заавал админ, эс бөгөөс /admin-login
  *   • дашбоард — ?as=admin ба админ сешнтэй бол админ; эс бөгөөс гишүүний сешнтэй бол гишүүн; эс бөгөөс админ; аль нь ч үгүй бол /login
- * <html data-role> — [data-admin] зөвхөн админд, [data-member] зөвхөн гишүүнд харагдана (ub.css).
+ * <html data-role> — [data-for="admin"] зөвхөн админд, [data-for="member"] зөвхөн гишүүнд харагдана (ub.css).
  * «Гарах» зөвхөн тухайн эрхийн сешнийг хаана. */
 (function () {
   'use strict';
@@ -14,6 +14,7 @@
   fetch('/api/auth', { credentials: 'same-origin' }).then((r) => r.json()).then((s) => {
     role = needAdmin ? (s.admin ? 'admin' : null) : (wantAdmin && s.admin) ? 'admin' : s.member ? 'member' : s.admin ? 'admin' : null;
     if (!role) { location.assign(`${needAdmin || wantAdmin ? '/admin-login' : '/login'}?next=${back}`); return; }
+    if (role === 'member' && s.member.kind === 'registrant') { location.replace('/me'); return; } // бүртгүүлэгч зөвхөн өөрийн хуудсаа
     document.documentElement.dataset.role = role;
     if (nameEl) nameEl.textContent = role === 'admin' ? s.admin.user : s.member.user;
     // Админаар дашбоард үзэхэд дотоод холбоосууд админ харагдацаа хадгална
