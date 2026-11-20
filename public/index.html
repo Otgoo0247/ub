@@ -7,20 +7,21 @@
   <meta name="description" content="Улаанбаатар хотын 9 дүүрэг, 204 хорооны хүн ам, өрх, нягтрал, гишүүнчлэлийг газрын зураг, графикаар харуулсан дашбоард.">
   <meta name="color-scheme" content="light dark">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/tokens.css?v=20261120-15">
-  <link rel="stylesheet" href="css/ub.css?v=20261120-15">
-  <link rel="stylesheet" href="css/tree.css?v=20261120-15">
-  <link rel="stylesheet" href="css/ann.css?v=20261120-15">
-  <script src="js/d3.min.js?v=20261120-15" defer></script>
-  <script src="js/dash-runtime.js?v=20261120-15" defer></script>
-  <script src="js/config.js?v=20261120-15" defer></script>
-  <script src="js/app.js?v=20261120-15" defer></script>
-  <script src="js/ann.js?v=20261120-15" defer></script>
-  <script src="js/members.js?v=20261120-15" defer></script>
-  <script src="js/xlsx-lite.js?v=20261120-15" defer></script>
-  <script src="js/party.js?v=20261120-15" defer></script>
-  <script src="js/tree.js?v=20261120-15" defer></script>
-  <script src="js/session.js?v=20261120-15" defer></script>
+  <script src="js/role.js?v=20261120-16"></script>
+  <link rel="stylesheet" href="css/tokens.css?v=20261120-16">
+  <link rel="stylesheet" href="css/ub.css?v=20261120-16">
+  <link rel="stylesheet" href="css/tree.css?v=20261120-16">
+  <link rel="stylesheet" href="css/ann.css?v=20261120-16">
+  <script src="js/d3.min.js?v=20261120-16" defer></script>
+  <script src="js/dash-runtime.js?v=20261120-16" defer></script>
+  <script src="js/config.js?v=20261120-16" defer></script>
+  <script src="js/app.js?v=20261120-16" defer></script>
+  <script src="js/ann.js?v=20261120-16" defer></script>
+  <script src="js/members.js?v=20261120-16" defer></script>
+  <script src="js/xlsx-lite.js?v=20261120-16" defer></script>
+  <script src="js/party.js?v=20261120-16" defer></script>
+  <script src="js/tree.js?v=20261120-16" defer></script>
+  <script src="js/session.js?v=20261120-16" defer></script>
 </head>
 <body>
   <main id="dash-root">
@@ -62,9 +63,10 @@
           </div></div>
         <button type="button" class="ub-reset" id="ub-reset" hidden>Шүүлтүүр цэвэрлэх</button>
         <div class="ub-actions">
-          <a class="ub-elx-open is-alt ub-admin-link" href="/admin">Админ</a>
-          <button type="button" class="ub-elx-open is-alt" id="ub-party" aria-haspopup="dialog">Намын гишүүд</button>
-          <button type="button" class="ub-elx-open" id="ub-election" aria-haspopup="dialog">Бүртгэл</button>
+          <a class="ub-elx-open ub-admin-link" href="/me" data-member>Миний мэдээлэл</a>
+          <a class="ub-elx-open is-alt ub-admin-link" href="/admin" data-admin>Админ</a>
+          <button type="button" class="ub-elx-open is-alt" id="ub-party" aria-haspopup="dialog" data-admin>Намын гишүүд</button>
+          <button type="button" class="ub-elx-open" id="ub-election" aria-haspopup="dialog" data-admin>Бүртгэл</button>
         </div>
       </div>
 
@@ -112,7 +114,7 @@
               </div>
             </div>
           </figure>
-          <div class="ub-mapside">
+          <div class="ub-mapside" data-admin>
             <section class="ub-names-side" id="ub-names-side" aria-labelledby="ub-names-t">
               <p class="ub-sel-k">Гишүүдийн нэрс <span class="ub-lock" title="Нэвтэрсэн хэрэглэгчид л харагдана">🔒</span></p>
               <h3 class="ub-sel-t" id="ub-names-t"><span data-draw="scope-name" data-source="summary" data-field="scope" data-row="0">—</span></h3>

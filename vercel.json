@@ -63,7 +63,7 @@
       ]
     },
     {
-      "source": "/(login|index\\.html)?",
+      "source": "/(login|admin-login|index\\.html)?",
       "headers": [
         {
           "key": "Cache-Control",

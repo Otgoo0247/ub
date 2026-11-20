@@ -39,3 +39,5 @@
 .me-meta{grid-column:1/-1;font-size:12.5px;color:var(--color-fg-muted)}
 @media (max-width:480px){.me-row{flex-direction:column}.me-list time{display:none}.me-list li{grid-template-columns:minmax(0,1fr) auto}}
 .me-people-head{margin-bottom:12px}
+.me-topr{display:flex;gap:8px;align-items:center}
+a.me-ghost{text-decoration:none;display:inline-flex;align-items:center}

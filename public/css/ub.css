@@ -542,3 +542,7 @@ body{background:
 .ub-pm-headl{display:flex;align-items:center;gap:14px;min-width:0}
 .ub-pm-logo{flex:none;width:52px;height:auto;filter:drop-shadow(0 3px 8px rgba(11,12,16,.10))}
 .ub-admin-link{text-decoration:none}
+/* Эрхээр нуух: админд л харагдах [data-admin], гишүүнд л харагдах [data-member] (html[data-role] — role.js, session.js) */
+html:not([data-role="admin"]) [data-admin]{display:none !important}
+html:not([data-role="member"]) [data-member]{display:none !important}
+html:not([data-role="admin"]) .ub-mapgrid{grid-template-columns:minmax(0,1fr)}

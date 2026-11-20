@@ -45,11 +45,22 @@ function setSession(req, res, cfg) {
   const exp = Math.floor(Date.now() / 1000) + HOURS * 3600;
   const payload = `v1.${Buffer.from(cfg.user).toString('base64url')}.${exp}`;
   writeCookie(req, res, `${payload}.${mac(cfg.key, payload)}`, HOURS * 3600);
+  setRole(req, res, 'admin', HOURS * 3600);
 }
-function clearSession(req, res) { writeCookie(req, res, '', 0); }
-function writeCookie(req, res, value, maxAge) {
+function clearSession(req, res) { writeCookie(req, res, '', 0); setRole(req, res, '', 0); }
+/* Set-Cookie толгойг дарж бичихгүй, нэмнэ (нэг хариунд хэд хэдэн күүки). */
+function appendCookie(req, res, line) {
   const secure = (req.headers['x-forwarded-proto'] || '').includes('https') ? '; Secure' : '';
-  res.setHeader('Set-Cookie', `${COOKIE}=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure}`);
+  const prev = res.getHeader('Set-Cookie');
+  const c = `${line}${secure}`;
+  res.setHeader('Set-Cookie', prev ? [].concat(prev, c) : c);
+}
+function writeCookie(req, res, value, maxAge) {
+  appendCookie(req, res, `${COOKIE}=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`);
+}
+/* ub_role — зөвхөн интерфейсэд (админ товчийг нуух/харуулах). Эрхийг ҮРГЭЛЖ сервер (сешн күүки) шийднэ. */
+function setRole(req, res, role, maxAge) {
+  appendCookie(req, res, `ub_role=${role}; Path=/; SameSite=Lax; Max-Age=${maxAge}`);
 }
 function send(res, status, body) {
   res.statusCode = status;
@@ -66,4 +77,4 @@ async function readJson(req, max = 4096) {
   try { return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'); } catch { return {}; }
 }
 
-module.exports = { config, problems, sessionUser, setSession, clearSession, sameText, send, readJson };
+module.exports = { config, problems, sessionUser, setSession, clearSession, setRole, sameText, send, readJson };

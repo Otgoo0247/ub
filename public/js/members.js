@@ -310,7 +310,7 @@
       fetchScope(s.key, s.q).then(({ status, data }) => {
         if (my !== token) return;
         if (status === 200) table(box, data, s.level);
-        else if (status === 401) window.location.assign(`/login?next=${encodeURIComponent(location.pathname + location.search)}`);
+        else if (status === 401) box.replaceChildren(note('Нэрсийн жагсаалт зөвхөн админд харагдана.'));
         else if (status === 503) box.replaceChildren(note('Нэрсийн хэсэг тохируулагдаагүй байна: Vercel дээр MEMBERS_KEY-г тохируулна уу.'));
         else box.replaceChildren(note('Нэрсийг ачаалж чадсангүй.'));
       }).catch(() => { if (my === token) box.replaceChildren(note('Сервертэй холбогдож чадсангүй.')); });

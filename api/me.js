@@ -1,10 +1,11 @@
 /*
- * /api/me — «Гишүүнээр нэвтрэх» (урилгын код + утасны дугаар) ба өөрийн хуудас (/me).
- * Зөвхөн УРИЛГААР ШИНЭЭР БҮРТГҮҮЛСЭН хүмүүс нэвтэрнэ; Excel-ийн 350 гишүүн энэ замаар нэвтрэхгүй.
- *   POST {action:'login', code, phone}  → ub_member күүки (7 хоног)
+ * /api/me — гишүүний нэвтрэлт (/login, зөвхөн урилгын кодоор) ба өөрийн хуудас (/me).
+ * Намын гишүүд (members.enc) болон урилгаар бүртгүүлэгчид аль аль нь нэвтэрнэ.
+ *   POST {action:'login', code}  → ub_member күүки (7 хоног) — дашбоардын статистик, /me, зарлалд хандана
  *   POST {action:'logout'}
  *   GET  → {authenticated:false} эсвэл өөрийн мэдээлэл + өөрийн урилгаар бүртгүүлсэн хүмүүс
- * Урилгын код холбоосонд ил явдаг тул нэвтрэхэд утасны дугаарыг заавал тулгана (холбоос авсан хүн нэвтэрч чадахгүй).
+ * АНХААР: урилгын код урилгын холбоосонд ил явдаг тул холбоос авсан хүн ч нэвтэрч чадна (захиалагчийн сонголт).
+ * IP тутамд цагт 20 оролдлого, буруу кодод 1.2 сек хүлээлгэнэ.
  */
 const crypto = require('crypto');
 const { send, readJson } = require('./_lib/session');
@@ -20,7 +21,7 @@ const eq = (a, b) => typeof a === 'string' && typeof b === 'string' && a.length 
 
 async function login(req, res) {
   const b = await readJson(req);
-  const c = normalizeInvite(b.code), phone = phoneOf(b.phone);
+  const c = normalizeInvite(b.code);
   if (storeConfigured()) {
     try {
       const k = `${KEYS.login}${Math.floor(Date.now() / 3600000)}:${ipOf(req)}`;
@@ -29,9 +30,8 @@ async function login(req, res) {
     } catch (e) { /* сан түр алдаатай бол хязгааргүйгээр үргэлжилнэ */ }
   }
   let p = null;
-  if (INVITE_RE.test(c) && phone) p = await findByCode(c);
-  const ok = p && p.kind === 'registrant' && eq(p.r.phone, phone);
-  if (!ok) { await sleep(1200); return send(res, 401, { error: 'wrong_credentials' }); }
+  if (INVITE_RE.test(c)) p = await findByCode(c).catch(() => null);
+  if (!p) { await sleep(1200); return send(res, 401, { error: 'wrong_credentials' }); }
   setMember(req, res, c);
   return send(res, 200, { ok: true });
 }
@@ -54,9 +54,13 @@ async function me(req, res) {
   const c = memberCode(req);
   if (!c) return send(res, 200, { authenticated: false });
   const p = await findByCode(c);
-  if (!p || p.kind !== 'registrant') { clearMember(req, res); return send(res, 200, { authenticated: false }); }
+  if (!p) { clearMember(req, res); return send(res, 200, { authenticated: false }); }
   let profile;
-  {
+  if (p.kind === 'member') {
+    const m = p.m;
+    profile = { kind: 'member', name: m.n, district: p.meta.district || null, khoroo: p.meta.name || null, cell: m.u || null, age: m.a == null ? null : m.a,
+      gender: m.g || null, status: m.s || null, movement: m.m || null, movementDate: m.d || null, anket: m.k == null ? null : m.k };
+  } else {
     const r = p.r;
     const inv = r.invite ? await findByCode(normalizeInvite(r.invite)).catch(() => null) : null;
     profile = { kind: 'registrant', name: `${r.last} ${r.first}`, dob: r.dob || null, age: age(r.dob), gender: r.gender || null,

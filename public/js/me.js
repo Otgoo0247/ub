@@ -18,7 +18,7 @@
   fetch('/api/me', { credentials: 'same-origin' })
     .then(async (r) => ({ status: r.status, d: await r.json().catch(() => ({})) }))
     .then(({ status: st, d }) => {
-      if (st === 401 || (st === 200 && !d.authenticated)) { location.replace('/login?as=member'); return; }
+      if (st === 401 || (st === 200 && !d.authenticated)) { location.replace('/login'); return; }
       if (st !== 200) { status.textContent = 'Мэдээллийг ачаалж чадсангүй. Түр хүлээгээд дахин оролдоно уу.'; return; }
       status.hidden = true;
       render(d);
@@ -83,7 +83,7 @@
     const out = $('me-logout'); out.hidden = false;
     out.addEventListener('click', () => {
       fetch('/api/me', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: '{"action":"logout"}' })
-        .finally(() => location.replace('/login?as=member'));
+        .finally(() => location.replace('/login'));
     });
   }
 })();
