@@ -21,7 +21,7 @@ const PUBLIC = [/^\/login\/?$/, /^\/login\.html$/, /^\/admin-login\/?$/, /^\/adm
   // Үйл ажиллагааны зарлал: GET — админ эсвэл гишүүний сешн, POST — зөвхөн админ (функц өөрөө шалгана)
   /^\/api\/announcements\/?$/, /^\/js\/ann\.js$/, /^\/css\/ann\.css$/,
   /^\/js\/tree\.js$/, /^\/js\/d3\.min\.js$/, /^\/css\/tree\.css$/];
-const ADMIN_ONLY = [/^\/admin\/?$/, /^\/admin\.html$/, /^\/api\/members\/?$/, /^\/api\/registrations\/?$/];
+const ADMIN_ONLY = [/^\/admin\/?$/, /^\/admin\.html$/, /^\/api\/settings\/?$/, /^\/api\/members\/?$/, /^\/api\/registrations\/?$/];
 const MCOOKIE = 'ub_member';
 const enc = new TextEncoder();
 

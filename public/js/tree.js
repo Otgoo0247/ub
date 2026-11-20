@@ -2,7 +2,8 @@
  * tree.js — «Урилгын мод»: гишүүн → түүний урилгаар бүртгүүлсэн хүмүүс → тэдний урьсан хүмүүс …
  * Зүүнээс баруун тийш үе үеэрээ урсах салаа (Sankey маягийн): салааны зузаан = тэр хүнээс доош хэдэн хүн байгаа,
  * өнгө = үе (1-р үе улаан, 2-р үе цэнхэр, 3-р үе ногоон, 4-р үе шар, 5+ саарал). d3 v7 шаардана.
- * window.UBTree.open({ name, sub, children: [{ n, t, children: [...] }] })
+ * window.UBTree.open({ name, sub, children: [{ n, t, children: [...] }], offset? })
+ *   offset: 1 — нийт мод (админ): 1-р түвшин нь урьсан гишүүд (үе тоологдохгүй), 2-р түвшнээс 1-р үе эхэлнэ.
  */
 (function () {
   'use strict';
@@ -49,11 +50,14 @@
     const root = d3.hierarchy({ n: data.name, children: data.children || [] });
     root.each((d) => { d.size = d.descendants().length - 1; }); // тэр хүнээс доош хэдэн хүн
     root.sort((a, b) => b.size - a.size || String(a.data.t || '').localeCompare(String(b.data.t || '')));
-    const total = root.size, direct = (root.children || []).length, gens = root.height;
+    const off = data.offset || 0;
+    const gc = (depth) => (depth <= off ? 'var(--ubt-member, #3A3F48)' : genColor(depth - off));
+    const total = root.size, direct = (root.children || []).length, gens = Math.max(0, root.height - off);
+    const people = off ? total - direct : total;
 
     const stats = p.querySelector('.ubt-stats');
     stats.replaceChildren();
-    [['Шууд урьсан', direct], ['Нийт доор нь', total], ['Үе', gens]].forEach(([l, v]) => {
+    (off ? [['Урьсан гишүүн', direct], ['Нийт бүртгүүлэгч', people], ['Үе', gens]] : [['Шууд урьсан', direct], ['Нийт доор нь', total], ['Үе', gens]]).forEach(([l, v]) => {
       const d = el('div', 'ubt-stat'); d.append(el('span', null, l), el('b', null, fmt(v))); stats.append(d);
     });
     const legend = p.querySelector('.ubt-legend');
@@ -62,6 +66,7 @@
       const k = el('span', 'ubt-key'); const i = el('i'); i.style.background = genColor(g);
       k.append(i, document.createTextNode(g === 5 && gens > 5 ? '5+ үе' : `${g}-р үе`)); legend.append(k);
     }
+    if (off) { const k = el('span', 'ubt-key'); const i = el('i'); i.style.background = 'var(--ubt-member, #3A3F48)'; k.append(i, document.createTextNode('Урьсан гишүүн')); legend.prepend(k); }
     legend.hidden = !total;
 
     const stage = p.querySelector('.ubt-stage');
@@ -96,14 +101,14 @@
     const BAR = 10; // зангилааны баганы өргөн
     g.append('g').attr('class', 'ubt-links').selectAll('path').data(root.descendants().filter((d) => d.parent)).join('path')
       .attr('d', (d) => link([d.parent.y + BAR, d.sy], [d.y, d.x]))
-      .attr('stroke', (d) => genColor(d.depth)).attr('stroke-width', (d) => d.w);
+      .attr('stroke', (d) => gc(d.depth)).attr('stroke-width', (d) => d.w);
 
     const node = g.append('g').attr('class', 'ubt-nodes').selectAll('g').data(root.descendants()).join('g')
       .attr('class', (d) => `ubt-node${d.depth === 0 ? ' is-root' : ''}`).attr('transform', (d) => `translate(${d.y},${d.x})`);
     node.append('rect').attr('class', 'ubt-bar')
       .attr('x', 0).attr('width', BAR).attr('rx', 3)
       .attr('y', (d) => -Math.max(d.w, d.band || 0, 8) / 2).attr('height', (d) => Math.max(d.w, d.band || 0, 8))
-      .attr('fill', (d) => (d.depth === 0 ? 'var(--color-fg)' : genColor(d.depth)));
+      .attr('fill', (d) => (d.depth === 0 ? 'var(--color-fg)' : gc(d.depth)));
     // Тоо (доор нь хэдэн хүн) + нэр
     // Навч: нэр баруун талд. Доороо хүнтэй: тоо + нэр зүүн дээд талд (гарах салаанд дарагдахгүй)
     const half = (d) => Math.max(d.w, d.band || 0, 8) / 2;
@@ -113,13 +118,14 @@
     inner.append('text').attr('class', 'ubt-name').attr('text-anchor', 'end').attr('x', -6).attr('y', (d) => -half(d) - 6).text((d) => d.data.n);
     inner.append('text').attr('class', 'ubt-num').attr('text-anchor', 'end').attr('x', -6).attr('y', (d) => -half(d) - 22).text((d) => fmt(d.size));
     const rl = node.filter((d) => d.depth === 0);
-    rl.append('text').attr('class', 'ubt-rootnum').attr('x', -10).attr('y', 4).attr('text-anchor', 'end').text(fmt(total));
+    rl.append('text').attr('class', 'ubt-rootnum').attr('x', -10).attr('y', 4).attr('text-anchor', 'end').text(fmt(people));
     rl.append('text').attr('class', 'ubt-rootname').attr('x', -10).attr('y', 24).attr('text-anchor', 'end').text(data.name);
 
     node.on('pointermove', (e, d) => {
       const t = tip.node(); t.replaceChildren(el('b', null, d.depth === 0 ? data.name : d.data.n));
-      const rows = d.depth === 0 ? [['Шууд урьсан', fmt(direct)], ['Нийт доор нь', fmt(total)]]
-        : [['Үе', `${d.depth}-р үе`], ['Бүртгүүлсэн', d.data.t || '—'], ['Шууд урьсан', fmt((d.children || []).length)], ['Нийт доор нь', fmt(d.size)]];
+      const rows = d.depth === 0 ? (off ? [['Урьсан гишүүн', fmt(direct)], ['Нийт бүртгүүлэгч', fmt(people)]] : [['Шууд урьсан', fmt(direct)], ['Нийт доор нь', fmt(total)]])
+        : d.depth <= off ? [['Төрөл', d.data.k || 'Урьсан хүн'], ['Шууд урьсан', fmt((d.children || []).length)], ['Нийт доор нь', fmt(d.size)]]
+        : [['Үе', `${d.depth - off}-р үе`], ['Бүртгүүлсэн', d.data.t || '—'], ['Шууд урьсан', fmt((d.children || []).length)], ['Нийт доор нь', fmt(d.size)]];
       rows.forEach(([a, b]) => { const r = el('div'); r.append(el('span', null, a), el('span', null, b)); t.append(r); });
       t.hidden = false;
       const [x, y] = d3.pointer(e, stage); const W = stage.clientWidth;

@@ -47,9 +47,21 @@
       item('Утас', p.phone); item('Бүртгүүлсэн', day(p.registered));
       item('Хаяг', addrText(p.addr)); item('Урьсан', p.invitedBy);
     }
+    // Facebook групп (админ /admin → «Тохиргоо»-нд оруулна) — урилгаар бүртгүүлэгчдэд, мэдээллийн доор
+    let anchor = dl;
+    if (d.group && d.group.fbUrl) {
+      const box = el('section', 'me-fb');
+      const ic = el('span', 'me-fb-ic'); ic.setAttribute('aria-hidden', 'true');
+      ic.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7.5h2.5l.4-3h-2.9V8.6c0-.9.3-1.5 1.5-1.5h1.5V4.4c-.3 0-1.2-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.8v2.4H8.1v3h2.5V21h2.9Z"/></svg>';
+      const tx = el('div', 'me-fb-tx');
+      tx.append(el('b', null, 'Манай Facebook групп'), el('p', null, d.group.fbText || 'Группт нэгдэж, үйл ажиллагааны мэдээллээ цаг алдалгүй аваарай.'));
+      const a = el('a', 'me-fb-btn', 'Группт нэгдэх ↗'); a.href = d.group.fbUrl; a.target = '_blank'; a.rel = 'noopener noreferrer';
+      box.append(ic, tx, a);
+      dl.after(box); anchor = box;
+    }
     // Үйл ажиллагааны зарлал — мэдээллийн доор (ann.js); зарлалгүй бол хэсэг харагдахгүй
     if (window.UBAnn) {
-      const slot = el('div'); dl.after(slot);
+      const slot = el('div'); anchor.after(slot);
       window.UBAnn.load().then((data) => { if (data) slot.replaceWith(window.UBAnn.section(data, { cls: 'in-card', empty: null })); });
     }
     $('me-profile').hidden = false;

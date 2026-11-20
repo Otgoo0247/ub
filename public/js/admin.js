@@ -2,7 +2,9 @@
  * admin.js — админ хуудас (/admin).
  *   «Урьсан хүмүүс»: гишүүдийн (болон бүртгүүлэгчдийн) урилгаар бүртгүүлсэн бүх хүн — жагсаалт, урьсан хүнээр бүлэглэсэн харагдац,
  *                    шүүлт, хайлт, урилгын мод, Excel татах. Өгөгдөл: /api/registrations (зөвхөн админ сешн).
+ *                    «Нийт урилгын мод»: бүх гишүүний урилгыг нэг модонд (tree.js, offset: 1).
  *   «Үйл ажиллагааны зарлал»: announce.js (UBAnnAdmin.mount).
+ *   «Тохиргоо»: Facebook группын холбоос (/api/settings) — урилгаар бүртгүүлэгчдийн /me хуудсанд харагдана.
  */
 (function () {
   'use strict';
@@ -20,15 +22,55 @@
   const PAGE = 200;
 
   /* ---------- Табууд ---------- */
-  const TABS = { people: ['tab-people', 'adm-people', 'urisan'], ann: ['tab-ann', 'adm-ann', 'zarlal'] };
+  const TABS = { people: ['tab-people', 'adm-people', 'urisan'], ann: ['tab-ann', 'adm-ann', 'zarlal'], cfg: ['tab-cfg', 'adm-cfg', 'tokhirgoo'] };
   function show(name, push) {
     Object.entries(TABS).forEach(([k, [t, p]]) => { $(t).setAttribute('aria-selected', String(k === name)); $(p).hidden = k !== name; });
     if (name === 'ann' && window.UBAnnAdmin) { window.UBAnnAdmin.mount($('adm-ann-box')); }
+    if (name === 'cfg') loadCfg();
     if (push) history.replaceState(null, '', `#${TABS[name][2]}`);
   }
   $('tab-people').addEventListener('click', () => show('people', true));
   $('tab-ann').addEventListener('click', () => show('ann', true));
-  show(location.hash === '#zarlal' ? 'ann' : 'people', false);
+  $('tab-cfg').addEventListener('click', () => show('cfg', true));
+  const startTab = Object.keys(TABS).find((k) => `#${TABS[k][2]}` === location.hash) || 'people';
+
+  /* ---------- Тохиргоо: Facebook групп ---------- */
+  let cfgLoaded = false;
+  function fbPreview() {
+    const url = $('adm-fb-url').value.trim(), text = $('adm-fb-text').value.trim();
+    const box = $('adm-fb-preview');
+    if (!url) { box.replaceChildren(el('p', 'adm-note', 'Холбоос оруулаагүй тул гишүүдэд энэ хэсэг харагдахгүй.')); return; }
+    const sec = el('section', 'me-fb');
+    const ic = el('span', 'me-fb-ic'); ic.setAttribute('aria-hidden', 'true');
+    ic.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7.5h2.5l.4-3h-2.9V8.6c0-.9.3-1.5 1.5-1.5h1.5V4.4c-.3 0-1.2-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.8v2.4H8.1v3h2.5V21h2.9Z"/></svg>';
+    const tx = el('div', 'me-fb-tx'); tx.append(el('b', null, 'Манай Facebook групп'), el('p', null, text || 'Группт нэгдэж, үйл ажиллагааны мэдээллээ цаг алдалгүй аваарай.'));
+    const a = el('a', 'me-fb-btn', 'Группт нэгдэх ↗'); a.href = /^https?:\/\//i.test(url) ? url : `https://${url}`; a.target = '_blank'; a.rel = 'noopener noreferrer';
+    sec.append(ic, tx, a); box.replaceChildren(sec);
+  }
+  function fbMsg(t, kind) { const m = $('adm-fb-msg'); m.textContent = t || ''; m.className = `ann-msg${kind ? ` is-${kind}` : ''}`; }
+  function loadCfg() {
+    if (cfgLoaded) return;
+    cfgLoaded = true;
+    fetch('/api/settings', { credentials: 'same-origin' }).then(async (r) => ({ status: r.status, d: await r.json().catch(() => ({})) })).then(({ status, d }) => {
+      if (status === 503) { fbMsg('Хадгалах сан (Upstash Redis) холбогдоогүй байна.', 'err'); return; }
+      if (status !== 200) { fbMsg('Тохиргоог ачаалж чадсангүй.', 'err'); cfgLoaded = false; return; }
+      $('adm-fb-url').value = d.fbUrl || ''; $('adm-fb-text').value = d.fbText || ''; fbPreview();
+    }).catch(() => { cfgLoaded = false; fbMsg('Сервертэй холбогдож чадсангүй.', 'err'); });
+  }
+  $('adm-fb-url').addEventListener('input', fbPreview);
+  $('adm-fb-text').addEventListener('input', fbPreview);
+  $('adm-fb-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = $('adm-fb-save'); btn.disabled = true; fbMsg('');
+    try {
+      const r = await fetch('/api/settings', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', fbUrl: $('adm-fb-url').value, fbText: $('adm-fb-text').value }) });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok) { $('adm-fb-url').value = d.fbUrl; $('adm-fb-text').value = d.fbText; fbPreview(); fbMsg(d.fbUrl ? 'Хадгалагдлаа ✓' : 'Холбоосыг устгалаа.', 'ok'); }
+      else fbMsg(d.error === 'bad_url' ? 'Зөвхөн facebook.com (fb.com, fb.me) холбоос оруулна уу.' : d.error === 'storage_not_configured' ? 'Хадгалах сан (Upstash Redis) холбогдоогүй байна.' : 'Хадгалж чадсангүй.', 'err');
+    } catch (err) { fbMsg('Сервертэй холбогдож чадсангүй.', 'err'); }
+    btn.disabled = false;
+  });
+  show(startTab, false);
 
   /* ---------- Урьсан хүмүүс ---------- */
   const st = { view: 'list', q: '', place: '', kind: '', limit: PAGE };
@@ -125,6 +167,15 @@
     return walk(code, 0);
   }
 
+  /* Нийт урилгын мод: үндэс = урьсан намын гишүүд (эсвэл системд олдоогүй код); бүртгүүлэгчийн урьсан хүмүүс тэдний доор */
+  function openAllTree() {
+    if (!window.UBTree) { alert('Хуудсыг Ctrl+F5-аар шинэчилнэ үү.'); return; }
+    const roots = new Map();
+    rows.forEach((r) => { if (r.inv.kind !== 'reg' && !roots.has(r.invCode)) roots.set(r.invCode, r.inv); });
+    const children = [...roots.entries()].map(([code, inv]) => ({ n: inv.name || `Тодорхойгүй (${fmtCode(code)})`, k: inv.kind === 'member' ? 'Намын гишүүн' : 'Тодорхойгүй код', children: treeOf(code) }));
+    window.UBTree.open({ name: 'Бүх гишүүд', sub: `Намын гишүүдийн урилгаар бүртгүүлсэн бүх хүн, тэдний урьсан хүмүүс · ${int(rows.length)} бүртгүүлэгч`, children, offset: 1 });
+  }
+
   function renderGroups(list) {
     const groups = new Map();
     list.forEach((r) => {
@@ -199,6 +250,7 @@
   $('adm-kind').addEventListener('change', (e) => { st.kind = e.target.value; st.limit = PAGE; if (rows) render(); });
   $('adm-reset').addEventListener('click', () => { st.q = st.place = st.kind = ''; $('adm-q').value = ''; $('adm-place').value = ''; $('adm-kind').value = ''; st.limit = PAGE; render(); });
   $('adm-xl').addEventListener('click', exportXlsx);
+  $('adm-alltree').addEventListener('click', openAllTree);
 
   fetch('/api/registrations', { credentials: 'same-origin' })
     .then(async (r) => ({ status: r.status, d: await r.json().catch(() => ({})) }))
@@ -208,6 +260,7 @@
       if (status !== 200) { $('adm-sum').textContent = 'Өгөгдлийг ачаалж чадсангүй. Хуудсыг дахин ачаална уу.'; return; }
       rows = prepare(d.rows || []);
       kpis(); fillPlaces(); render();
+      $('adm-alltree').disabled = !rows.length;
     })
     .catch(() => { $('adm-sum').textContent = 'Сервертэй холбогдож чадсангүй.'; });
 })();

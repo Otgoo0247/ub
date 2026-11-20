@@ -7,19 +7,20 @@
   <meta name="color-scheme" content="light dark">
   <title>Админ хэсэг</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <script src="js/role.js?v=20261120-16"></script>
-  <link rel="stylesheet" href="css/tokens.css?v=20261120-16">
-  <link rel="stylesheet" href="css/ub.css?v=20261120-16">
-  <link rel="stylesheet" href="css/tree.css?v=20261120-16">
-  <link rel="stylesheet" href="css/ann.css?v=20261120-16">
-  <link rel="stylesheet" href="css/admin.css?v=20261120-16">
-  <script src="js/d3.min.js?v=20261120-16" defer></script>
-  <script src="js/tree.js?v=20261120-16" defer></script>
-  <script src="js/xlsx-lite.js?v=20261120-16" defer></script>
-  <script src="js/ann.js?v=20261120-16" defer></script>
-  <script src="js/announce.js?v=20261120-16" defer></script>
-  <script src="js/session.js?v=20261120-16" defer></script>
-  <script src="js/admin.js?v=20261120-16" defer></script>
+  <script src="js/role.js?v=20261120-17"></script>
+  <link rel="stylesheet" href="css/tokens.css?v=20261120-17">
+  <link rel="stylesheet" href="css/ub.css?v=20261120-17">
+  <link rel="stylesheet" href="css/tree.css?v=20261120-17">
+  <link rel="stylesheet" href="css/ann.css?v=20261120-17">
+  <link rel="stylesheet" href="css/me.css?v=20261120-8">
+  <link rel="stylesheet" href="css/admin.css?v=20261120-17">
+  <script src="js/d3.min.js?v=20261120-17" defer></script>
+  <script src="js/tree.js?v=20261120-17" defer></script>
+  <script src="js/xlsx-lite.js?v=20261120-17" defer></script>
+  <script src="js/ann.js?v=20261120-17" defer></script>
+  <script src="js/announce.js?v=20261120-17" defer></script>
+  <script src="js/session.js?v=20261120-17" defer></script>
+  <script src="js/admin.js?v=20261120-17" defer></script>
 </head>
 <body data-require="admin">
   <main id="dash-root">
@@ -32,6 +33,7 @@
       <nav class="adm-tabs" role="tablist" aria-label="Админ хэсгүүд">
         <button type="button" role="tab" class="adm-tab" id="tab-people" aria-controls="adm-people" aria-selected="true">Урьсан хүмүүс</button>
         <button type="button" role="tab" class="adm-tab" id="tab-ann" aria-controls="adm-ann" aria-selected="false">Үйл ажиллагааны зарлал</button>
+        <button type="button" role="tab" class="adm-tab" id="tab-cfg" aria-controls="adm-cfg" aria-selected="false">Тохиргоо</button>
       </nav>
 
       <section class="adm-pane" id="adm-people" role="tabpanel" aria-labelledby="tab-people">
@@ -42,6 +44,7 @@
               <button type="button" data-view="list" aria-pressed="true">Бүх бүртгүүлэгч</button>
               <button type="button" data-view="group" aria-pressed="false">Урьсан хүнээр</button>
             </div>
+            <button type="button" class="ubt-open adm-alltree" id="adm-alltree" disabled><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 8h3c3 0 3-5 6-5h3M5 8c3 0 3 5 6 5h3M5 8h9"/></svg>Нийт урилгын мод</button>
             <label class="ub-field"><span>Хайх</span><input type="search" class="ub-names-q adm-q" id="adm-q" placeholder="Нэр, утас, урьсан хүн, код"></label>
             <label class="ub-field"><span>Оршин суугаа газар</span><select class="dash-select" id="adm-place"></select></label>
             <label class="ub-field"><span>Урьсан хүн</span><select class="dash-select" id="adm-kind">
@@ -56,6 +59,20 @@
 
       <section class="adm-pane" id="adm-ann" role="tabpanel" aria-labelledby="tab-ann" hidden>
         <div class="ub-card" id="adm-ann-box"></div>
+      </section>
+
+      <section class="adm-pane" id="adm-cfg" role="tabpanel" aria-labelledby="tab-cfg" hidden>
+        <div class="ub-card">
+          <h2 class="adm-h2">Facebook групп</h2>
+          <p class="adm-note">Урилгаар бүртгүүлсэн хүмүүсийн «Миний мэдээлэл» хуудсанд (/me) «Группт нэгдэх» товчтойгоор харагдана. Холбоосыг хоосон болгож хадгалвал хэсэг нуугдана.</p>
+          <form class="adm-cfg-form" id="adm-fb-form" novalidate>
+            <label class="adm-f"><span>Группын холбоос</span><input type="url" id="adm-fb-url" maxlength="300" placeholder="https://www.facebook.com/groups/…" autocomplete="off" spellcheck="false"></label>
+            <label class="adm-f"><span>Тайлбар (заавал биш)</span><input type="text" id="adm-fb-text" maxlength="200" placeholder="Группт нэгдэж, үйл ажиллагааны мэдээллээ цаг алдалгүй аваарай."></label>
+            <div class="adm-cfg-bar"><span class="ann-msg" id="adm-fb-msg" role="status"></span><button type="submit" class="ub-mdlg-btn is-brand" id="adm-fb-save">Хадгалах</button></div>
+          </form>
+          <p class="adm-sub">Гишүүдэд ингэж харагдана:</p>
+          <div class="adm-fb-preview" id="adm-fb-preview"></div>
+        </div>
       </section>
     </div>
   </main>

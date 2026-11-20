@@ -41,3 +41,11 @@
 .me-people-head{margin-bottom:12px}
 .me-topr{display:flex;gap:8px;align-items:center}
 a.me-ghost{text-decoration:none;display:inline-flex;align-items:center}
+.me-fb{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:12px;margin-top:16px;padding:14px;border-radius:16px;background:color-mix(in oklab,#1877F2 9%,var(--color-panel));border:1px solid color-mix(in oklab,#1877F2 28%,transparent)}
+.me-fb-ic{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:#1877F2;color:#fff}
+.me-fb-ic svg{width:26px;height:26px}
+.me-fb-tx b{display:block;font-size:14.5px;font-weight:800}
+.me-fb-tx p{margin:2px 0 0;font-size:13px;line-height:1.45;color:var(--color-fg-muted);overflow-wrap:break-word}
+.me-fb-btn{display:inline-flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:800;color:#fff;background:#1877F2;border-radius:12px;padding:10px 16px;text-decoration:none;white-space:nowrap}
+.me-fb-btn:hover{filter:brightness(1.08)}
+@media (max-width:480px){.me-fb{grid-template-columns:44px minmax(0,1fr)}.me-fb-btn{grid-column:1/-1}}

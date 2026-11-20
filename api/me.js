@@ -13,6 +13,7 @@ const { normalizeInvite, INVITE_RE, fmtInvite, shortName, phoneOf, loadMembers }
 const { storeConfigured, pipeline, open, KEYS } = require('./_lib/store');
 const { findByCode, fullName } = require('./_lib/people');
 const { memberCode, setMember, clearMember } = require('./_lib/membersession');
+const { readGroup } = require('./_lib/settings');
 
 const PER_IP_HOUR = 20;
 const ipOf = (req) => String(req.headers['x-real-ip'] || (req.headers['x-forwarded-for'] || '').split(',')[0] || req.socket?.remoteAddress || '').trim();
@@ -78,7 +79,10 @@ async function me(req, res) {
           invited: r.own ? counts[normalizeInvite(r.own)] || 0 : 0 }));
     } catch (e) { storage = false; }
   }
-  return send(res, 200, { authenticated: true, code: fmtInvite(c), profile, invitees, tree, storage });
+  // Facebook групп — урилгаар бүртгүүлэгчдийн хуудсанд
+  let group = null;
+  if (p.kind === 'registrant') { try { const g = await readGroup(); if (g.fbUrl) group = g; } catch (e) { /* */ } }
+  return send(res, 200, { authenticated: true, code: fmtInvite(c), profile, invitees, tree, storage, group });
 }
 
 module.exports = async function handler(req, res) {
