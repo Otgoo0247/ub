@@ -477,3 +477,48 @@
 .ub-hlab-apt{font-size:12px;font-weight:700;fill:var(--color-fg-muted);dominant-baseline:central;font-variant-numeric:tabular-nums}
 .ub-swatch.ub-sw-ger{background:var(--ub-accent)}
 .ub-swatch.ub-sw-apt{background:color-mix(in oklab,var(--color-fg) 14%,transparent)}
+
+/* ===== Загвар сайжруулалт 3 (2026-11-20): хүснэгт, хуудасны дэвсгэр, жижиг нарийн зүйлс ===== */
+/* Хуудасны дээд хэсэгт зөөлөн брэнд туяа */
+body{background:
+  radial-gradient(1200px 420px at 12% -120px,color-mix(in oklab,var(--ub-accent) 9%,transparent),transparent 70%),
+  radial-gradient(900px 360px at 100% -160px,color-mix(in oklab,var(--series-2) 7%,transparent),transparent 70%),
+  var(--color-bg);background-repeat:no-repeat}
+/* Хорооны жагсаалт */
+.ub-table-head.ub-card-top{align-items:flex-end}
+#ub-table-card .ub-tablewrap{max-height:620px;overflow:auto;border:1px solid var(--color-border-line);border-radius:14px;margin-top:12px}
+#ub-table{min-width:980px;border-collapse:separate;border-spacing:0}
+#ub-table thead th{position:sticky;top:0;z-index:1;background:color-mix(in oklab,var(--color-bg) 70%,var(--color-panel));border-bottom:1px solid var(--color-border-line);padding:0}
+#ub-table thead th button{appearance:none;border:0;background:none;font:inherit;font-size:12px;font-weight:700;color:var(--color-fg-muted);padding:11px 12px;width:100%;text-align:inherit;cursor:pointer;white-space:nowrap}
+#ub-table thead th.n button{text-align:right}
+#ub-table thead th[aria-sort] button{color:var(--ub-accent)}
+#ub-table thead th[aria-sort="descending"] button::after{content:" ↓"}
+#ub-table thead th[aria-sort="ascending"] button::after{content:" ↑"}
+#ub-table tbody td{padding:9px 12px;border-bottom:1px solid color-mix(in oklab,var(--color-border-line) 70%,transparent);font-size:13px;vertical-align:middle}
+#ub-table tbody tr{cursor:pointer;transition:background .12s}
+#ub-table tbody tr:nth-child(even){background:color-mix(in oklab,var(--color-fg) 2%,transparent)}
+#ub-table tbody tr:hover{background:color-mix(in oklab,var(--ub-accent) 6%,transparent)}
+#ub-table tbody tr.sel{background:var(--ub-brand-soft,#FDECEC);box-shadow:inset 3px 0 0 var(--ub-accent)}
+#ub-table td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+#ub-table td.n small{display:block;font-size:11px;color:var(--color-fg-muted);font-weight:600}
+.ub-td-d{color:var(--color-fg-muted);font-weight:600}
+.ub-td-k b{font-weight:700}
+.ub-td-muted{color:var(--color-fg-muted)}
+.ub-td-bar span{display:block}
+.ub-tbar{display:block !important;height:4px;margin-top:5px;margin-left:auto;width:84px;border-radius:2px;background:color-mix(in oklab,var(--color-fg) 8%,transparent);overflow:hidden}
+.ub-tbar i{display:block;height:100%;border-radius:2px;background:color-mix(in oklab,var(--color-fg) 45%,transparent)}
+.ub-tbar.is-ger i{background:var(--ub-accent)}
+.ub-mbadge{display:inline-block;min-width:26px;padding:2px 8px;border-radius:999px;font-weight:800;font-size:12px;text-align:center;color:var(--color-fg-muted);background:color-mix(in oklab,var(--color-fg) 6%,transparent)}
+.ub-mbadge.is-on{color:var(--ub-accent);background:var(--ub-brand-soft,#FDECEC)}
+.ub-search input{border-radius:999px;padding-left:14px}
+/* Домог (газрын зураг) — хөвөгч картын хэв маяг */
+.ub-legend-over{border-radius:14px;box-shadow:0 1px 2px rgba(11,12,16,.06),0 12px 28px -14px rgba(90,13,16,.28);border:1px solid color-mix(in oklab,var(--color-fg) 8%,transparent);background:color-mix(in oklab,var(--color-panel) 94%,transparent);backdrop-filter:blur(6px)}
+.ub-zoom{border-radius:12px;box-shadow:0 8px 20px -12px rgba(11,12,16,.35)}
+/* Тусламжийн tooltip */
+.ub-tip{border-radius:12px;box-shadow:0 10px 28px -10px rgba(11,12,16,.3)}
+/* Сонгуулийн насны хоёр график зэрэгцээ */
+.ub-twin{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:12px}
+.ub-twin-col{background:var(--color-bg);border:1px solid var(--color-border-line);border-radius:16px;padding:14px 14px 8px;min-width:0}
+.ub-twin-col .ub-h3{margin:0;font-size:14px;font-weight:800}
+.ub-twin-s{margin:2px 0 8px;font-size:12px;color:var(--color-fg-muted)}
+@media (max-width:860px){.ub-twin{grid-template-columns:minmax(0,1fr)}}

@@ -92,7 +92,7 @@
       const scope = khoroo ? `${picked[0].district} дүүрэг, ${picked[0].khoroo}` : district ? `${district} дүүрэг` : 'Улаанбаатар хот';
       return [{
         scope, khoroo_n: picked.length, pop: s('pop'), hh: s('hh'), area_km2: s('area_km2'), members: s('members'),
-        age18_25: s('age18_25'), vote18: s('vote18'), y_pct: (100 * s('age18_25')) / s('pop'), vote_pct: (100 * s('vote18')) / s('pop'),
+        age18_25: s('age18_25'), vote18: s('vote18'), y_pct: (100 * s('age18_25')) / s('vote18'), /* 18–25: 18+-д эзлэх хувь */ vote_pct: (100 * s('vote18')) / s('pop'),
         dens: s('pop') / s('area_km2'), hhsize: s('pop') / s('hh'), mem_rate: (1e4 * s('members')) / s('pop'),
         khoroo_with_members: picked.filter((r) => r.members > 0).length,
         top_name: `${top.district} дүүргийн ${top.khoroo}`, top_dens: top.dens,
@@ -738,14 +738,14 @@
       .on('pointerleave', () => { tip.attr('hidden', true); cross.attr('opacity', 0); bars.classed('is-hover', false); });
   });
 
-  dash.draw('chart-housing', (el) => {
+  /* 100% давхарласан баар (дүүргээр): улаан = гол хэсэг, саарал = үлдсэн; хувь нь баар дотор */
+  function stackBars(el, opt) {
     const rows = ok('district_m');
     el.replaceChildren();
     if (!rows) { el.textContent = '—'; return; }
-    const p = P(), list = [...rows].sort((a, b) => b.gerpct - a.gerpct);
-    const W = Math.max(260, el.clientWidth), rowH = 34, H = list.length * rowH;
-    const svg = d3.select(el).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H).attr('role', 'img')
-      .attr('aria-label', 'Дүүрэг бүрийн хүн амын гэр хороолол ба орон сууцны хорооллын хувь');
+    const p = P(), list = [...rows].sort((a, b) => opt.a(b) - opt.a(a));
+    const W = Math.max(240, el.clientWidth), rowH = 34, H = list.length * rowH;
+    const svg = d3.select(el).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H).attr('role', 'img').attr('aria-label', opt.aria);
     const tip = d3.select(el).append('div').attr('class', 'ub-tip').attr('hidden', true);
     const probe = svg.append('text').attr('class', 'ub-bar-l').attr('opacity', 0);
     const nameW = d3.max(list, (r) => { probe.text(r.district); return probe.node().getComputedTextLength(); }) + 14;
@@ -755,14 +755,26 @@
     const g = svg.selectAll('g').data(list).join('g').attr('class', (r) => `ub-row${r.district === p.district ? ' sel' : ''}`).attr('transform', (r, i) => `translate(0,${i * rowH})`);
     g.append('rect').attr('class', 'ub-rowhit').attr('width', W).attr('height', rowH).attr('rx', 6);
     g.append('text').attr('class', 'ub-bar-l').attr('y', rowH / 2).text((r) => r.district);
-    g.append('rect').attr('class', 'ub-hseg-ger').attr('x', nameW).attr('y', by).attr('height', bh).attr('rx', 5).attr('width', (r) => Math.max(0, x(r.gerpct) - 1));
-    g.append('rect').attr('class', 'ub-hseg-apt').attr('x', (r) => nameW + x(r.gerpct) + 1).attr('y', by).attr('height', bh).attr('rx', 5).attr('width', (r) => Math.max(0, x(r.aptpct) - 1));
-    g.filter((r) => x(r.gerpct) > 46).append('text').attr('class', 'ub-hlab-in').attr('x', nameW + 8).attr('y', rowH / 2).text((r) => `${dec1(r.gerpct)}%`);
-    g.filter((r) => x(r.aptpct) > 46).append('text').attr('class', 'ub-hlab-apt').attr('x', W - 8).attr('text-anchor', 'end').attr('y', rowH / 2).text((r) => `${dec1(r.aptpct)}%`);
-    g.on('pointermove', (e, r) => showTip(tip, el, e, `${r.district} дүүрэг`, [['Гэр хороолол', `${dec1(r.gerpct)}%`], ['Орон сууцны хороолол', `${dec1(r.aptpct)}%`]]))
+    g.append('rect').attr('class', 'ub-hseg-ger').attr('x', nameW).attr('y', by).attr('height', bh).attr('rx', 5).attr('width', (r) => Math.max(0, x(opt.a(r)) - 1));
+    g.append('rect').attr('class', 'ub-hseg-apt').attr('x', (r) => nameW + x(opt.a(r)) + 1).attr('y', by).attr('height', bh).attr('rx', 5).attr('width', (r) => Math.max(0, x(100 - opt.a(r)) - 1));
+    g.filter((r) => x(opt.a(r)) > 46).append('text').attr('class', 'ub-hlab-in').attr('x', nameW + 8).attr('y', rowH / 2).text((r) => `${dec1(opt.a(r))}%`);
+    g.filter((r) => x(100 - opt.a(r)) > 46).append('text').attr('class', 'ub-hlab-apt').attr('x', W - 8).attr('text-anchor', 'end').attr('y', rowH / 2).text((r) => `${dec1(100 - opt.a(r))}%`);
+    g.on('pointermove', (e, r) => showTip(tip, el, e, `${r.district} дүүрэг`, opt.lines(r)))
       .on('pointerleave', () => tip.attr('hidden', true))
       .on('click', (e, r) => dash.setParams({ district: p.district === r.district ? '' : r.district, khoroo: '' }));
-  });
+  }
+  dash.draw('chart-housing', (el) => stackBars(el, {
+    a: (r) => r.gerpct, aria: 'Дүүрэг бүрийн хүн амын гэр хороолол ба орон сууцны хорооллын хувь',
+    lines: (r) => [['Гэр хороолол', `${dec1(r.gerpct)}%`], ['Орон сууцны хороолол', `${dec1(r.aptpct)}%`]],
+  }));
+  dash.draw('chart-vote', (el) => stackBars(el, {
+    a: (r) => (100 * r.vote18) / r.pop, aria: 'Дүүрэг бүрийн хүн амд сонгуулийн насны (18+) хүмүүсийн эзлэх хувь',
+    lines: (r) => [['Сонгуулийн нас (18+)', `${int(r.vote18)} · ${dec1((100 * r.vote18) / r.pop)}%`], ['18 хүртэл', `${int(r.pop - r.vote18)} · ${dec1(100 - (100 * r.vote18) / r.pop)}%`], ['Хүн ам', int(r.pop)]],
+  }));
+  dash.draw('chart-youth', (el) => stackBars(el, {
+    a: (r) => (100 * r.age18_25) / r.vote18, aria: 'Дүүрэг бүрийн сонгуулийн насны хүмүүст 18–25 насныхны эзлэх хувь',
+    lines: (r) => [['18–25 нас', `${int(r.age18_25)} · ${dec1((100 * r.age18_25) / r.vote18)}%`], ['26 ба түүнээс дээш', `${int(r.vote18 - r.age18_25)} · ${dec1(100 - (100 * r.age18_25) / r.vote18)}%`], ['Сонгуулийн нас (18+)', int(r.vote18)]],
+  }));
 
   /* ---------- Их, дээд сургуулийн суралцагчид (мэргэжлийн чиглэлээр) ---------- */
   const UNI_NUM = ['total', 'male', 'female', 'dip', 'dip_m', 'dip_f', 'bach', 'bach_m', 'bach_f'];
@@ -805,16 +817,19 @@
     const svg = d3.select(el).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H).attr('role', 'img')
       .attr('aria-label', 'Их, дээд сургуулийн суралцагчид ерөнхий чиглэлээр, хүйсээр');
     const tip = d3.select(el).append('div').attr('class', 'ub-tip').attr('hidden', true);
-    const probe = svg.append('text').attr('class', 'ub-bar-v').attr('opacity', 0).text('00,000 · 00.0%');
-    const valW = probe.node().getComputedTextLength() + 10; probe.remove();
-    const x = d3.scaleLinear().domain([0, d3.max(groups, (g) => g.total)]).range([0, Math.max(60, W - valW)]);
+    const probe = svg.append('text').attr('class', 'ub-bar-v ub-bar-strong').attr('opacity', 0).text('00,000');
+    const vW = probe.node().getComputedTextLength() + 8; probe.attr('class', 'ub-bar-v').text('00.0%'); const sW = probe.node().getComputedTextLength() + 12; probe.remove();
+    const trackW = Math.max(60, W - vW - sW - 12);
+    const x = d3.scaleLinear().domain([0, d3.max(groups, (g) => g.total)]).range([0, trackW]);
     const g = svg.selectAll('g').data(groups).join('g').attr('class', 'ub-row').attr('transform', (r, i) => `translate(0,${i * rowH})`);
-    g.append('rect').attr('class', 'ub-rowhit').attr('width', W).attr('height', rowH - 2).attr('rx', 4);
-    g.append('text').attr('class', 'ub-bar-l').attr('x', 0).attr('y', 13).text((r) => `${+r.code}. ${r.name}`);
-    const by = 22, bh = 16;
-    g.append('rect').attr('x', 0).attr('y', by).attr('height', bh).attr('rx', 3).attr('width', (r) => Math.max(0, x(r.male) - 1)).style('fill', dash.colors[1]);
-    g.append('rect').attr('x', (r) => x(r.male) + 1).attr('y', by).attr('height', bh).attr('rx', 3).attr('width', (r) => Math.max(0, x(r.female) - 1)).style('fill', dash.colors[0]);
-    g.append('text').attr('class', 'ub-bar-v').attr('y', by + bh / 2).attr('x', (r) => x(r.total) + 8).text((r) => `${int(r.total)} · ${dec1((100 * r.total) / grand)}%`);
+    g.append('rect').attr('class', 'ub-rowhit').attr('width', W).attr('height', rowH - 2).attr('rx', 6);
+    g.append('text').attr('class', 'ub-bar-l').attr('x', 0).attr('y', 14).text((r) => `${+r.code}. ${r.name}`);
+    const by = 24, bh = 12;
+    g.append('rect').attr('class', 'ub-track').attr('x', 0).attr('y', by).attr('width', trackW).attr('height', bh).attr('rx', bh / 2);
+    g.append('rect').attr('x', 0).attr('y', by).attr('height', bh).attr('rx', bh / 2).attr('width', (r) => Math.max(0, x(r.male) - 1)).style('fill', dash.colors[0]);
+    g.append('rect').attr('x', (r) => x(r.male) + 1).attr('y', by).attr('height', bh).attr('rx', bh / 2).attr('width', (r) => Math.max(0, x(r.female) - 1)).style('fill', dash.colors[1]);
+    g.append('text').attr('class', 'ub-bar-v ub-bar-strong').attr('y', by + bh / 2).attr('x', trackW + 8 + vW).attr('text-anchor', 'end').text((r) => int(r.total));
+    g.append('text').attr('class', 'ub-bar-v').attr('y', by + bh / 2).attr('x', W).attr('text-anchor', 'end').text((r) => `${dec1((100 * r.total) / grand)}%`);
     g.on('pointermove', (e, r) => showTip(tip, el, e, `${+r.code}. ${r.name}`, [
       ['Нийт', int(r.total)], ['Эрэгтэй', `${int(r.male)} (${pct1(r.male, r.total)})`], ['Эмэгтэй', `${int(r.female)} (${pct1(r.female, r.total)})`],
       ['Бакалавр', int(r.bach)], ['Диплом', int(r.dip)]]))
@@ -865,14 +880,24 @@
       });
   }
   dash.draw('table-count', (el) => { el.textContent = ok('khoroo_m') ? int(tableRows().length) : '—'; });
+  let tblMax = { pop: 1 };
   dash.draw('table-body', (tb) => {
     const p = P();
+    tblMax = { pop: d3.max(ok('khoroo_m') || [], (r) => r.pop) || 1 };
     tb.replaceChildren(...tableRows().map((r) => {
       const tr = document.createElement('tr'); tr.dataset.key = r.code; if (r.code === p.khoroo) tr.className = 'sel';
-      [[r.district], [r.khoroo], [int(r.pop), 1], [int(r.hh), 1], [FMT.area(r.area_km2), 1], [int(r.dens), 1], [dec2(r.hhsize), 1],
-        [int(r.members), 1], [dec1(r.mem_rate), 1], [dec1(r.gerpct), 1]].forEach(([v, n]) => {
-        const td = document.createElement('td'); td.textContent = v; if (n) td.className = 'n'; tr.append(td);
-      });
+      const mk = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+      const td = (cls, ...kids) => { const c = mk('td', cls); c.append(...kids); tr.append(c); return c; };
+      const bar = (pct, cls) => { const b = mk('span', `ub-tbar ${cls || ''}`); const i = mk('i'); i.style.width = `${Math.max(0, Math.min(100, pct))}%`; b.append(i); return b; };
+      td('ub-td-d', r.district);
+      td('ub-td-k', mk('b', null, r.khoroo));
+      td('n ub-td-bar', mk('span', null, int(r.pop)), bar((100 * r.pop) / tblMax.pop));
+      td('n', mk('span', null, int(r.vote18)), mk('small', null, `${dec1((100 * r.vote18) / r.pop)}%`));
+      td('n', mk('span', null, int(r.age18_25)), mk('small', null, `${dec1((100 * r.age18_25) / r.vote18)}%`));
+      td('n ub-td-muted', FMT.area(r.area_km2));
+      td('n', mk('span', `ub-mbadge${r.members ? ' is-on' : ''}`, int(r.members)));
+      td('n', r.members ? dec1(r.mem_rate) : '—');
+      td('n ub-td-bar', mk('span', null, `${dec1(r.gerpct)}%`), bar(r.gerpct, 'is-ger'));
       tr.onclick = () => dash.setParams({ district: r.district, khoroo: p.khoroo === r.code ? '' : r.code });
       return tr;
     }));
@@ -917,7 +942,7 @@
     };
     bar('Хүн ам', int(row.pop), (100 * row.pop) / city.pop, `хотын ${dec1((100 * row.pop) / city.pop)}%`);
     bar('Сонгуулийн нас (18+)', int(row.vote18), row.vote_pct, `хүн амын ${dec1(row.vote_pct)}%`);
-    bar('18–25 насны хүн ам', int(row.age18_25), row.y_pct, `хүн амын ${dec1(row.y_pct)}%`);
+    bar('18–25 насны хүн ам', int(row.age18_25), row.y_pct, `сонгуулийн насныхны ${dec1(row.y_pct)}%`);
     bar('Гишүүд', int(row.members), city.members ? (100 * row.members) / city.members : 0, `хотын гишүүдийн ${dec1(city.members ? (100 * row.members) / city.members : 0)}%`, true);
     const foot = mk('p', 'ub-co-foot'); foot.append(mk('b', null, dec1(row.mem_rate)), document.createTextNode(' гишүүн 10 000 хүнд'));
     el.replaceChildren(head, bars, foot);

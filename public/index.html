@@ -7,18 +7,18 @@
   <meta name="description" content="Улаанбаатар хотын 9 дүүрэг, 204 хорооны хүн ам, өрх, нягтрал, гишүүнчлэлийг газрын зураг, графикаар харуулсан дашбоард.">
   <meta name="color-scheme" content="light dark">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/tokens.css?v=20261120-7">
-  <link rel="stylesheet" href="css/ub.css?v=20261120-7">
-  <link rel="stylesheet" href="css/tree.css?v=20261120-7">
-  <script src="js/d3.min.js?v=20261120-7" defer></script>
-  <script src="js/dash-runtime.js?v=20261120-7" defer></script>
-  <script src="js/config.js?v=20261120-7" defer></script>
-  <script src="js/app.js?v=20261120-7" defer></script>
-  <script src="js/members.js?v=20261120-7" defer></script>
-  <script src="js/xlsx-lite.js?v=20261120-7" defer></script>
-  <script src="js/party.js?v=20261120-7" defer></script>
-  <script src="js/tree.js?v=20261120-7" defer></script>
-  <script src="js/session.js?v=20261120-7" defer></script>
+  <link rel="stylesheet" href="css/tokens.css?v=20261120-9">
+  <link rel="stylesheet" href="css/ub.css?v=20261120-9">
+  <link rel="stylesheet" href="css/tree.css?v=20261120-9">
+  <script src="js/d3.min.js?v=20261120-9" defer></script>
+  <script src="js/dash-runtime.js?v=20261120-9" defer></script>
+  <script src="js/config.js?v=20261120-9" defer></script>
+  <script src="js/app.js?v=20261120-9" defer></script>
+  <script src="js/members.js?v=20261120-9" defer></script>
+  <script src="js/xlsx-lite.js?v=20261120-9" defer></script>
+  <script src="js/party.js?v=20261120-9" defer></script>
+  <script src="js/tree.js?v=20261120-9" defer></script>
+  <script src="js/session.js?v=20261120-9" defer></script>
 </head>
 <body>
   <main id="dash-root">
@@ -74,7 +74,7 @@
           <span class="ub-kpi-s">хүн амын <b data-draw="sum" data-k="vote_pct" data-f="pct" data-source="summary" data-field="vote_pct" data-row="0">—</b>%</span></div>
         <div class="ub-kpi has-ring" id="kpi-y"><span class="ub-kpi-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM5 21c0-3.9 3.1-7 7-7s7 3.1 7 7M12 14v3"/></svg></span><span class="ub-kpi-ring" data-draw="ring" data-k="y_pct" data-source="summary"></span><span class="ub-kpi-l">18–25 насны хүн ам</span>
           <b class="ub-kpi-v" data-draw="sum" data-k="age18_25" data-f="int" data-source="summary" data-field="age18_25" data-row="0">—</b><span class="ub-kpi-u">хүн</span>
-          <span class="ub-kpi-s">хүн амын <b data-draw="sum" data-k="y_pct" data-f="pct" data-source="summary" data-field="y_pct" data-row="0">—</b>%</span></div>
+          <span class="ub-kpi-s">сонгуулийн насныхны <b data-draw="sum" data-k="y_pct" data-f="pct" data-source="summary" data-field="y_pct" data-row="0">—</b>%</span></div>
         <div class="ub-kpi is-brand" id="kpi-mem"><span class="ub-kpi-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8-4.3-4.1 5.9-.9L12 3Z"/></svg></span><span class="ub-kpi-l">Гишүүд</span>
           <b class="ub-kpi-v" data-draw="sum" data-k="members" data-f="int" data-source="summary" data-field="members" data-row="0">—</b><span class="ub-kpi-u">гишүүн</span></div>
         <div class="ub-kpi" id="kpi-rate"><span class="ub-kpi-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 5-6"/></svg></span><span class="ub-kpi-l">10 000 хүнд ногдох гишүүн</span>
@@ -125,8 +125,8 @@
         <div class="ub-uni-stats" data-draw="uni-stats" data-source="uni_students"></div>
         <h3 class="ub-h3">Ерөнхий чиглэлээр</h3>
         <div class="ub-keys" aria-hidden="true">
-          <span class="ub-key"><i class="ub-swatch ub-c2"></i>Эрэгтэй</span>
-          <span class="ub-key"><i class="ub-swatch ub-c1"></i>Эмэгтэй</span>
+          <span class="ub-key"><i class="ub-swatch ub-c1"></i>Эрэгтэй</span>
+          <span class="ub-key"><i class="ub-swatch ub-c2"></i>Эмэгтэй</span>
         </div>
         <div class="ub-chart ub-chart-uni" data-draw="chart-uni" data-source="uni_students"></div>
         <h3 class="ub-h3">Нарийвчилсан чиглэлээр</h3>
@@ -185,6 +185,31 @@
         <div class="ub-chart ub-chart-m" data-draw="chart-monthly" data-source="members_monthly"></div>
       </section>
 
+      <section class="ub-card" id="ub-votecard">
+        <h2 class="ub-h2">Сонгуулийн насны хүн ам, дүүргээр</h2>
+        <p class="ub-note">2026.11.19-ний нэгтгэлээр. Баар бүр 100%; улаан хэсгийн хувиар эрэмбэлсэн.</p>
+        <div class="ub-twin">
+          <div class="ub-twin-col">
+            <h3 class="ub-h3">Сонгуулийн нас (18+)</h3>
+            <p class="ub-twin-s">Хүн амд эзлэх хувь</p>
+            <div class="ub-keys" aria-hidden="true">
+              <span class="ub-key"><i class="ub-swatch ub-sw-ger"></i>18 ба түүнээс дээш</span>
+              <span class="ub-key"><i class="ub-swatch ub-sw-apt"></i>18 хүртэл</span>
+            </div>
+            <div class="ub-chart ub-chart-h" data-draw="chart-vote" data-source="district_m"></div>
+          </div>
+          <div class="ub-twin-col">
+            <h3 class="ub-h3">18–25 насны хүн ам</h3>
+            <p class="ub-twin-s">Сонгуулийн насныханд (18+) эзлэх хувь</p>
+            <div class="ub-keys" aria-hidden="true">
+              <span class="ub-key"><i class="ub-swatch ub-sw-ger"></i>18–25 нас</span>
+              <span class="ub-key"><i class="ub-swatch ub-sw-apt"></i>26 ба түүнээс дээш</span>
+            </div>
+            <div class="ub-chart ub-chart-h" data-draw="chart-youth" data-source="district_m"></div>
+          </div>
+        </div>
+      </section>
+
       <section class="ub-card" id="ub-housing">
         <h2 class="ub-h2">Хүн амын амьдрах орчин, дүүргээр</h2>
         <p class="ub-note">Хилийн файлын (2024) мэдээгээр; шинэ нэгтгэлд энэ задаргаа байхгүй. Гэр хорооллын хувиар эрэмбэлсэн.</p>
@@ -196,7 +221,7 @@
       </section>
 
       <section class="ub-card" id="ub-table-card">
-        <div class="ub-table-head">
+        <div class="ub-table-head ub-card-top">
           <div>
             <h2 class="ub-h2">Хорооны жагсаалт</h2>
             <p class="ub-note"><b data-draw="table-count">—</b> хороо. Баганын нэр дээр дарж эрэмбэлнэ.</p>
@@ -210,13 +235,12 @@
               <th scope="col" data-field="district" data-sort="district"><button type="button">Дүүрэг</button></th>
               <th scope="col" data-field="khoroo" data-sort="khoroo_no"><button type="button">Хороо</button></th>
               <th scope="col" class="n" data-field="pop" data-sort="pop"><button type="button">Хүн ам</button></th>
-              <th scope="col" class="n" data-field="hh" data-sort="hh"><button type="button">Өрх</button></th>
+              <th scope="col" class="n" data-field="vote18" data-sort="vote18"><button type="button">Сонгуулийн нас (18+)</button></th>
+              <th scope="col" class="n" data-field="age18_25" data-sort="age18_25"><button type="button">18–25 нас</button></th>
               <th scope="col" class="n" data-field="area_km2" data-sort="area_km2"><button type="button">Талбай, км²</button></th>
-              <th scope="col" class="n" data-field="dens" data-sort="dens"><button type="button">Нягтрал, хүн/км²</button></th>
-              <th scope="col" class="n" data-field="hhsize" data-sort="hhsize"><button type="button">Өрхийн хэмжээ</button></th>
               <th scope="col" class="n" data-field="members" data-sort="members"><button type="button">Гишүүд</button></th>
               <th scope="col" class="n" data-field="mem_rate" data-sort="mem_rate"><button type="button">10 000 хүнд</button></th>
-              <th scope="col" class="n" data-field="gerpct" data-sort="gerpct"><button type="button">Гэр хороолол, % (2024)</button></th>
+              <th scope="col" class="n" data-field="gerpct" data-sort="gerpct"><button type="button">Гэр хороолол (2024)</button></th>
             </tr></thead>
             <tbody data-draw="table-body"></tbody>
           </table>
