@@ -5,6 +5,7 @@
  *                    «Нийт урилгын мод»: бүх гишүүний урилгыг нэг модонд (tree.js, offset: 1).
  *   «Үйл ажиллагааны зарлал»: announce.js (UBAnnAdmin.mount).
  *   «Ирц»: гишүүдийн ирц — зураг, байршил (жижиг газрын зураг), цаг; шүүх, устгах, Excel (/api/attendance).
+ *   «Нэвтрэх эрх»: гишүүдийн нэвтрэх нэр, санамсаргүй нууц үг — үүсгэх, шинэчлэх, Excel (/api/credentials).
  *   «Тохиргоо»: Facebook группын холбоос (/api/settings) — урилгаар бүртгүүлэгчдийн /me хуудсанд харагдана.
  */
 (function () {
@@ -23,18 +24,20 @@
   const PAGE = 200;
 
   /* ---------- Табууд ---------- */
-  const TABS = { people: ['tab-people', 'adm-people', 'urisan'], ann: ['tab-ann', 'adm-ann', 'zarlal'], cfg: ['tab-cfg', 'adm-cfg', 'tokhirgoo'], att: ['tab-att', 'adm-att', 'irts'] };
+  const TABS = { people: ['tab-people', 'adm-people', 'urisan'], ann: ['tab-ann', 'adm-ann', 'zarlal'], cfg: ['tab-cfg', 'adm-cfg', 'tokhirgoo'], att: ['tab-att', 'adm-att', 'irts'], cred: ['tab-cred', 'adm-cred', 'erh'] };
   function show(name, push) {
     Object.entries(TABS).forEach(([k, [t, p]]) => { $(t).setAttribute('aria-selected', String(k === name)); $(p).hidden = k !== name; });
     if (name === 'ann' && window.UBAnnAdmin) { window.UBAnnAdmin.mount($('adm-ann-box')); }
     if (name === 'cfg') loadCfg();
     if (name === 'att') loadAtt();
+    if (name === 'cred') loadCred();
     if (push) history.replaceState(null, '', `#${TABS[name][2]}`);
   }
   $('tab-people').addEventListener('click', () => show('people', true));
   $('tab-ann').addEventListener('click', () => show('ann', true));
   $('tab-cfg').addEventListener('click', () => show('cfg', true));
   $('tab-att').addEventListener('click', () => show('att', true));
+  $('tab-cred').addEventListener('click', () => show('cred', true));
   const startTab = Object.keys(TABS).find((k) => `#${TABS[k][2]}` === location.hash) || 'people';
 
   /* ---------- Тохиргоо: Facebook групп ---------- */
@@ -166,6 +169,106 @@
   $('att-reset').addEventListener('click', () => { att.ev = att.date = att.q = ''; $('att-ev').value = ''; $('att-date').value = ''; $('att-q').value = ''; renderAtt(); });
   $('att-refresh').addEventListener('click', () => loadAtt(true));
   $('att-xl').addEventListener('click', exportAtt);
+
+  /* ---------- Нэвтрэх эрх ---------- */
+  const cr = { items: null, q: '', kind: '', has: '', show: false, loading: false, limit: PAGE };
+  function credFetch(force) {
+    if (cr.loading || (cr.items && !force)) return Promise.resolve();
+    cr.loading = true; $('cred-sum').textContent = 'Ачаалж байна…';
+    return fetch('/api/credentials', { credentials: 'same-origin' }).then(async (r) => ({ status: r.status, d: await r.json().catch(() => ({})) })).then(({ status, d }) => {
+      cr.loading = false;
+      if (status === 401) { location.assign('/admin-login?next=/admin%23erh'); return; }
+      if (status === 503) { $('cred-sum').textContent = d.error === 'not_configured' ? 'MEMBERS_KEY тохируулагдаагүй байна.' : 'Хадгалах сан (Upstash Redis) холбогдоогүй байна.'; return; }
+      if (status !== 200) { $('cred-sum').textContent = 'Ачаалж чадсангүй.'; return; }
+      cr.items = d.items || []; credKpis(); renderCred();
+    }).catch(() => { cr.loading = false; $('cred-sum').textContent = 'Сервертэй холбогдож чадсангүй.'; });
+  }
+  const loadCred = () => credFetch(false);
+  function credKpis() {
+    const its = cr.items, has = its.filter((x) => x.username).length;
+    const items = [['Нийт хүн', its.length, 'хүн'], ['Эрхтэй', has, 'хүн', true], ['Эрхгүй', its.length - has, 'хүн'], ['Намын гишүүн', its.filter((x) => x.kind === 'member').length, 'хүн']];
+    $('cred-kpis').replaceChildren(...items.map(([l, v, u, brand]) => { const k = el('div', `adm-kpi${brand ? ' is-brand' : ''}`); k.append(el('span', 'adm-kpi-l', l), el('b', 'adm-kpi-v', int(v)), el('span', 'adm-kpi-u', u)); return k; }));
+    const missing = its.length - has;
+    $('cred-gen').disabled = !missing; $('cred-gen').textContent = missing ? `Эрхгүй бүх хүнд үүсгэх (${int(missing)})` : 'Бүх хүн эрхтэй';
+  }
+  function credFiltered() {
+    const q = cr.q.trim().toLowerCase();
+    return cr.items.filter((x) => (!cr.kind || x.kind === cr.kind) && (!cr.has || (cr.has === 'yes') === !!x.username)
+      && (!q || `${x.name} ${x.username} ${x.place} ${x.code}`.toLowerCase().includes(q)));
+  }
+  function copyBtn(text) {
+    const b = el('button', 'cred-copy', 'Хуулах'); b.type = 'button';
+    b.addEventListener('click', () => { const done = () => { b.textContent = '✓'; setTimeout(() => { b.textContent = 'Хуулах'; }, 1200); };
+      if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, () => {}); });
+    return b;
+  }
+  async function credPost(body) {
+    const r = await fetch('/api/credentials', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.error || String(r.status));
+    return d;
+  }
+  function renderCred() {
+    const list = credFiltered();
+    $('cred-xl').disabled = !list.some((x) => x.username);
+    $('cred-sum').textContent = `${int(list.length)} хүн${list.length !== cr.items.length ? ` (нийт ${int(cr.items.length)})` : ''}`;
+    const body = $('cred-body');
+    if (!list.length) { body.replaceChildren(el('p', 'adm-empty', 'Шүүлтэд тохирох хүн алга.')); return; }
+    const wrap = el('div', 'ub-tablewrap adm-wrap');
+    const t = el('table', 'ub-table adm-table cred-table');
+    const tr = el('tr');
+    [['№', 'n'], ['Нэр'], ['Төрөл'], ['Хороо / хаяг'], ['Нэвтрэх нэр'], ['Нууц үг'], ['Үүсгэсэн'], ['']].forEach(([h, c]) => { const th = el('th', c || null, h); th.scope = 'col'; tr.append(th); });
+    const thead = el('thead'); thead.append(tr);
+    const tb = el('tbody');
+    list.slice(0, cr.limit).forEach((x, i) => {
+      const row = el('tr');
+      const kind = el('td'); kind.append(el('span', `adm-badge${x.kind === 'registrant' ? ' is-reg' : ''}`, x.kind === 'member' ? 'Гишүүн' : 'Бүртгүүлэгч'));
+      const u = el('td', 'cred-u'), pw = el('td', 'cred-pw'), act = el('td', 'cred-act');
+      if (x.username) {
+        u.append(el('code', null, x.username), copyBtn(x.username));
+        pw.append(el('code', null, cr.show ? x.password : '••••••••'), copyBtn(x.password));
+        const rb = el('button', 'cred-btn', 'Нууц үг шинэчлэх'); rb.type = 'button';
+        rb.addEventListener('click', async () => {
+          if (!rb.classList.contains('is-confirm')) { rb.classList.add('is-confirm'); rb.textContent = 'Шинэчлэх үү?'; setTimeout(() => { rb.classList.remove('is-confirm'); rb.textContent = 'Нууц үг шинэчлэх'; }, 3000); return; }
+          rb.disabled = true;
+          try { const d = await credPost({ action: 'reset', code: x.code }); x.password = d.password; x.t = new Date().toISOString(); renderCred(); }
+          catch (e) { rb.disabled = false; rb.textContent = 'Алдаа — дахин'; }
+        });
+        act.append(rb);
+      } else {
+        u.append(el('span', 'adm-muted', '—')); pw.append(el('span', 'adm-muted', '—'));
+        const gb = el('button', 'cred-btn is-brand', 'Эрх үүсгэх'); gb.type = 'button';
+        gb.addEventListener('click', async () => { gb.disabled = true; try { await credPost({ action: 'generate', codes: [x.code] }); cr.items = null; await credFetch(true); } catch (e) { gb.disabled = false; gb.textContent = 'Алдаа — дахин'; } });
+        act.append(gb);
+      }
+      row.append(el('td', 'n', String(i + 1)), el('td', 'adm-name', x.name), kind, el('td', null, x.place || '—'), u, pw, el('td', 'adm-date', x.t ? stamp(x.t) : '—'), act);
+      tb.append(row);
+    });
+    t.append(thead, tb); wrap.append(t);
+    const out = [wrap];
+    if (list.length > cr.limit) { const more = el('button', 'ann-all', `Дахиад харуулах (${int(list.length - cr.limit)} үлдсэн)`); more.type = 'button'; more.addEventListener('click', () => { cr.limit += PAGE; renderCred(); }); out.push(more); }
+    body.replaceChildren(...out);
+  }
+  $('cred-q').addEventListener('input', (e) => { cr.q = e.target.value; cr.limit = PAGE; if (cr.items) renderCred(); });
+  $('cred-kind').addEventListener('change', (e) => { cr.kind = e.target.value; cr.limit = PAGE; if (cr.items) renderCred(); });
+  $('cred-has').addEventListener('change', (e) => { cr.has = e.target.value; cr.limit = PAGE; if (cr.items) renderCred(); });
+  $('cred-show').addEventListener('click', (e) => { cr.show = !cr.show; e.currentTarget.setAttribute('aria-pressed', String(cr.show)); e.currentTarget.textContent = cr.show ? '🙈 Нууц үг нуух' : '👁 Нууц үг харуулах'; if (cr.items) renderCred(); });
+  $('cred-gen').addEventListener('click', async (e) => {
+    const b = e.currentTarget;
+    if (!b.classList.contains('is-confirm')) { b.classList.add('is-confirm'); b.textContent = 'Үүсгэх үү? Дахин дарна уу'; setTimeout(() => { b.classList.remove('is-confirm'); credKpis(); }, 3500); return; }
+    b.classList.remove('is-confirm'); b.disabled = true; b.textContent = 'Үүсгэж байна…';
+    try { const d = await credPost({ action: 'generate' }); cr.items = null; await credFetch(true); $('cred-sum').textContent += ` · ${int(d.made)} хүнд шинээр эрх үүслээ`; }
+    catch (err) { b.disabled = false; b.textContent = 'Алдаа — дахин оролдох'; }
+  });
+  $('cred-xl').addEventListener('click', () => {
+    if (!window.UBXlsx) { alert('Хуудсыг Ctrl+F5-аар шинэчилнэ үү.'); return; }
+    const list = credFiltered().filter((x) => x.username);
+    const HEAD = ['№', 'Нэр', 'Төрөл', 'Хороо / хаяг', 'Нэвтрэх нэр', 'Нууц үг', 'Нэвтрэх хаяг', 'Үүсгэсэн'];
+    const WIDTH = [5, 28, 13, 26, 18, 12, 32, 17];
+    const url = `${location.origin}/login`;
+    window.UBXlsx.download(`nevtrekh_erkh_${new Date().toISOString().slice(0, 10)}.xlsx`, 'Нэвтрэх эрх', HEAD,
+      list.map((x, i) => [i + 1, x.name, x.kind === 'member' ? 'Намын гишүүн' : 'Бүртгүүлэгч', x.place, x.username, x.password, url, x.t ? stamp(x.t) : '']), WIDTH);
+  });
 
   show(startTab, false);
 

@@ -115,3 +115,15 @@
 .att-lb::backdrop{background:rgba(0,0,0,.7)}
 .att-lb img{display:block;max-width:100%;max-height:calc(92vh - 40px);margin:0 auto}
 .att-lb p{margin:0;padding:10px 14px;color:#fff;font-size:13px}
+/* Нэвтрэх эрх */
+.cred-table{min-width:980px}
+.cred-u,.cred-pw{white-space:nowrap}
+.cred-u code,.cred-pw code{font:600 13px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:3px 6px;border-radius:6px;background:var(--color-bg);margin-right:6px}
+.cred-copy{appearance:none;font:inherit;font-size:11px;font-weight:700;color:var(--color-fg-muted);background:none;border:1px solid var(--color-border-line);border-radius:6px;padding:2px 6px;cursor:pointer}
+.cred-copy:hover{color:var(--color-fg);border-color:var(--color-fg-muted)}
+.cred-btn{appearance:none;font:inherit;font-size:12px;font-weight:700;color:var(--color-fg);background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:8px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+.cred-btn.is-brand{background:var(--series-1);border-color:var(--series-1);color:#fff}
+.cred-btn.is-confirm{background:#B25E09;border-color:#B25E09;color:#fff}
+.cred-gen{align-self:flex-end;min-height:34px}
+.cred-gen.is-confirm{background:#B25E09;border-color:#B25E09}
+.cred-gen:disabled{opacity:.5;cursor:default}

@@ -10,6 +10,7 @@ const { loadMembers, normalizeInvite, INVITE_RE, fmtInvite, phoneOf } = require(
 const { storeConfigured, pipeline, seal, phoneKey, KEYS, randomCode } = require('./_lib/store');
 const { findByCode } = require('./_lib/people');
 const { setMember } = require('./_lib/membersession');
+const { ensureCred } = require('./_lib/creds');
 const ADDR = require('./_lib/address.json');
 
 const NAME_RE = /^[\p{L}][\p{L}\s.'’-]{0,39}$/u;
@@ -87,7 +88,9 @@ module.exports = async function handler(req, res) {
     try { await pipeline([['SET', KEYS.code + own, sealed], ['RPUSH', KEYS.list, sealed], ['HINCRBY', KEYS.by, c, '1'], ['SET', phoneKey(phone), own]]); }
     catch (e) { await pipeline([['DEL', phoneKey(phone)], ['DEL', KEYS.code + own]]).catch(() => {}); throw e; }
     setMember(req, res, own);
-    return send(res, 201, { ok: true, code: fmtInvite(own) });
+    let cred = null;
+    try { const x = await ensureCred(own, first); if (x) cred = { username: x.u, password: x.pw }; } catch (e) { /* /me дээр дахин үүснэ */ }
+    return send(res, 201, { ok: true, code: fmtInvite(own), cred });
   } catch (e) {
     return send(res, 502, { error: 'store_error' });
   }

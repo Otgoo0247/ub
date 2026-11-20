@@ -1,6 +1,7 @@
 /*
  * login.js — хоёр нэвтрэх хуудас:
- *   /login        (body[data-login=member]) — гишүүн өөрийн кодоор (POST /api/me) → дашбоард (/)
+ *   /login        (body[data-login=member]) — гишүүн нэвтрэх нэр, нууц үгээр (POST /api/me) → дашбоард (/)
+ * Админ, гишүүний сешн тус тусдаа тул нэг хөтөч дээр зэрэг нэвтэрч болно.
  *   /admin-login  (body[data-login=admin])  — админ нэр, нууц үгээр (POST /api/auth) → /admin
  */
 (function () {
@@ -19,7 +20,7 @@
   /* Аль хэдийн нэвтэрсэн бол шууд үргэлжлүүлнэ */
   fetch('/api/auth', { credentials: 'same-origin' }).then((r) => r.json()).then((s) => {
     if (mode === 'admin') {
-      if (s.role === 'admin') location.replace(nextUrl());
+      if (s.admin) location.replace(nextUrl());
       else if (!s.configured) {
         const text = {
           AUTH_USERNAME_missing: 'AUTH_USERNAME хувьсагч олдсонгүй', AUTH_USERNAME_empty: 'AUTH_USERNAME хоосон байна',
@@ -28,27 +29,26 @@
         const list = (s.problems || []).map((p) => text[p] || p);
         document.getElementById('lg-msg').textContent = `Сервер тохируулагдаагүй: ${list.join('; ') || 'AUTH_USERNAME, AUTH_PASSWORD'}. Vercel дээр засаад Redeploy хийнэ үү.`;
       }
-    } else if (s.authenticated) location.replace(nextUrl());
+    } else if (s.member) location.replace(nextUrl());
   }).catch(() => {});
 
-  /* ---------- Гишүүн: нууц код (урилгын код) ---------- */
+  /* ---------- Гишүүн: нэвтрэх нэр + нууц үг ---------- */
   if (mode === 'member') {
-    const form = document.getElementById('lg-mform'), code = document.getElementById('lg-code');
+    const form = document.getElementById('lg-mform'), user = document.getElementById('lg-muser'), pass = document.getElementById('lg-mpass');
     const btn = document.getElementById('lg-mbtn'), msg = document.getElementById('lg-mmsg');
-    code.focus();
-    code.addEventListener('input', () => { const p = code.selectionStart; code.value = code.value.toUpperCase(); code.setSelectionRange(p, p); });
+    user.focus();
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const c = code.value.replace(/[\s-]/g, '');
-      if (c.length !== 10) { msg.textContent = 'Код 10 тэмдэгт (жишээ нь 7KQ2M-X9D4P) байна.'; code.focus(); return; }
+      if (!user.value.trim() || !pass.value) { msg.textContent = 'Нэвтрэх нэр, нууц үгээ оруулна уу.'; return; }
       btn.disabled = true; msg.textContent = '';
       try {
-        const r = await post('/api/me', { action: 'login', code: code.value });
+        const r = await post('/api/me', { action: 'login', username: user.value.trim(), password: pass.value.trim() });
         if (r.ok) { location.replace(nextUrl()); return; }
         const d = await r.json().catch(() => ({}));
-        msg.textContent = r.status === 401 ? 'Код буруу байна. Дахин шалгаад оруулна уу.'
+        msg.textContent = r.status === 401 ? 'Нэвтрэх нэр эсвэл нууц үг буруу байна.'
           : r.status === 429 ? 'Хэт олон оролдлого хийлээ. Нэг цагийн дараа дахин оролдоно уу.'
           : r.status === 503 ? 'Сервер тохируулагдаагүй байна.' : `Нэвтэрч чадсангүй (${d.error || r.status}).`;
+        pass.value = ''; pass.focus();
       } catch (err) { msg.textContent = 'Сервертэй холбогдож чадсангүй.'; }
       btn.disabled = false;
     });

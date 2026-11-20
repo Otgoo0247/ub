@@ -1,5 +1,5 @@
 /*
- * Гишүүний сешн (/login — урилгын кодоор): ub_member = v1.<урилгын код>.<дуусах>.<HMAC-SHA256>
+ * Гишүүний сешн (/login — нэвтрэх нэр + нууц үгээр, api/_lib/creds.js): ub_member = v1.<урилгын код>.<дуусах>.<HMAC-SHA256>
  * Түлхүүр: HMAC(MEMBERS_KEY, 'ubdash-member-session-v1'). Админы ub_session-оос тусдаа.
  * Гишүүн дашбоардын статистик, өөрийн хуудас (/me), зарлалыг харна; нэрсийн жагсаалт, бүртгэл, /admin-д хандахгүй.
  * middleware.js яг ижил аргаар шалгадаг тул хоёуланг нь хамт өөрчилнө.
@@ -37,6 +37,6 @@ function setMember(req, res, code) {
   write(req, res, `${payload}.${mac(k, payload)}`, DAYS * 86400);
   require('./session').setRole(req, res, 'member', DAYS * 86400);
 }
-function clearMember(req, res) { write(req, res, '', 0); require('./session').setRole(req, res, '', 0); }
+function clearMember(req, res) { write(req, res, '', 0); require('./session').setRole(req, res, 'member', 0); }
 
 module.exports = { memberCode, setMember, clearMember };

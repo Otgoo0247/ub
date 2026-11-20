@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="mn">
+<html lang="mn" data-need="admin">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,28 +7,28 @@
   <meta name="color-scheme" content="light dark">
   <title>Админ хэсэг</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <script src="js/role.js?v=20261120-18"></script>
-  <link rel="stylesheet" href="css/tokens.css?v=20261120-18">
-  <link rel="stylesheet" href="css/ub.css?v=20261120-18">
-  <link rel="stylesheet" href="css/tree.css?v=20261120-18">
-  <link rel="stylesheet" href="css/ann.css?v=20261120-18">
+  <script src="js/role.js?v=20261120-19"></script>
+  <link rel="stylesheet" href="css/tokens.css?v=20261120-19">
+  <link rel="stylesheet" href="css/ub.css?v=20261120-19">
+  <link rel="stylesheet" href="css/tree.css?v=20261120-19">
+  <link rel="stylesheet" href="css/ann.css?v=20261120-19">
   <link rel="stylesheet" href="css/me.css?v=20261120-8">
-  <link rel="stylesheet" href="css/irts.css?v=20261120-18">
-  <link rel="stylesheet" href="css/admin.css?v=20261120-18">
-  <script src="js/d3.min.js?v=20261120-18" defer></script>
-  <script src="js/tree.js?v=20261120-18" defer></script>
-  <script src="js/xlsx-lite.js?v=20261120-18" defer></script>
-  <script src="js/ann.js?v=20261120-18" defer></script>
-  <script src="js/announce.js?v=20261120-18" defer></script>
-  <script src="js/session.js?v=20261120-18" defer></script>
-  <script src="js/minimap.js?v=20261120-18" defer></script>
-  <script src="js/admin.js?v=20261120-18" defer></script>
+  <link rel="stylesheet" href="css/irts.css?v=20261120-19">
+  <link rel="stylesheet" href="css/admin.css?v=20261120-19">
+  <script src="js/d3.min.js?v=20261120-19" defer></script>
+  <script src="js/tree.js?v=20261120-19" defer></script>
+  <script src="js/xlsx-lite.js?v=20261120-19" defer></script>
+  <script src="js/ann.js?v=20261120-19" defer></script>
+  <script src="js/announce.js?v=20261120-19" defer></script>
+  <script src="js/session.js?v=20261120-19" defer></script>
+  <script src="js/minimap.js?v=20261120-19" defer></script>
+  <script src="js/admin.js?v=20261120-19" defer></script>
 </head>
 <body data-require="admin">
   <main id="dash-root">
     <div class="ub adm" id="ub">
       <header class="ub-head">
-        <div class="ub-userbar"><span class="ub-user" id="ub-user"></span><a class="ub-btn ub-btn-ghost adm-back" href="/">← Дашбоард</a><button type="button" class="ub-btn ub-btn-ghost" id="ub-logout">Гарах</button></div>
+        <div class="ub-userbar"><span class="ub-user" id="ub-user"></span><a class="ub-btn ub-btn-ghost adm-back" href="/?as=admin">← Дашбоард</a><button type="button" class="ub-btn ub-btn-ghost" id="ub-logout">Гарах</button></div>
         <div class="ub-title-row"><img class="ub-logo" src="logo.png?v=20261120-1" alt="SDS лого" width="60" height="60"><h1 class="ub-title">Админ хэсэг</h1></div>
       </header>
 
@@ -36,6 +36,7 @@
         <button type="button" role="tab" class="adm-tab" id="tab-people" aria-controls="adm-people" aria-selected="true">Урьсан хүмүүс</button>
         <button type="button" role="tab" class="adm-tab" id="tab-ann" aria-controls="adm-ann" aria-selected="false">Үйл ажиллагааны зарлал</button>
         <button type="button" role="tab" class="adm-tab" id="tab-att" aria-controls="adm-att" aria-selected="false">Ирц</button>
+        <button type="button" role="tab" class="adm-tab" id="tab-cred" aria-controls="adm-cred" aria-selected="false">Нэвтрэх эрх</button>
         <button type="button" role="tab" class="adm-tab" id="tab-cfg" aria-controls="adm-cfg" aria-selected="false">Тохиргоо</button>
       </nav>
 
@@ -77,6 +78,24 @@
           </div>
           <p class="adm-sum" id="att-sum" role="status">Ачаалж байна…</p>
           <div class="att-grid" id="att-grid"></div>
+        </div>
+      </section>
+
+      <section class="adm-pane" id="adm-cred" role="tabpanel" aria-labelledby="tab-cred" hidden>
+        <div class="adm-kpis" id="cred-kpis"></div>
+        <div class="ub-card">
+          <h2 class="adm-h2">Гишүүдийн нэвтрэх эрх</h2>
+          <p class="adm-note">Гишүүд <b>/login</b> хуудсаар энэ нэвтрэх нэр, нууц үгээр орно. Нууц үг санамсаргүй үүснэ. Урилгаар бүртгүүлэгчид бүртгүүлмэгц эрх нь автоматаар үүсэж, «Миний мэдээлэл» хуудсанд харагдана.</p>
+          <div class="adm-bar">
+            <label class="ub-field"><span>Хайх</span><input type="search" class="ub-names-q adm-q" id="cred-q" placeholder="Нэр, нэвтрэх нэр, хороо"></label>
+            <label class="ub-field"><span>Төрөл</span><select class="dash-select" id="cred-kind"><option value="">Бүгд</option><option value="member">Намын гишүүн</option><option value="registrant">Бүртгүүлэгч</option></select></label>
+            <label class="ub-field"><span>Эрх</span><select class="dash-select" id="cred-has"><option value="">Бүгд</option><option value="yes">Эрхтэй</option><option value="no">Эрхгүй</option></select></label>
+            <button type="button" class="me-ghost adm-refresh" id="cred-show" aria-pressed="false">👁 Нууц үг харуулах</button>
+            <button type="button" class="ub-mdlg-btn is-brand cred-gen" id="cred-gen" disabled>Эрхгүй бүх хүнд үүсгэх</button>
+            <button type="button" class="ub-xl-btn is-big adm-xl" id="cred-xl" disabled>Excel-ээр татах</button>
+          </div>
+          <p class="adm-sum" id="cred-sum" role="status">Ачаалж байна…</p>
+          <div id="cred-body"></div>
         </div>
       </section>
 

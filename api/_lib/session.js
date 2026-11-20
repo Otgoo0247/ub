@@ -47,7 +47,7 @@ function setSession(req, res, cfg) {
   writeCookie(req, res, `${payload}.${mac(cfg.key, payload)}`, HOURS * 3600);
   setRole(req, res, 'admin', HOURS * 3600);
 }
-function clearSession(req, res) { writeCookie(req, res, '', 0); setRole(req, res, '', 0); }
+function clearSession(req, res) { writeCookie(req, res, '', 0); setRole(req, res, 'admin', 0); }
 /* Set-Cookie толгойг дарж бичихгүй, нэмнэ (нэг хариунд хэд хэдэн күүки). */
 function appendCookie(req, res, line) {
   const secure = (req.headers['x-forwarded-proto'] || '').includes('https') ? '; Secure' : '';
@@ -58,9 +58,12 @@ function appendCookie(req, res, line) {
 function writeCookie(req, res, value, maxAge) {
   appendCookie(req, res, `${COOKIE}=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`);
 }
-/* ub_role — зөвхөн интерфейсэд (админ товчийг нуух/харуулах). Эрхийг ҮРГЭЛЖ сервер (сешн күүки) шийднэ. */
+/* ub_ra / ub_rm — зөвхөн интерфейсэд (хуудас зурагдахаас өмнө товч нуух/харуулах): админ, гишүүний сешн байгаа эсэх.
+ * Хоёр сешн зэрэг байж болно. Эрхийг ҮРГЭЛЖ сервер (сешн күүки) шийднэ. role: 'admin'|'member', maxAge 0 бол арилгана. */
 function setRole(req, res, role, maxAge) {
-  appendCookie(req, res, `ub_role=${role}; Path=/; SameSite=Lax; Max-Age=${maxAge}`);
+  const name = role === 'member' ? 'ub_rm' : 'ub_ra';
+  appendCookie(req, res, `${name}=${maxAge ? '1' : ''}; Path=/; SameSite=Lax; Max-Age=${maxAge}`);
+  if (maxAge) appendCookie(req, res, 'ub_role=; Path=/; SameSite=Lax; Max-Age=0'); // хуучин хувилбарын күүки
 }
 function send(res, status, body) {
   res.statusCode = status;

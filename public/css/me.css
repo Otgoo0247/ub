@@ -51,3 +51,10 @@ a.me-ghost{text-decoration:none;display:inline-flex;align-items:center}
 @media (max-width:480px){.me-fb{grid-template-columns:44px minmax(0,1fr)}.me-fb-btn{grid-column:1/-1}}
 .me-ghost.me-irts{color:#fff;background:var(--series-1);border-color:var(--series-1)}
 @media (max-width:420px){.me-top{flex-wrap:wrap}.me-topr{flex-wrap:wrap}}
+.me-cred.is-new{outline:2px solid #1C8A4B;outline-offset:-2px}
+.me-cred .me-hint{margin:0 0 12px;font-size:13px;line-height:1.45}
+.me-credrow{display:grid;grid-template-columns:96px minmax(0,1fr) auto auto;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--color-border-line)}
+.me-credrow span{font-size:12px;font-weight:600;color:var(--color-fg-muted)}
+.me-credrow output{font:700 17px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.04em;overflow-wrap:anywhere}
+.me-credrow:first-of-type{border-top:0}
+@media (max-width:420px){.me-credrow{grid-template-columns:minmax(0,1fr) auto auto}.me-credrow span{grid-column:1/-1}}

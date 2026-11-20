@@ -1,11 +1,11 @@
 /*
- * /api/me — гишүүний нэвтрэлт (/login, зөвхөн урилгын кодоор) ба өөрийн хуудас (/me).
- * Намын гишүүд (members.enc) болон урилгаар бүртгүүлэгчид аль аль нь нэвтэрнэ.
- *   POST {action:'login', code}  → ub_member күүки (7 хоног) — дашбоардын статистик, /me, зарлалд хандана
- *   POST {action:'logout'}
- *   GET  → {authenticated:false} эсвэл өөрийн мэдээлэл + өөрийн урилгаар бүртгүүлсэн хүмүүс
- * АНХААР: урилгын код урилгын холбоосонд ил явдаг тул холбоос авсан хүн ч нэвтэрч чадна (захиалагчийн сонголт).
- * IP тутамд цагт 20 оролдлого, буруу кодод 1.2 сек хүлээлгэнэ.
+ * /api/me — гишүүний нэвтрэлт (/login — нэвтрэх нэр + нууц үг) ба өөрийн хуудас (/me).
+ * Намын гишүүд (members.enc) болон урилгаар бүртгүүлэгчид аль аль нь нэвтэрнэ. Эрхийг админ /admin → «Нэвтрэх эрх»-өөс
+ * үүсгэнэ; бүртгүүлэгчид бүртгүүлмэгц автоматаар олгогдоно (api/_lib/creds.js).
+ *   POST {action:'login', username, password} → ub_member күүки (7 хоног) — дашбоардын статистик, /me, ирц, зарлал
+ *   POST {action:'logout'}                    → зөвхөн гишүүний сешнийг хаана (админых хэвээр)
+ *   GET  → {authenticated:false} эсвэл өөрийн мэдээлэл, нэвтрэх эрх, өөрийн урилгаар бүртгүүлсэн хүмүүс
+ * IP тутамд цагт 20, нэг нэвтрэх нэрд цагт 10 оролдлого; буруу бол 1.2 сек хүлээлгэнэ.
  */
 const crypto = require('crypto');
 const { send, readJson } = require('./_lib/session');
@@ -14,6 +14,8 @@ const { storeConfigured, pipeline, open, KEYS } = require('./_lib/store');
 const { findByCode, fullName } = require('./_lib/people');
 const { memberCode, setMember, clearMember } = require('./_lib/membersession');
 const { readGroup } = require('./_lib/settings');
+const { verify, ensureCred, normUser } = require('./_lib/creds');
+const givenOf = (p) => (p.kind === 'member' ? String(p.m.n).trim().split(/\s+/).pop() : p.r.first);
 
 const PER_IP_HOUR = 20;
 const ipOf = (req) => String(req.headers['x-real-ip'] || (req.headers['x-forwarded-for'] || '').split(',')[0] || req.socket?.remoteAddress || '').trim();
@@ -22,16 +24,16 @@ const eq = (a, b) => typeof a === 'string' && typeof b === 'string' && a.length 
 
 async function login(req, res) {
   const b = await readJson(req);
-  const c = normalizeInvite(b.code);
-  if (storeConfigured()) {
-    try {
-      const k = `${KEYS.login}${Math.floor(Date.now() / 3600000)}:${ipOf(req)}`;
-      const [n] = await pipeline([['INCR', k], ['EXPIRE', k, '3600']]);
-      if (n > PER_IP_HOUR) return send(res, 429, { error: 'rate_limited' });
-    } catch (e) { /* сан түр алдаатай бол хязгааргүйгээр үргэлжилнэ */ }
-  }
-  let p = null;
-  if (INVITE_RE.test(c)) p = await findByCode(c).catch(() => null);
+  const u = normUser(b.username);
+  if (!storeConfigured()) return send(res, 503, { error: 'storage_not_configured' });
+  try {
+    const hour = Math.floor(Date.now() / 3600000);
+    const k = `${KEYS.login}${hour}:${ipOf(req)}`, ku = `${KEYS.login}u:${hour}:${u.slice(0, 20)}`;
+    const [n, , nu] = await pipeline([['INCR', k], ['EXPIRE', k, '3600'], ['INCR', ku], ['EXPIRE', ku, '3600']]);
+    if (n > PER_IP_HOUR || nu > 10) return send(res, 429, { error: 'rate_limited' });
+  } catch (e) { /* сан түр алдаатай бол хязгааргүйгээр үргэлжилнэ */ }
+  const c = await verify(u, b.password).catch(() => null);
+  const p = c ? await findByCode(c).catch(() => null) : null;
   if (!p) { await sleep(1200); return send(res, 401, { error: 'wrong_credentials' }); }
   setMember(req, res, c);
   return send(res, 200, { ok: true });
@@ -79,10 +81,13 @@ async function me(req, res) {
           invited: r.own ? counts[normalizeInvite(r.own)] || 0 : 0 }));
     } catch (e) { storage = false; }
   }
+  // Өөрийн нэвтрэх эрх (байхгүй бол одоо үүсгэнэ)
+  let cred = null;
+  try { const x = await ensureCred(c, givenOf(p)); if (x) cred = { username: x.u, password: x.pw }; } catch (e) { /* */ }
   // Facebook групп — урилгаар бүртгүүлэгчдийн хуудсанд
   let group = null;
   if (p.kind === 'registrant') { try { const g = await readGroup(); if (g.fbUrl) group = g; } catch (e) { /* */ } }
-  return send(res, 200, { authenticated: true, code: fmtInvite(c), profile, invitees, tree, storage, group });
+  return send(res, 200, { authenticated: true, code: fmtInvite(c), profile, invitees, tree, storage, group, cred });
 }
 
 module.exports = async function handler(req, res) {

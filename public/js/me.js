@@ -27,9 +27,10 @@
 
   function render(d) {
     const p = d.profile;
-    if (new URLSearchParams(location.search).get('welcome') === '1') {
+    const welcome = new URLSearchParams(location.search).get('welcome') === '1';
+    if (welcome) {
       const w = $('me-welcome'); w.hidden = false;
-      w.replaceChildren(el('b', null, '✓ Бүртгэл амжилттай!'), document.createTextNode(' Танд өөрийн урилгын код олгогдлоо — доорх холбоосоор бусдыг урьж болно.'));
+      w.replaceChildren(el('b', null, '✓ Бүртгэл амжилттай!'), document.createTextNode(' Танд нэвтрэх нэр, нууц үг болон өөрийн урилгын код олгогдлоо.'));
       history.replaceState(null, '', '/me');
     }
     $('me-name').textContent = p.name;
@@ -66,6 +67,19 @@
     }
     $('me-profile').hidden = false;
 
+    // Нэвтрэх эрх (нэр + нууц үг)
+    if (d.cred) {
+      $('me-cu').textContent = d.cred.username;
+      let shown = false;
+      $('me-cp-show').addEventListener('click', (e) => { shown = !shown; $('me-cp').textContent = shown ? d.cred.password : '••••••••'; e.currentTarget.textContent = shown ? 'Нуух' : 'Харах'; });
+      $('me-cu-copy').addEventListener('click', (e) => copy(d.cred.username, e.currentTarget));
+      $('me-cp-copy').addEventListener('click', (e) => copy(d.cred.password, e.currentTarget));
+      if (welcome) {
+        $('me-cred').classList.add('is-new'); $('me-cp').textContent = d.cred.password; $('me-cp-show').textContent = 'Нуух'; shown = true;
+        $('me-cred-hint').replaceChildren(el('b', null, 'Энэ нэвтрэх нэр, нууц үгийг заавал тэмдэглэж аваарай. '), document.createTextNode('Дараа /login хуудсаар нэвтрэхэд хэрэгтэй.'));
+      }
+      $('me-cred').hidden = false;
+    }
     $('me-code').textContent = d.code;
     const link = inviteUrl(d.code);
     $('me-link').value = link;

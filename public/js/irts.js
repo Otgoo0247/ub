@@ -15,12 +15,12 @@
 
   /* ---------- Эхлэл ---------- */
   fetch('/api/auth', { credentials: 'same-origin' }).then((r) => r.json()).then((s) => {
-    if (!s.authenticated) { location.replace('/login?next=/irts'); return; }
-    if (s.role !== 'member') {
+    if (!s.member && !s.admin) { location.replace('/login?next=/irts'); return; }
+    if (!s.member) {
       status.replaceChildren(document.createTextNode('Ирцийг гишүүд өөрийн кодоор нэвтэрч бүртгүүлнэ. Ирцийн бүртгэлийг '), Object.assign(el('a', null, 'админ хэсгийн «Ирц» табаас'), { href: '/admin#irts' }), document.createTextNode(' харна.'));
       return;
     }
-    st.user = s.user || '';
+    st.user = s.member.user || '';
     $('ir-who').textContent = st.user;
     load();
   }).catch(() => { status.textContent = 'Сервертэй холбогдож чадсангүй.'; });
