@@ -243,7 +243,7 @@
           st.gH.selectAll('path').data([g.city]).join('path').attr('class', 'ub-islandpath').attr('d', st.path);
           st.gK.selectAll('path').data(g.k, (d) => d.id).join('path').attr('class', 'ub-kpath').attr('d', st.path);
           st.gD.selectAll('path').data(g.d, (d) => d.id).join('path').attr('class', 'ub-dpath').attr('d', st.path);
-          if (detail) st.zoom.extent([[0, 0], [w, h]]).translateExtent([[-w * 0.2, -h * 0.2], [w * 1.2, h * 1.2]]);
+          if (detail) st.zoom.extent([[0, 0], [w, h]]).translateExtent([[-w * 0.7, -h * 0.7], [w * 1.7, h * 1.7]]);
         }
         const p = P(), info = new Map(kRows.map((r) => [r.code, r])), dInfo = new Map(dRows.map((r) => [r.district, r]));
         const m = M(), metric = p.metric, byDistrict = p.level === 'district';
@@ -328,9 +328,10 @@
       const dx = b[1][0] - b[0][0], dy = b[1][1] - b[0][1];
       pts = [[b[0][0] - dx * 0.9, b[0][1] - dy * 0.9], [b[1][0] + dx * 0.9, b[1][1] + dy * 0.9]];
     } else if (p.district && kRows.some((r) => r.district === p.district)) {
-      const rows = kRows.filter((r) => r.district === p.district), urban = rows.filter((r) => r.dens >= 500);
-      const use = new Set((urban.length >= rows.length / 2 ? urban : rows).map((r) => r.code));
-      const bs = g.k.filter((d) => use.has(d.id)).map(px);
+      // Сонгосон дүүргийг бүхэлд нь (бүх хороог нь) багтаана
+      const use = new Set(kRows.filter((r) => r.district === p.district).map((r) => r.code));
+      const dFeat = g.d.find((d) => d.id === p.district);
+      const bs = g.k.filter((d) => use.has(d.id)).map(px).concat(dFeat ? [px(dFeat)] : []);
       pts = [[d3.min(bs, (b) => b[0][0]), d3.min(bs, (b) => b[0][1])], [d3.max(bs, (b) => b[1][0]), d3.max(bs, (b) => b[1][1])]];
     } else {
       const a = st.proj(g.core[0]), b = st.proj(g.core[1]);
@@ -339,8 +340,10 @@
     const dx = Math.max(1, pts[1][0] - pts[0][0]), dy = Math.max(1, pts[1][1] - pts[0][1]);
     // Сонголт хийсэн үед зүүн дээд буланд хөвөгч карт гарна → зургийг баруун тийш шахаж карттай давхцуулахгүй
     const L = p.district && st.w > 640 ? Math.min(310, st.w * 0.36) : 0, W = st.w - L;
-    const k = Math.min(260, Math.max(1, 0.94 / Math.max(dx / W, dy / st.h)));
-    return d3.zoomIdentity.translate(L + W / 2 - (k * (pts[0][0] + pts[1][0])) / 2, st.h / 2 - (k * (pts[0][1] + pts[1][1])) / 2).scale(k);
+    // дээд талд «Тайлбар, давхарга» товч, баруун талд томруулах товчид зай үлдээнэ
+    const T = p.district ? 48 : 0, R = p.district ? 46 : 0, W2 = W - R, H2 = st.h - T;
+    const k = Math.min(260, Math.max(1, (p.district ? 0.86 : 0.94) / Math.max(dx / W2, dy / H2)));
+    return d3.zoomIdentity.translate(L + W2 / 2 - (k * (pts[0][0] + pts[1][0])) / 2, T + H2 / 2 - (k * (pts[0][1] + pts[1][1])) / 2).scale(k);
   }
 
   /* Гишүүдийн бөмбөлөг (загвар 1, 2): хот харагдаж байхад дүүрэг тус бүрд, дүүрэг сонгоход хороо тус бүрд гишүүдийн тоо.
@@ -993,4 +996,12 @@
     document.querySelectorAll('.ub-mem-detail').forEach((s) => { s.hidden = !mrow || supp; });
     document.querySelectorAll('.ub-sel-kh').forEach((s) => { s.hidden = !(p.district && !p.khoroo); });
   });
+})();
+
+// Тайлбар, давхарга цэс: нээлттэй/хаалттай төлвийг санана
+(() => {
+  const el = document.getElementById('ub-legend');
+  if (!el) return;
+  try { if (localStorage.getItem('ub-lgmenu') === '1') el.open = true; } catch (e) { /* storage unavailable */ }
+  el.addEventListener('toggle', () => { try { localStorage.setItem('ub-lgmenu', el.open ? '1' : '0'); } catch (e) { /* ignore */ } });
 })();
