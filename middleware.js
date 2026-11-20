@@ -24,6 +24,8 @@ const PUBLIC = [/^\/login\/?$/, /^\/login\.html$/, /^\/admin-login\/?$/, /^\/adm
   /^\/js\/tree\.js$/, /^\/js\/d3\.min\.js$/, /^\/css\/tree\.css$/];
 const ADMIN_ONLY = [/^\/admin\/?$/, /^\/admin\.html$/, /^\/api\/settings\/?$/, /^\/api\/credentials\/?$/, /^\/api\/members\/?$/, /^\/api\/registrations\/?$/];
 const MCOOKIE = 'ub_member';
+// Намын гишүүнд ч хаалттай өгөгдөл (зөвхөн админ): гишүүдийн бүтцийн задаргаа
+const MEMBER_DENY = [/^\/data\/members_scope\.csv$/];
 const enc = new TextEncoder();
 
 const next = () => new Response(null, { headers: { 'x-middleware-next': '1' } });
@@ -79,7 +81,10 @@ export default async function middleware(request) {
   if (await sessionUser(request)) return next();
   const adminOnly = ADMIN_ONLY.some((r) => r.test(url.pathname));
   const kind = adminOnly ? null : await memberKind(request);
-  if (kind === 'm') return next();
+  if (kind === 'm') {
+    if (!MEMBER_DENY.some((r) => r.test(url.pathname))) return next();
+    return new Response(JSON.stringify({ error: 'admin_only' }), { status: 403, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
+  }
   const wantsPage = request.method === 'GET' && (request.headers.get('accept') || '').includes('text/html');
   // Урилгаар бүртгүүлэгч зөвхөн өөрийн хуудсаа (/me) харна
   if (kind === 'r') {
