@@ -352,3 +352,72 @@
 .ub-uni-t .ub-uni-sp{color:var(--color-fg-muted)}
 .ub-uni-t tr.is-zero td{color:var(--color-fg-muted)}
 .ub-uni-t tfoot td{font-weight:800;border-top:1px solid var(--color-border-line)}
+
+/* ===== Загвар сайжруулалт (2026-11-20): өргөгдсөн газрын зураг, бөмбөлөг, хөвөгч карт, KPI дүрс ба цагираг ===== */
+/* Карт, KPI — зөөлөн давхар сүүдэр, хөвөх мэдрэмж */
+.ub-card,.ub-kpi{box-shadow:0 1px 2px rgba(11,12,16,.04),0 10px 28px -12px rgba(90,13,16,.14)}
+.ub-kpi{position:relative;grid-template-columns:auto 1fr;align-content:start;padding:16px 16px 14px;transition:transform .15s,box-shadow .15s}
+.ub-kpi:hover{transform:translateY(-2px);box-shadow:0 1px 2px rgba(11,12,16,.05),0 16px 32px -14px rgba(90,13,16,.22)}
+.ub-kpi-ic{grid-column:1/-1;display:inline-grid;place-items:center;width:34px;height:34px;margin-bottom:10px;border-radius:10px;background:var(--ub-brand-soft,#FDECEC);color:var(--ub-accent)}
+.ub-kpi-ic svg{width:19px;height:19px}
+.ub-kpi.is-brand .ub-kpi-ic{background:rgba(255,255,255,.18);color:#fff}
+.ub-kpi.has-ring{padding-right:76px}
+.ub-kpi-ring{position:absolute;top:14px;right:14px;width:54px;height:54px}
+.ub-kpi-ring svg{width:100%;height:100%;display:block}
+.ub-ring-bg{fill:none;stroke:color-mix(in oklab,var(--ub-accent) 12%,transparent);stroke-width:5}
+.ub-ring-fg{fill:none;stroke:var(--ub-accent);stroke-width:5;stroke-linecap:round;transition:stroke-dasharray .4s}
+.ub-ring-t{font-size:11.5px;font-weight:800;fill:var(--color-fg);font-variant-numeric:tabular-nums}
+@media (max-width:640px){.ub-kpi.has-ring{padding-right:16px}.ub-kpi-ring{width:42px;height:42px;top:12px;right:12px}}
+
+/* Газрын зураг — зөөлөн радиаль дэвсгэр, торон цэг, «өргөгдсөн арал» */
+.ub-map-detail{background:
+  radial-gradient(circle at 50% 45%,color-mix(in oklab,var(--ub-accent) 7%,var(--color-panel)) 0,var(--color-panel) 62%),
+  var(--color-panel)}
+.ub-map-detail::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.55;
+  background-image:radial-gradient(color-mix(in oklab,var(--color-fg) 14%,transparent) .8px,transparent 1px);background-size:18px 18px;
+  -webkit-mask-image:radial-gradient(circle at 50% 50%,#000 30%,transparent 75%);mask-image:radial-gradient(circle at 50% 50%,#000 30%,transparent 75%)}
+.ub-map-detail svg{position:relative}
+.ub-islandpath{fill:var(--color-panel);stroke:none}
+.ub-map.has-base .ub-island{display:none}
+.ub-kpath{stroke:#fff;stroke-width:.7px}
+.ub-dpath{stroke:color-mix(in oklab,var(--color-fg) 70%,transparent);stroke-width:1.2px}
+.ub-selpath{filter:drop-shadow(0 4px 8px rgba(90,13,16,.35))}
+
+/* Гишүүдийн бөмбөлөг */
+.ub-bub{cursor:pointer}
+.ub-bub-halo{fill:color-mix(in oklab,var(--color-fg) 22%,transparent);opacity:.35}
+.ub-bub-c{fill:#1F2430;stroke:#fff;stroke-width:2px}
+.ub-bub-t{fill:#fff;font-weight:800;text-anchor:middle;font-variant-numeric:tabular-nums;pointer-events:none}
+.ub-bub.is-top .ub-bub-c{fill:#fff;stroke:var(--ub-accent);stroke-width:3px}
+.ub-bub.is-top .ub-bub-t{fill:var(--ub-accent)}
+.ub-bub.is-top .ub-bub-halo{fill:#fff;opacity:.55}
+.ub-bub.is-sel .ub-bub-c{stroke:var(--color-fg);stroke-width:3px}
+.ub-bub:hover .ub-bub-halo{opacity:.6}
+.ub-bub-sw{display:inline-block;width:12px;height:12px;border-radius:50%;background:#1F2430;box-shadow:inset 0 0 0 2px #fff,0 0 0 1px #1F2430;flex:none}
+.ub-lg-toggle2{margin-top:6px;padding-top:0;border-top:0}
+
+/* Хөвөгч карт (сонгосон газар) */
+.ub-callout{position:absolute;top:12px;left:12px;z-index:3;width:min(290px,calc(100% - 80px));padding:14px 16px 12px;border-radius:16px;
+  background:color-mix(in oklab,var(--color-panel) 94%,transparent);backdrop-filter:blur(6px);
+  box-shadow:0 1px 2px rgba(11,12,16,.06),0 18px 40px -16px rgba(90,13,16,.3);border:1px solid color-mix(in oklab,var(--color-fg) 8%,transparent);
+  animation:ub-co-in .22s ease-out}
+@keyframes ub-co-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.ub-callout{animation:none}}
+.ub-co-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px}
+.ub-co-k{margin:0;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ub-accent)}
+.ub-co-t{margin:2px 0 0;font-size:16px;font-weight:850;letter-spacing:-.01em;line-height:1.25}
+.ub-co-x{appearance:none;flex:none;width:26px;height:26px;border-radius:50%;border:1px solid var(--color-border-line);background:var(--color-panel);color:var(--color-fg);font-size:16px;line-height:1;cursor:pointer}
+.ub-co-bars{display:flex;flex-direction:column;gap:9px}
+.ub-co-rt{display:flex;justify-content:space-between;gap:8px;font-size:12px}
+.ub-co-rt span{color:var(--color-fg-muted);font-weight:600}
+.ub-co-rt b{font-weight:800;font-variant-numeric:tabular-nums}
+.ub-co-track{height:7px;margin:4px 0 2px;border-radius:4px;background:color-mix(in oklab,var(--color-fg) 8%,transparent);overflow:hidden}
+.ub-co-track i{display:block;height:100%;border-radius:4px;background:color-mix(in oklab,var(--color-fg) 55%,transparent)}
+.ub-co-row.is-brand .ub-co-track i{background:var(--ub-accent)}
+.ub-co-row.is-brand .ub-co-rt b{color:var(--ub-accent)}
+.ub-co-row small{font-size:11px;color:var(--color-fg-muted)}
+.ub-co-foot{margin:10px 0 0;padding-top:9px;border-top:1px solid var(--color-border-line);font-size:12px;color:var(--color-fg-muted)}
+.ub-co-foot b{color:var(--color-fg);font-size:14px;font-weight:800}
+@media (max-width:640px){.ub-callout{position:static;width:auto;margin-top:10px;animation:none}}
+.ub-callout:not(.is-on){display:none}
+.ub-bub-sw.is-top{background:#fff;box-shadow:inset 0 0 0 2.5px var(--ub-accent)}

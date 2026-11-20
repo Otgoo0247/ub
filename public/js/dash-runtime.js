@@ -18,12 +18,13 @@
     universities: { url: 'data/universities.csv', format: 'csv' },
     uni_students: { url: 'data/uni_students.csv', format: 'csv' },
   };
-  const DEFAULTS = { district: '', khoroo: '', metric: 'pop', level: 'khoroo', base: 'none', uni: '0' };
+  const DEFAULTS = { district: '', khoroo: '', metric: 'pop', level: 'khoroo', base: 'none', uni: '0', bub: '1' };
   const ALLOWED = {
     metric: ['pop', 'vote18', 'age18_25', 'members', 'mem_rate', 'gerpct'],
     level: ['khoroo', 'district'],
     base: ['carto', 'osm', 'sat', 'none'],
     uni: ['1', '0'],
+    bub: ['1', '0'],
   };
 
   /* ---------- Төлөв ---------- */

@@ -44,7 +44,7 @@
     return BASEMAPS[P().base] || null;
   }
   const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const P = () => ({ district: '', khoroo: '', metric: 'pop', level: 'khoroo', base: 'none', uni: '0', ...dash.params() });
+  const P = () => ({ district: '', khoroo: '', metric: 'pop', level: 'khoroo', base: 'none', uni: '0', bub: '1', ...dash.params() });
   const M = () => METRICS[P().metric] || METRICS.pop;
   const ok = (id) => { const d = dash.data(id); return d.status === 'ok' && d.data ? d.data : null; };
 
@@ -197,9 +197,15 @@
       mount(el) {
         const host = d3.select(el);
         const svg = host.append('svg').attr('role', 'img');
+        // «Өргөгдсөн арал» мэт сүүдэр (загвар 1): хотын хилийн доор зөөлөн сүүдэр
+        const fid = `ub-lift-${kind}`;
+        const f = svg.append('defs').append('filter').attr('id', fid).attr('x', '-20%').attr('y', '-20%').attr('width', '140%').attr('height', '150%');
+        f.append('feDropShadow').attr('dx', 0).attr('dy', 10).attr('stdDeviation', 12).attr('flood-color', '#5a0d10').attr('flood-opacity', 0.16);
         const root = svg.append('g');
         const st = {
-          svg, root, host, gT: root.append('g').attr('class', 'ub-tiles'), gK: root.append('g'), gD: root.append('g'), gS: root.append('g'),
+          svg, root, host, gT: root.append('g').attr('class', 'ub-tiles'), gH: root.append('g').attr('class', 'ub-island').attr('filter', `url(#${fid})`),
+          gK: root.append('g'), gD: root.append('g'), gS: root.append('g'),
+          gB: detail ? svg.append('g').attr('class', 'ub-bubs') : null,
           gP: svg.append('g').attr('class', 'ub-pts'), gL: svg.append('g'), vp: detail ? null : svg.append('rect').attr('class', 'ub-vp'),
           tip: host.append('div').attr('class', 'ub-tip').attr('hidden', true),
           w: 0, h: 0, t: d3.zoomIdentity, scopeKey: null,
@@ -207,7 +213,7 @@
         if (detail) {
           st.zoom = d3.zoom().scaleExtent([1, 260])
             .filter((e) => (e.type === 'wheel' ? e.ctrlKey || e.metaKey : e.type === 'touchstart' ? e.touches.length > 1 : !e.button))
-            .on('zoom', (e) => { st.t = e.transform; root.attr('transform', st.t); paintTiles(st); placePoints(st); placeLabels(st); publishView(st); });
+            .on('zoom', (e) => { st.t = e.transform; root.attr('transform', st.t); paintTiles(st); placeBubbles(st); placePoints(st); placeLabels(st); publishView(st); });
           svg.call(st.zoom).on('dblclick.zoom', null);
           const bind = (sel, fn) => document.querySelectorAll(sel).forEach((b) => { b.onclick = fn; });
           const dur = () => (reduced() ? 0 : 250);
@@ -234,6 +240,7 @@
           const pad = detail ? 10 : 8;
           st.proj = d3.geoIdentity().reflectY(true).fitExtent([[pad, pad], [w - pad, h - pad]], g.city);
           st.path = d3.geoPath(st.proj);
+          st.gH.selectAll('path').data([g.city]).join('path').attr('class', 'ub-islandpath').attr('d', st.path);
           st.gK.selectAll('path').data(g.k, (d) => d.id).join('path').attr('class', 'ub-kpath').attr('d', st.path);
           st.gD.selectAll('path').data(g.d, (d) => d.id).join('path').attr('class', 'ub-dpath').attr('d', st.path);
           if (detail) st.zoom.extent([[0, 0], [w, h]]).translateExtent([[-w * 0.2, -h * 0.2], [w * 1.2, h * 1.2]]);
@@ -272,7 +279,7 @@
         st.gL.selectAll('text').data(labels, (d) => d.kind + d.id).join('text')
           .attr('class', (d) => (d.kind === 'k' ? 'ub-lab k' : 'ub-lab')).text((d) => d.text);
         st.p = p;
-        if (detail) drawPoints(st, el);
+        if (detail) { drawBubbles(st, el, g, info, dInfo, p); drawPoints(st, el); }
 
         if (detail) {
           const key = `${p.district}|${p.khoroo}|${w}|${h}`;
@@ -282,7 +289,7 @@
             const t = scopeTransform(st, g, p, kRows);
             if (first || reduced()) st.svg.call(st.zoom.transform, t);
             else st.svg.transition().duration(450).call(st.zoom.transform, t);
-          } else { paintTiles(st); placePoints(st); placeLabels(st); publishView(st); }
+          } else { paintTiles(st); placeBubbles(st); placePoints(st); placeLabels(st); publishView(st); }
         } else { paintTiles(st); placeLabels(st); paintViewport(st); }
       },
     };
@@ -330,8 +337,59 @@
       pts = [[Math.min(a[0], b[0]), Math.min(a[1], b[1])], [Math.max(a[0], b[0]), Math.max(a[1], b[1])]];
     }
     const dx = Math.max(1, pts[1][0] - pts[0][0]), dy = Math.max(1, pts[1][1] - pts[0][1]);
-    const k = Math.min(260, Math.max(1, 0.94 / Math.max(dx / st.w, dy / st.h)));
-    return d3.zoomIdentity.translate(st.w / 2 - (k * (pts[0][0] + pts[1][0])) / 2, st.h / 2 - (k * (pts[0][1] + pts[1][1])) / 2).scale(k);
+    // Сонголт хийсэн үед зүүн дээд буланд хөвөгч карт гарна → зургийг баруун тийш шахаж карттай давхцуулахгүй
+    const L = p.district && st.w > 640 ? Math.min(310, st.w * 0.36) : 0, W = st.w - L;
+    const k = Math.min(260, Math.max(1, 0.94 / Math.max(dx / W, dy / st.h)));
+    return d3.zoomIdentity.translate(L + W / 2 - (k * (pts[0][0] + pts[1][0])) / 2, st.h / 2 - (k * (pts[0][1] + pts[1][1])) / 2).scale(k);
+  }
+
+  /* Гишүүдийн бөмбөлөг (загвар 1, 2): хот харагдаж байхад дүүрэг тус бүрд, дүүрэг сонгоход хороо тус бүрд гишүүдийн тоо.
+     Хэмжээ = √гишүүд; хамгийн олон гишүүнтэй 3 нь брэндийн улаан. Дарахад тухайн газрыг сонгоно. */
+  function drawBubbles(st, el, g, info, dInfo, p) {
+    st.bubR = new Map();
+    let data = [];
+    if (p.bub !== '0') {
+      if (!p.district) {
+        data = g.d.map((d) => ({ key: `d${d.id}`, lab: `d${d.id}`, name: `${d.id} дүүрэг`, n: (dInfo.get(d.id) || {}).members || 0, base: st.proj([d.lx, d.ly]), district: d.id, khoroo: '' }));
+      } else {
+        data = g.k.filter((d) => info.get(d.id).district === p.district && info.get(d.id).members > 0)
+          .map((d) => { const r = info.get(d.id); return { key: `k${d.id}`, lab: `k${d.id}`, name: `${r.district} · ${r.khoroo}`, n: r.members, base: st.proj([d.lx, d.ly]), district: r.district, khoroo: d.id }; });
+      }
+      data = data.filter((d) => d.n > 0);
+    }
+    const top = new Set([...data].sort((a, b) => b.n - a.n).slice(0, 3).map((d) => d.key));
+    const kMax = p.district ? 17 : 24, kMin = p.district ? 9 : 12;
+    const rs = d3.scaleSqrt().domain([0, d3.max(data, (d) => d.n) || 1]).range([kMin - 3, kMax]);
+    data.forEach((d) => { d.r = Math.max(kMin, rs(d.n)); d.top = top.has(d.key); st.bubR.set(d.lab, d.r); });
+    const b = st.gB.selectAll('g.ub-bub').data(data, (d) => d.key).join((enter) => {
+      const e = enter.append('g').attr('class', 'ub-bub');
+      e.append('circle').attr('class', 'ub-bub-halo');
+      e.append('circle').attr('class', 'ub-bub-c');
+      e.append('text').attr('class', 'ub-bub-t').attr('dy', '0.35em');
+      return e;
+    });
+    b.classed('is-top', (d) => d.top).classed('is-sel', (d) => d.khoroo && d.khoroo === p.khoroo);
+    b.select('.ub-bub-halo').attr('r', (d) => d.r + 4);
+    b.select('.ub-bub-c').attr('r', (d) => d.r);
+    b.select('.ub-bub-t').text((d) => int(d.n)).style('font-size', (d) => `${Math.max(10, Math.min(15, d.r * 0.72))}px`);
+    b.on('pointermove', (e, d) => showTip(st.tip, el, e, d.name, [['Гишүүд', `${int(d.n)} гишүүн`], ...(d.top ? [['', 'Хамгийн олон гишүүнтэй 3-ын нэг']] : [])]))
+      .on('pointerleave', () => st.tip.attr('hidden', true))
+      .on('click', (e, d) => { e.stopPropagation(); dash.setParams(d.khoroo ? { district: d.district, khoroo: p.khoroo === d.khoroo ? '' : d.khoroo } : { district: d.district, khoroo: '' }); });
+    placeBubbles(st);
+  }
+  function placeBubbles(st) {
+    if (!st.gB) return;
+    const t = st.t;
+    // Давхцвал том нь үлдэж, жижиг нь түр нуугдана (томруулахад дахин гарна)
+    const placed = [];
+    st.bubShown = new Set();
+    st.gB.selectAll('g.ub-bub').sort((a, b) => b.n - a.n).each(function (d) {
+      const x = t.applyX(d.base[0]), y = t.applyY(d.base[1]) - (d.lab[0] === 'd' ? 10 : 0);
+      let vis = x > -30 && x < st.w + 30 && y > -30 && y < st.h + 30;
+      if (vis && placed.some((o) => Math.hypot(o.x - x, o.y - y) < o.r + d.r + 3)) vis = false;
+      if (vis) { placed.push({ x, y, r: d.r }); st.bubShown.add(d.lab); }
+      d3.select(this).attr('transform', `translate(${x},${y})`).attr('display', vis ? null : 'none');
+    });
   }
 
   /* Их, дээд сургуулийн цэг: дэлгэц дээр тогтмол хэмжээтэй, хилтэй ижил проекцоор байрлана. */
@@ -371,14 +429,17 @@
     const hit = (a) => placed.some((b) => a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0);
     const showK = (d) => (p.district ? d.district === p.district : t.k >= 26);
     st.gL.selectAll('text').sort((a, b) => (a.kind === b.kind ? 0 : a.kind === 'd' ? -1 : 1)).each(function (d) {
-      const x = t.applyX(d.base[0]), y = t.applyY(d.base[1]);
+      const br = st.bubShown && st.bubShown.has(d.kind + d.id) ? st.bubR.get(d.kind + d.id) : 0;
+      const x = t.applyX(d.base[0]), y = t.applyY(d.base[1]) + (br ? br + (d.kind === 'd' ? 2 : 9) : 0);
       let vis = x > 0 && x < st.w && y > 0 && y < st.h;
       if (d.kind === 'd') vis = vis && !p.district;
       else vis = vis && p.level !== 'district' && showK(d) && d.w * t.k >= 20 && d.h * t.k >= 14;
       if (vis) {
-        const hw = this.getComputedTextLength() / 2 + 3, box = { x0: x - hw, x1: x + hw, y0: y - 8, y1: y + 8 };
+        const hw = this.getComputedTextLength() / 2 + 6, box = { x0: x - hw, x1: x + hw, y0: y - 9, y1: y + 9 };
         if (hit(box)) vis = false; else placed.push(box);
       }
+      // Бөмбөлөгтэй хорооны дугаарыг «5-р» гэж бичнэ — бөмбөлөг доторх гишүүдийн тооноос ялгагдана
+      if (d.kind === 'k') d3.select(this).text(br ? `${d.text}-р` : d.text);
       d3.select(this).attr('display', vis ? null : 'none').attr('transform', `translate(${x},${y})`);
     });
   }
@@ -743,6 +804,48 @@
   document.querySelectorAll('#ub-metric').forEach((s) => s.addEventListener('change', () => dash.setParams({ metric: s.value })));
   document.querySelectorAll('#ub-base').forEach((s) => s.addEventListener('change', () => dash.setParams({ base: s.value })));
   document.querySelectorAll('#ub-uni').forEach((c) => c.addEventListener('change', () => dash.setParams({ uni: c.checked ? '1' : '0' })));
+  document.querySelectorAll('#ub-bub').forEach((c) => c.addEventListener('change', () => dash.setParams({ bub: c.checked ? '1' : '0' })));
+
+  /* Сонгосон газрын хөвөгч карт (загвар 1, 3): гол тоонууд, хот дахь эзлэх хувийн мөр баарууд */
+  dash.draw('callout', (el) => {
+    const p = P(), row = (ok('summary') || [])[0], dRows = ok('district_m');
+    if (!p.district || !row || !dRows) { el.classList.remove('is-on'); el.replaceChildren(); return; }
+    const city = { pop: d3.sum(dRows, (r) => r.pop), members: d3.sum(dRows, (r) => r.members), vote18: d3.sum(dRows, (r) => r.vote18), age18_25: d3.sum(dRows, (r) => r.age18_25) };
+    const mk = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+    const head = mk('div', 'ub-co-head');
+    const hw = mk('div'); hw.append(mk('p', 'ub-co-k', p.khoroo ? 'Сонгосон хороо' : 'Сонгосон дүүрэг'), mk('h3', 'ub-co-t', row.scope));
+    const x = mk('button', 'ub-co-x', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Сонголтыг цуцлах');
+    x.addEventListener('click', () => dash.setParams(p.khoroo ? { khoroo: '' } : { district: '', khoroo: '' }));
+    head.append(hw, x);
+    const bars = mk('div', 'ub-co-bars');
+    const bar = (label, val, pct, note, brand) => {
+      const r = mk('div', `ub-co-row${brand ? ' is-brand' : ''}`);
+      const top = mk('div', 'ub-co-rt'); top.append(mk('span', null, label), mk('b', null, val));
+      const tr = mk('div', 'ub-co-track'); const fi = mk('i'); fi.style.width = `${Math.max(1.5, Math.min(100, pct))}%`; tr.append(fi);
+      r.append(top, tr, mk('small', null, note)); bars.append(r);
+    };
+    bar('Хүн ам', int(row.pop), (100 * row.pop) / city.pop, `хотын ${dec1((100 * row.pop) / city.pop)}%`);
+    bar('Сонгуулийн нас (18+)', int(row.vote18), row.vote_pct, `хүн амын ${dec1(row.vote_pct)}%`);
+    bar('18–25 насны хүн ам', int(row.age18_25), row.y_pct, `хүн амын ${dec1(row.y_pct)}%`);
+    bar('Гишүүд', int(row.members), city.members ? (100 * row.members) / city.members : 0, `хотын гишүүдийн ${dec1(city.members ? (100 * row.members) / city.members : 0)}%`, true);
+    const foot = mk('p', 'ub-co-foot'); foot.append(mk('b', null, dec1(row.mem_rate)), document.createTextNode(' гишүүн 10 000 хүнд'));
+    el.replaceChildren(head, bars, foot);
+    el.classList.add('is-on');
+  });
+
+  /* KPI цагираг (загвар 1): хүн амд эзлэх хувь */
+  dash.draw('ring', (el) => {
+    const row = (ok('summary') || [])[0], v = row ? +row[el.dataset.k] : NaN;
+    const max = +(el.dataset.max || 100);
+    el.replaceChildren();
+    if (!Number.isFinite(v)) return;
+    const R = 19, C = 2 * Math.PI * R, frac = Math.max(0, Math.min(1, v / max));
+    const svg = d3.select(el).append('svg').attr('viewBox', '0 0 48 48').attr('aria-hidden', 'true');
+    svg.append('circle').attr('class', 'ub-ring-bg').attr('cx', 24).attr('cy', 24).attr('r', R);
+    svg.append('circle').attr('class', 'ub-ring-fg').attr('cx', 24).attr('cy', 24).attr('r', R)
+      .attr('stroke-dasharray', `${C * frac} ${C}`).attr('transform', 'rotate(-90 24 24)');
+    svg.append('text').attr('x', 24).attr('y', 24).attr('dy', '0.35em').attr('text-anchor', 'middle').attr('class', 'ub-ring-t').text(`${Math.round(v)}%`);
+  });
   dash.draw('uni-count', (el) => { const rows = ok('universities'); el.textContent = rows ? String(rows.length) : '—'; });
   // Будгийн тод байдал: суурь зураг хэр харагдахыг хэрэглэгч өөрөө тохируулна (дахин зурах шаардлагагүй).
   document.querySelectorAll('#ub-op').forEach((r) => {
@@ -762,6 +865,7 @@
     document.querySelectorAll('.ub-field-base').forEach((f) => { f.hidden = !canBase; });
     document.querySelectorAll('#ub-base').forEach((s) => { s.value = BASEMAPS[p.base] ? p.base : 'none'; });
     document.querySelectorAll('#ub-uni').forEach((c) => { c.checked = p.uni !== '0'; });
+    document.querySelectorAll('#ub-bub').forEach((c) => { c.checked = p.bub !== '0'; });
     document.querySelectorAll('.ub-field-op').forEach((f) => { f.hidden = !canBase || !BASEMAPS[p.base]; });
     document.querySelectorAll('#ub-unistud').forEach((sec) => { sec.hidden = p.uni === '0'; });
     document.querySelectorAll('.ub-seg-btn').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.level === p.level)));
