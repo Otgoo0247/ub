@@ -1,10 +1,10 @@
 /*
- * /api/attendance — гишүүдийн ирц (байршил + зургаар баталгаажуулна). Бүртгэлийг ЗӨВХӨН АДМИН харна.
+ * /api/attendance — гишүүдийн ирц (камерын зургаар баталгаажуулна). Бүртгэлийг ЗӨВХӨН АДМИН харна.
  *
  * Гишүүн (ub_member сешн):
  *   GET  ?mine=1                     → { today, events:[{id,title,time,place}], done:{eventKey: iso} }
  *        Үйл ажиллагаа = өнөөдрийн огноотой (эсвэл огноогүй, өнөөдөр нийтэлсэн) зарлалууд + «Ерөнхий ирц» (өдөрт нэг).
- *   POST {action:'checkin', event, lat, lng, acc, photo:'data:image/jpeg;base64,…', shotAt}
+ *   POST {action:'checkin', event, photo:'data:image/jpeg;base64,…', shotAt}  (lat, lng, acc — заавал биш)
  *        Нэг үйл ажиллагаанд нэг л удаа. Цагийг СЕРВЕР тэмдэглэнэ.
  * Админ (ub_session):
  *   GET                              → { items:[…] } (зураггүй)
@@ -60,7 +60,7 @@ async function mine(req, res, c) {
 async function checkin(req, res, c) {
   const b = await readJson(req, 600 * 1024);
   const lat = num(b.lat, -90, 90), lng = num(b.lng, -180, 180), acc = num(b.acc, 0, 100000);
-  if (lat == null || lng == null) return send(res, 400, { error: 'location_required' });
+  const hasLoc = lat != null && lng != null; // байршил заавал биш (хуучин хувилбартай нийцүүлж хадгална)
   const m = /^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/.exec(String(b.photo || ''));
   if (!m) return send(res, 400, { error: 'photo_required' });
   const buf = Buffer.from(m[1], 'base64');
@@ -80,7 +80,7 @@ async function checkin(req, res, c) {
   if (ok !== 'OK') return send(res, 409, { error: 'already', at: (await pipeline([['GET', doneKey]]))[0] });
 
   const shot = typeof b.shotAt === 'string' && !Number.isNaN(Date.parse(b.shotAt)) ? new Date(b.shotAt).toISOString() : null;
-  const rec = { t, shot, lat, lng, acc, code: fmtInvite(c), name: fullName(p), kind: p.kind, place: placeOf(p),
+  const rec = { t, shot, lat: hasLoc ? lat : null, lng: hasLoc ? lng : null, acc: hasLoc ? acc : null, code: fmtInvite(c), name: fullName(p), kind: p.kind, place: placeOf(p),
     event: ev.id, eventTitle: ev.title, eventTime: ev.time, eventPlace: ev.place, date: today, doneKey, size: buf.length,
     ua: String(req.headers['user-agent'] || '').slice(0, 160) };
   try {

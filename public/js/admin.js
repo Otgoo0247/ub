@@ -4,7 +4,7 @@
  *                    шүүлт, хайлт, урилгын мод, Excel татах. Өгөгдөл: /api/registrations (зөвхөн админ сешн).
  *                    «Нийт урилгын мод»: бүх гишүүний урилгыг нэг модонд (tree.js, offset: 1).
  *   «Үйл ажиллагааны зарлал»: announce.js (UBAnnAdmin.mount).
- *   «Ирц»: гишүүдийн ирц — зураг, байршил (жижиг газрын зураг), цаг; шүүх, устгах, Excel (/api/attendance).
+ *   «Ирц»: гишүүдийн ирц — зураг, цаг; шүүх, устгах, Excel (/api/attendance).
  *   «Нэвтрэх эрх»: гишүүдийн нэвтрэх нэр, санамсаргүй нууц үг — үүсгэх, шинэчлэх, Excel (/api/credentials).
  *   «Тохиргоо»: Facebook группын холбоос (/api/settings) — урилгаар бүртгүүлэгчдийн /me хуудсанд харагдана.
  */
@@ -129,10 +129,12 @@
     const nm = el('div', 'att-name'); nm.append(el('b', null, r.name), el('span', `adm-badge${r.kind === 'registrant' ? ' is-reg' : ''}`, r.kind === 'member' ? 'Гишүүн' : 'Бүртгүүлэгч'));
     body.append(nm, el('p', 'att-meta', [r.place, r.code].filter(Boolean).join(' · ')));
     const ev = el('p', 'att-ev'); ev.append(el('b', null, r.eventTitle), document.createTextNode(` · ${r.date} ${hm(r.t)}`)); body.append(ev);
-    if (window.UBMiniMap) body.append(window.UBMiniMap(r.lat, r.lng, r.acc, { w: 340, h: 120 }));
-    const loc = el('p', `att-loc${r.acc > 150 ? ' is-warn' : ''}`);
-    const a = el('a', null, 'Газрын зураг ↗'); a.href = osm(r); a.target = '_blank'; a.rel = 'noopener noreferrer';
-    loc.append(document.createTextNode(`±${int(Math.round(r.acc || 0))} м · `), a); body.append(loc);
+    if (r.lat != null && r.lng != null) { // өмнөх хувилбараар байршилтай бүртгэгдсэн бол
+      if (window.UBMiniMap) body.append(window.UBMiniMap(r.lat, r.lng, r.acc, { w: 340, h: 120 }));
+      const loc = el('p', `att-loc${r.acc > 150 ? ' is-warn' : ''}`);
+      const a = el('a', null, 'Газрын зураг ↗'); a.href = osm(r); a.target = '_blank'; a.rel = 'noopener noreferrer';
+      loc.append(document.createTextNode(`±${int(Math.round(r.acc || 0))} м · `), a); body.append(loc);
+    }
     if (r.shot && Math.abs(Date.parse(r.t) - Date.parse(r.shot)) > 15 * 60000) body.append(el('p', 'att-flag', `⚠ Зураг ${stamp(r.shot)}-д авсан`));
     const del = el('button', 'att-del', 'Устгах'); del.type = 'button';
     del.addEventListener('click', async () => {
@@ -158,9 +160,9 @@
   function exportAtt() {
     if (!window.UBXlsx) { alert('Хуудсыг Ctrl+F5-аар шинэчилнэ үү.'); return; }
     const list = attFiltered().slice().sort((a, b) => String(a.t).localeCompare(String(b.t)));
-    const HEAD = ['№', 'Огноо', 'Цаг', 'Үйл ажиллагаа', 'Нэр', 'Төрөл', 'Код', 'Хороо/хаяг', 'Өргөрөг', 'Уртраг', 'Нарийвчлал (м)', 'Газрын зураг', 'Зураг авсан'];
-    const WIDTH = [5, 12, 8, 30, 26, 12, 14, 26, 11, 11, 12, 40, 17];
-    const rows = list.map((r, i) => [i + 1, r.date, hm(r.t), r.eventTitle, r.name, r.kind === 'member' ? 'Намын гишүүн' : 'Бүртгүүлэгч', r.code, r.place, r.lat, r.lng, Math.round(r.acc || 0), osm(r), r.shot ? stamp(r.shot) : '']);
+    const HEAD = ['№', 'Огноо', 'Цаг', 'Үйл ажиллагаа', 'Нэр', 'Төрөл', 'Код', 'Хороо/хаяг', 'Зураг авсан'];
+    const WIDTH = [5, 12, 8, 30, 26, 12, 14, 26, 17];
+    const rows = list.map((r, i) => [i + 1, r.date, hm(r.t), r.eventTitle, r.name, r.kind === 'member' ? 'Намын гишүүн' : 'Бүртгүүлэгч', r.code, r.place, r.shot ? stamp(r.shot) : '']);
     window.UBXlsx.download(`irts_${new Date().toISOString().slice(0, 10)}.xlsx`, 'Ирц', HEAD, rows, WIDTH);
   }
   $('att-ev').addEventListener('change', (e) => { att.ev = e.target.value; renderAtt(); });

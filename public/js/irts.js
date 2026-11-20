@@ -1,5 +1,5 @@
 /*
- * irts.js — гишүүний ирц бүртгэл (/irts): үйл ажиллагаа сонгох → байршил (GPS) → камераар зураг → илгээх.
+ * irts.js — гишүүний ирц бүртгэл (/irts): үйл ажиллагаа сонгох → камераар зураг → илгээх.
  * Зураг дээр огноо, цаг, нэрийг шууд бичнэ. Бүртгэл зөвхөн админд харагдана (/admin → «Ирц»).
  */
 (function () {
@@ -9,8 +9,7 @@
   const p2 = (n) => String(n).padStart(2, '0');
   const hm = (iso) => { const d = new Date(iso); return `${p2(d.getHours())}:${p2(d.getMinutes())}`; };
   const stampText = (d) => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
-  const WARN_ACC = 150; // м — үүнээс муу нарийвчлалд анхааруулна
-  const st = { event: null, loc: null, photo: null, shotAt: null, stream: null, user: '', data: null };
+  const st = { event: null, photo: null, shotAt: null, stream: null, user: '', data: null };
   const status = $('ir-status');
 
   /* ---------- Эхлэл ---------- */
@@ -35,7 +34,6 @@
       $('ir-main').hidden = false;
       $('ir-today').textContent = `Өнөөдөр: ${d.today}`;
       renderEvents();
-      autoLocate();
       check();
     }).catch(() => { status.textContent = 'Сервертэй холбогдож чадсангүй.'; });
   }
@@ -61,85 +59,7 @@
     else if (events.length === 1) box.append(el('p', 'ir-hint', 'Өнөөдрийн огноотой үйл ажиллагааны зарлал алга тул «Ерөнхий ирц» бүртгэнэ.'));
   }
 
-  /* ---------- 2. Байршил ---------- */
-  /* Байршил: эрх шалгах → GPS (өндөр нарийвчлал) → бүтэлгүйтвэл сүлжээний байршил → 30 сек турш нарийвчлалыг сайжруулна */
-  const UA = navigator.userAgent;
-  const mobile = /Android|iPhone|iPad|iPod/i.test(UA);
-  const inApp = /FBAN|FBAV|FB_IAB|Instagram|Messenger|Line\/|KAKAOTALK|Viber|Telegram|wv\)/i.test(UA);
-  const ERR = { 1: 'PERMISSION_DENIED', 2: 'POSITION_UNAVAILABLE', 3: 'TIMEOUT' };
-  let watchId = null, watchStop = null;
-  function showLoc(pos) {
-    const box = $('ir-loc'), btn = $('ir-locbtn');
-    const { latitude: lat, longitude: lng, accuracy: acc } = pos.coords;
-    if (st.loc && st.loc.acc <= Math.round(acc)) return; // илүү нарийвчлалтайг л авна
-    st.loc = { lat, lng, acc: Math.round(acc), at: new Date(pos.timestamp || Date.now()) };
-    const info = el('p', `ir-locinfo${acc > WARN_ACC ? ' is-warn' : ''}`,
-      `±${Math.round(acc)} м нарийвчлалтай · ${hm(st.loc.at.toISOString())}${acc > WARN_ACC ? ' — нарийвчлал муу байна. Гадаа эсвэл цонхны дэргэд «Дахин тогтоох» дарна уу.' : ''}`);
-    box.replaceChildren(window.UBMiniMap ? window.UBMiniMap(lat, lng, acc, { w: Math.min(560, box.clientWidth || 320), h: 170 }) : el('span'), info);
-    btn.disabled = false; btn.textContent = 'Дахин тогтоох';
-    check();
-  }
-  function locFail(text, code) {
-    const box = $('ir-loc'), btn = $('ir-locbtn');
-    st.loc = null;
-    const nodes = [el('p', 'ir-locinfo is-warn', text)];
-    if (inApp) {
-      const cp = el('button', 'me-btn', 'Холбоосыг хуулах'); cp.type = 'button';
-      cp.addEventListener('click', () => { try { navigator.clipboard.writeText(location.href).then(() => { cp.textContent = 'Хуулагдлаа ✓'; }); } catch (e) { /* */ } });
-      nodes.push(cp);
-    }
-    nodes.push(el('small', 'ir-diag', `Тех. мэдээлэл: ${code || '—'} · ${mobile ? 'утас' : 'компьютер'}${inApp ? ' · апп доторх хөтөч' : ''}`));
-    box.replaceChildren(...nodes);
-    btn.disabled = false; btn.textContent = 'Байршил тогтоох';
-    check();
-  }
-  const denyText = () => (inApp
-    ? 'Facebook, Messenger зэрэг апп доторх хөтөч байршил өгдөггүй. Баруун дээд буланд байрлах ⋯ цэсээр «Chrome/Safari-д нээх»-ийг сонгох эсвэл холбоосыг хуулж Chrome/Safari-д нээнэ үү.'
-    : mobile
-      ? 'Байршлын эрх хаалттай байна. 1) Утасны Тохиргоо → Байршил (Location) асаалттай эсэх; 2) Chrome: хаягийн мөрний 🔒/⋮ → Сайтын тохиргоо → Байршил → Зөвшөөрөх; Safari (iPhone): Тохиргоо → Нууцлал → Байршлын үйлчилгээ → Safari → «Ашиглах үед». Дараа нь хуудсыг шинэчилнэ үү.'
-      : 'Байршлын эрх хаалттай байна. Хаягийн мөрний зүүн талын 🔒 тэмдэг → «Байршил» → «Зөвшөөрөх» болгоод хуудсыг шинэчилнэ үү. Windows: Тохиргоо → Нууцлал → Байршил асаалттай байх ёстой. Утсаараа бүртгүүлэхийг зөвлөж байна.');
-  async function locate() {
-    const btn = $('ir-locbtn');
-    if (!window.isSecureContext) { locFail('Байршлыг зөвхөн https:// хаягаар тогтооно.', 'insecure'); return; }
-    if (!('geolocation' in navigator)) { locFail('Энэ хөтөч байршил тогтоох боломжгүй. Chrome эсвэл Safari ашиглана уу.', 'no_api'); return; }
-    try { if (document.featurePolicy && !document.featurePolicy.allowsFeature('geolocation')) { locFail('Сайтын тохиргоо байршлыг хориглож байна (Permissions-Policy). Админ vercel.json-ийг шинэчилж дахин байршуулна уу.', 'policy_blocked'); return; } } catch (e) { /* */ }
-    try {
-      const perm = navigator.permissions && await navigator.permissions.query({ name: 'geolocation' });
-      if (perm && perm.state === 'denied') { locFail(denyText(), 'denied_before'); return; }
-    } catch (e) { /* Safari хуучин хувилбарт байхгүй */ }
-    btn.disabled = true; btn.textContent = 'Байршил тогтоож байна… (20 сек хүртэл)';
-    if (watchId != null) { navigator.geolocation.clearWatch(watchId); watchId = null; clearTimeout(watchStop); }
-    st.loc = null;
-    const get = (opt) => new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, opt));
-    let pos = null;
-    try { pos = await get({ enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }); }
-    catch (e1) {
-      if (e1.code === 1) { locFail(denyText(), ERR[1]); return; }
-      try { pos = await get({ enableHighAccuracy: false, timeout: 20000, maximumAge: 120000 }); } // GPS барьж чадахгүй бол сүлжээгээр
-      catch (e2) {
-        locFail(e2.code === 1 ? denyText() : e2.code === 3 ? 'Байршил тогтоох хугацаа дууслаа. Гадаа эсвэл цонхны дэргэд очоод «Байршил тогтоох» дарна уу.'
-          : 'Байршлыг тогтоож чадсангүй. Утасны байршил (GPS) асаалттай, интернэт холбогдсон эсэхийг шалгана уу.', `${ERR[e2.code] || e2.code}: ${e2.message || ''}`.slice(0, 120));
-        return;
-      }
-    }
-    showLoc(pos);
-    // 30 секундын турш илүү нарийвчлалтай байршил ирвэл шинэчилнэ
-    watchId = navigator.geolocation.watchPosition(showLoc, () => {}, { enableHighAccuracy: true, maximumAge: 0 });
-    watchStop = setTimeout(() => { navigator.geolocation.clearWatch(watchId); watchId = null; }, 30000);
-  }
-  /* Эрх аль хэдийн өгсөн бол шууд тогтооно; эс бөгөөс товч дарахад асууна (хөтөч автомат асуултыг хориглож болдог) */
-  async function autoLocate() {
-    try {
-      const perm = navigator.permissions && await navigator.permissions.query({ name: 'geolocation' });
-      if (perm && perm.state === 'granted') { locate(); return; }
-      if (perm && perm.state === 'denied') { locFail(denyText(), 'denied_before'); return; }
-    } catch (e) { /* */ }
-    if (inApp) { locFail(denyText(), 'in_app'); return; }
-    $('ir-loc').replaceChildren(el('p', 'ir-locinfo', '«Байршил тогтоох» товчийг дарж, хөтөч асуухад «Зөвшөөрөх» (Allow) сонгоно уу.'));
-  }
-  $('ir-locbtn').addEventListener('click', locate);
-
-  /* ---------- 3. Зураг ---------- */
+  /* ---------- 2. Зураг ---------- */
   const video = $('ir-video'), shot = $('ir-shot'), ph = $('ir-camph');
   function stopCam() { if (st.stream) { st.stream.getTracks().forEach((t) => t.stop()); st.stream = null; } video.hidden = true; }
   function useFileFallback(reason) {
@@ -197,19 +117,18 @@
   function msg(t) { $('ir-msg').textContent = t || ''; }
   function check() {
     $('ir-s1').classList.toggle('is-ok', !!st.event);
-    $('ir-s2').classList.toggle('is-ok', !!st.loc);
     $('ir-s3').classList.toggle('is-ok', !!st.photo);
-    $('ir-submit').disabled = !(st.event && st.loc && st.photo);
+    $('ir-submit').disabled = !(st.event && st.photo);
   }
   $('ir-submit').addEventListener('click', async () => {
     const btn = $('ir-submit'); btn.disabled = true; btn.textContent = 'Илгээж байна…'; msg('');
     try {
       const r = await fetch('/api/attendance', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'checkin', event: st.event, lat: st.loc.lat, lng: st.loc.lng, acc: st.loc.acc, photo: st.photo, shotAt: st.shotAt }) });
+        body: JSON.stringify({ action: 'checkin', event: st.event, photo: st.photo, shotAt: st.shotAt }) });
       const d = await r.json().catch(() => ({}));
       if (r.ok) {
         $('ir-main').hidden = true; $('ir-done').hidden = false;
-        $('ir-done-sub').textContent = `${d.event} · ${hm(d.t)}. Таны ирцийг байршил, зургийн хамт хүлээн авлаа.`;
+        $('ir-done-sub').textContent = `${d.event} · ${hm(d.t)}. Таны ирцийг зургийн хамт хүлээн авлаа.`;
         st.data.done[st.event] = d.t; window.scrollTo(0, 0);
         btn.textContent = 'Ирц бүртгүүлэх';
         return;
@@ -227,6 +146,6 @@
     $('ir-done').hidden = true; $('ir-main').hidden = false;
     st.photo = null; shot.hidden = true; ph.hidden = false; ph.textContent = 'Камер нээгдээгүй байна';
     $('ir-camopen').hidden = !$('ir-filelbl').hidden; $('ir-retake').hidden = true;
-    renderEvents(); autoLocate(); check();
+    renderEvents(); check();
   });
 })();
