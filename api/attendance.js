@@ -3,7 +3,7 @@
  *
  * Гишүүн (ub_member сешн):
  *   GET  ?mine=1                     → { today, events:[{id,title,time,place}], done:{eventKey: iso} }
- *        Үйл ажиллагаа = өнөөдрийн огноотой зарлалууд + «Ерөнхий ирц» (өдөрт нэг).
+ *        Үйл ажиллагаа = өнөөдрийн огноотой (эсвэл огноогүй, өнөөдөр нийтэлсэн) зарлалууд + «Ерөнхий ирц» (өдөрт нэг).
  *   POST {action:'checkin', event, lat, lng, acc, photo:'data:image/jpeg;base64,…', shotAt}
  *        Нэг үйл ажиллагаанд нэг л удаа. Цагийг СЕРВЕР тэмдэглэнэ.
  * Админ (ub_session):
@@ -42,7 +42,8 @@ function placeOf(p) {
 /* Өнөөдрийн үйл ажиллагаанууд: тухайн өдрийн огноотой зарлал + ерөнхий ирц */
 async function todaysEvents() {
   const today = todayUB();
-  const anns = (await listAnnouncements()).filter((a) => a.date === today)
+  // Өнөөдрийн огноотой зарлал, эсвэл огноогүй ч өнөөдөр нийтэлсэн зарлал
+  const anns = (await listAnnouncements()).filter((a) => a.date === today || (!a.date && a.t && new Date(Date.parse(a.t) + 8 * 3600000).toISOString().slice(0, 10) === today))
     .sort((a, b) => String(a.time || '').localeCompare(String(b.time || '')));
   return { today, events: [...anns.map((a) => ({ id: a.id, key: `a:${a.id}`, title: a.title, time: a.time || '', place: a.place || '' })),
     { id: 'general', key: `g:${today}`, title: 'Ерөнхий ирц', time: '', place: '', general: true }] };
@@ -127,14 +128,15 @@ async function adminDelete(req, res) {
 }
 
 module.exports = async function handler(req, res) {
+  // Админ, гишүүний сешн зэрэг байж болно: ирц бүртгэх нь ГИШҮҮНИЙ сешнээр, бүртгэл харах/устгах нь АДМИНЫ сешнээр
   const admin = sessionUser(req);
-  const c = admin ? null : memberCode(req);
+  const c = memberCode(req);
   if (!admin && !c) return send(res, 401, { error: 'login_required' });
   if (!storeConfigured()) return send(res, 503, { error: 'storage_not_configured' });
   const q = new URL(req.url, 'http://x').searchParams;
   try {
     if (req.method === 'GET') {
-      if (q.get('mine') === '1') return c ? mine(req, res, c) : send(res, 200, { today: todayUB(), events: [], done: {}, admin: true });
+      if (q.get('mine') === '1') return c ? mine(req, res, c) : send(res, 401, { error: 'member_login_required' });
       if (!admin) return send(res, 403, { error: 'admin_only' });
       if (q.get('photo')) { const id = okId(q.get('photo')); return id ? adminPhoto(req, res, id) : send(res, 400, { error: 'id' }); }
       return adminList(req, res);
@@ -142,13 +144,9 @@ module.exports = async function handler(req, res) {
     if (req.method !== 'POST') { res.setHeader('Allow', 'GET, POST'); return send(res, 405, { error: 'method' }); }
     if (!sameOrigin(req)) return send(res, 403, { error: 'origin' });
     if (!/application\/json/i.test(req.headers['content-type'] || '')) return send(res, 415, { error: 'json_only' });
-    if (admin) {
-      const peek = await readJson(req); req.body = peek;
-      if (peek.action === 'delete') return adminDelete(req, res);
-      return send(res, 400, { error: 'action' });
-    }
     const peek = await readJson(req, 600 * 1024); req.body = peek;
-    if (peek.action === 'checkin') return checkin(req, res, c);
+    if (peek.action === 'checkin') return c ? checkin(req, res, c) : send(res, 401, { error: 'member_login_required' });
+    if (peek.action === 'delete') return admin ? adminDelete(req, res) : send(res, 403, { error: 'admin_only' });
     return send(res, 400, { error: 'action' });
   } catch (e) {
     return send(res, 502, { error: 'store_error' });

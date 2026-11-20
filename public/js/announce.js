@@ -33,7 +33,7 @@
     bar.append(msg, reset, submit);
     const fh = el('div', 'ann-formhead');
     fh.append(el('h2', 'adm-h2', 'Шинэ зарлал'), el('p', 'adm-note', 'Гишүүний мэдээллийн цонх болон гишүүний хуудсанд «Анкет бөглөлт»-ийн доор харагдана.'));
-    form.append(fh, field('Гарчиг *', title, 'is-wide'), field('Огноо', date), field('Цаг', time), field('Байршил', place, 'is-place'), bodyField, bar);
+    form.append(fh, field('Гарчиг *', title, 'is-wide'), field('Огноо (ирц бүртгэх өдөр)', date), field('Цаг', time), field('Байршил', place, 'is-place'), bodyField, bar);
     reset.addEventListener('click', () => clearForm());
     form.addEventListener('submit', (e) => { e.preventDefault(); save(); });
     const list = el('div', 'ann-adminlist');
