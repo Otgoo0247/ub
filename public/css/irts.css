@@ -40,3 +40,5 @@
 .umm-acc{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;background:color-mix(in oklab,var(--series-1) 16%,transparent);border:1.5px solid color-mix(in oklab,var(--series-1) 55%,transparent)}
 .umm-pin{position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--series-1);border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)}
 .umm-attr{position:absolute;right:4px;bottom:3px;font-size:9px;color:#555;background:rgba(255,255,255,.75);padding:0 4px;border-radius:4px}
+.ir-diag{font-size:11px;color:var(--color-fg-muted);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.ir-loc .me-btn{align-self:flex-start}
