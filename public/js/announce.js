@@ -1,6 +1,6 @@
 /*
- * announce.js — дашбоардын «Зарлал» товч: үйл ажиллагааны зарлал оруулах, засах, устгах (зөвхөн админ).
- * Оруулсан зарлал «Гишүүний мэдээлэл» цонх болон гишүүний /me хуудсанд харагдана (ann.js).
+ * announce.js — админ хуудасны (/admin) «Үйл ажиллагааны зарлал» хэсэг: оруулах, засах, устгах.
+ * window.UBAnnAdmin.mount(container). Оруулсан зарлал «Гишүүний мэдээлэл» цонх болон гишүүний /me хуудсанд харагдана (ann.js).
  */
 (function () {
   'use strict';
@@ -15,17 +15,8 @@
 
   function field(label, ctrl, cls) { const l = el('label', `ann-f${cls ? ` ${cls}` : ''}`); l.append(el('span', null, label), ctrl); return l; }
 
-  function build() {
-    dlg = el('dialog', 'ann-admin'); dlg.setAttribute('aria-labelledby', 'ann-admin-t');
-    const head = el('header', 'ub-mdlg-head');
-    const hl = el('div', 'ub-pm-headl');
-    const lg = el('img', 'ub-pm-logo'); lg.src = 'logo.png?v=20261120-1'; lg.alt = 'SDS лого'; lg.width = 52; lg.height = 52;
-    const hw = el('div'); const t = el('h2', 'ub-mdlg-t', 'Үйл ажиллагааны зарлал'); t.id = 'ann-admin-t';
-    hw.append(el('p', 'ub-mdlg-eyebrow', 'Гишүүдэд харагдана'), t, el('p', 'ub-mdlg-sub', 'Гишүүний мэдээллийн цонх болон гишүүний хуудсанд «Анкет бөглөлт»-ийн доор гарна.'));
-    hl.append(lg, hw);
-    const x = el('button', 'ub-mdlg-x', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Хаах'); x.addEventListener('click', () => dlg.close());
-    head.append(hl, x);
-
+  function build(container) {
+    dlg = el('div', 'ann-admin');
     const form = el('form', 'ann-form'); form.noValidate = true;
     const title = el('input'); title.name = 'title'; title.maxLength = 120; title.required = true; title.placeholder = 'Ж: Хорооны гишүүдийн ээлжит хурал';
     const date = el('input'); date.type = 'date'; date.name = 'date';
@@ -40,14 +31,14 @@
     const reset = el('button', 'ub-mdlg-btn', 'Цэвэрлэх'); reset.type = 'button';
     const submit = el('button', 'ub-mdlg-btn is-brand', 'Нийтлэх'); submit.type = 'submit';
     bar.append(msg, reset, submit);
-    form.append(field('Гарчиг *', title, 'is-wide'), field('Огноо', date), field('Цаг', time), field('Байршил', place, 'is-place'), bodyField, bar);
+    const fh = el('div', 'ann-formhead');
+    fh.append(el('h2', 'adm-h2', 'Шинэ зарлал'), el('p', 'adm-note', 'Гишүүний мэдээллийн цонх болон гишүүний хуудсанд «Анкет бөглөлт»-ийн доор харагдана.'));
+    form.append(fh, field('Гарчиг *', title, 'is-wide'), field('Огноо', date), field('Цаг', time), field('Байршил', place, 'is-place'), bodyField, bar);
     reset.addEventListener('click', () => clearForm());
     form.addEventListener('submit', (e) => { e.preventDefault(); save(); });
-
     const list = el('div', 'ann-adminlist');
-    dlg.append(head, form, list);
-    dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
-    (document.getElementById('ub') || document.body).append(dlg);
+    dlg.append(form, list);
+    container.replaceChildren(dlg);
   }
 
   function setMsg(text, kind) { const m = $('.ann-msg'); m.textContent = text || ''; m.className = `ann-msg${kind ? ` is-${kind}` : ''}`; }
@@ -71,7 +62,7 @@
     dlg.querySelectorAll('.ann-item.is-editing').forEach((x) => x.classList.remove('is-editing'));
     li.classList.add('is-editing');
     setMsg('Засварлаж байна…');
-    f.elements.title.focus(); dlg.scrollTo({ top: 0, behavior: 'smooth' });
+    f.elements.title.focus(); f.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   async function post(payload) {
@@ -127,13 +118,11 @@
     box.replaceChildren(sec);
   }
 
-  function openAdmin() {
-    if (!window.UBAnn) { alert('Хуудсыг Ctrl+F5-аар шинэчилнэ үү.'); return; }
-    if (!dlg) build();
-    if (!dlg.open) dlg.showModal();
+  function mount(container) {
+    if (!window.UBAnn) { container.textContent = 'Хуудсыг Ctrl+F5-аар шинэчилнэ үү.'; return; }
+    if (!dlg) build(container); else if (!container.contains(dlg)) container.replaceChildren(dlg);
     refresh();
-    $('.ann-form').elements.title.focus();
   }
 
-  document.querySelectorAll('#ub-ann').forEach((b) => b.addEventListener('click', openAdmin));
+  window.UBAnnAdmin = { mount };
 })();

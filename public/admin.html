@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="mn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="color-scheme" content="light dark">
+  <title>Админ хэсэг</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/tokens.css?v=20261120-15">
+  <link rel="stylesheet" href="css/ub.css?v=20261120-15">
+  <link rel="stylesheet" href="css/tree.css?v=20261120-15">
+  <link rel="stylesheet" href="css/ann.css?v=20261120-15">
+  <link rel="stylesheet" href="css/admin.css?v=20261120-15">
+  <script src="js/d3.min.js?v=20261120-15" defer></script>
+  <script src="js/tree.js?v=20261120-15" defer></script>
+  <script src="js/xlsx-lite.js?v=20261120-15" defer></script>
+  <script src="js/ann.js?v=20261120-15" defer></script>
+  <script src="js/announce.js?v=20261120-15" defer></script>
+  <script src="js/session.js?v=20261120-15" defer></script>
+  <script src="js/admin.js?v=20261120-15" defer></script>
+</head>
+<body>
+  <main id="dash-root">
+    <div class="ub adm" id="ub">
+      <header class="ub-head">
+        <div class="ub-userbar"><span class="ub-user" id="ub-user"></span><a class="ub-btn ub-btn-ghost adm-back" href="/">← Дашбоард</a><button type="button" class="ub-btn ub-btn-ghost" id="ub-logout">Гарах</button></div>
+        <div class="ub-title-row"><img class="ub-logo" src="logo.png?v=20261120-1" alt="SDS лого" width="60" height="60"><h1 class="ub-title">Админ хэсэг</h1></div>
+      </header>
+
+      <nav class="adm-tabs" role="tablist" aria-label="Админ хэсгүүд">
+        <button type="button" role="tab" class="adm-tab" id="tab-people" aria-controls="adm-people" aria-selected="true">Урьсан хүмүүс</button>
+        <button type="button" role="tab" class="adm-tab" id="tab-ann" aria-controls="adm-ann" aria-selected="false">Үйл ажиллагааны зарлал</button>
+      </nav>
+
+      <section class="adm-pane" id="adm-people" role="tabpanel" aria-labelledby="tab-people">
+        <div class="adm-kpis" id="adm-kpis"></div>
+        <div class="ub-card">
+          <div class="adm-bar">
+            <div class="ub-segmini" role="group" aria-label="Харагдац">
+              <button type="button" data-view="list" aria-pressed="true">Бүх бүртгүүлэгч</button>
+              <button type="button" data-view="group" aria-pressed="false">Урьсан хүнээр</button>
+            </div>
+            <label class="ub-field"><span>Хайх</span><input type="search" class="ub-names-q adm-q" id="adm-q" placeholder="Нэр, утас, урьсан хүн, код"></label>
+            <label class="ub-field"><span>Оршин суугаа газар</span><select class="dash-select" id="adm-place"></select></label>
+            <label class="ub-field"><span>Урьсан хүн</span><select class="dash-select" id="adm-kind">
+              <option value="">Бүгд</option><option value="member">Намын гишүүн</option><option value="reg">Бүртгүүлэгч</option></select></label>
+            <button type="button" class="ub-reset" id="adm-reset" hidden>Шүүлтүүр цэвэрлэх</button>
+            <button type="button" class="ub-xl-btn is-big adm-xl" id="adm-xl">Excel-ээр татах</button>
+          </div>
+          <p class="adm-sum" id="adm-sum" role="status">Ачаалж байна…</p>
+          <div id="adm-body"></div>
+        </div>
+      </section>
+
+      <section class="adm-pane" id="adm-ann" role="tabpanel" aria-labelledby="tab-ann" hidden>
+        <div class="ub-card" id="adm-ann-box"></div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

@@ -15,6 +15,7 @@ ub-dashboard/
 ├── private/members.enc    # Гишүүдийн нэрс, AES-256-GCM шифртэй (түлхүүр нь зөвхөн Vercel-д)
 ├── public/                # Вэбд гарах бүх файл
 │   ├── index.html
+│   ├── admin.html         # Админ хэсэг (/admin): урьсан хүмүүс, үйл ажиллагааны зарлал
 │   ├── login.html         # Нэвтрэх хуудас (css/login.css, js/login.js)
 │   ├── favicon.svg
 │   ├── fonts/             # Inter фонт (SIL OFL), кирилл Ө/Ү орно
