@@ -546,3 +546,5 @@ body{background:
 html:not([data-role="admin"]) [data-for="admin"]{display:none !important}
 html:not([data-role="member"]) [data-for="member"]{display:none !important}
 html:not([data-role="admin"]) .ub-mapgrid{grid-template-columns:minmax(0,1fr)}
+.adm-fb{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;margin-left:6px;border-radius:5px;background:#1877F2;color:#fff !important;font:800 12px/1 system-ui,sans-serif;text-decoration:none;vertical-align:1px}
+.adm-fb:hover{filter:brightness(1.1)}

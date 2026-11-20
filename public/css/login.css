@@ -56,3 +56,8 @@
 .lg-logo{display:block;width:clamp(72px,8vw,96px);height:auto;margin:0 0 18px;filter:drop-shadow(0 4px 12px rgba(11,12,16,.10))}
 .lg-code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace !important;font-size:20px !important;font-weight:700 !important;letter-spacing:.12em;text-align:center;text-transform:uppercase}
 .lg-code::placeholder{letter-spacing:.12em;font-weight:500}
+.iv-opt{font-weight:500;color:var(--color-fg-muted)}
+.iv-help{margin:-6px 0 4px;font-size:12.5px;color:var(--color-fg-muted);line-height:1.5}
+.iv-help summary{cursor:pointer;font-weight:700;color:#1877F2}
+.iv-help ol{margin:6px 0 0;padding-left:18px}
+.iv-help li{margin:4px 0}

@@ -169,7 +169,9 @@
             const tel = el('a', null, r.phone); tel.href = `tel:${r.phone}`;
             const age = r.dob ? Math.floor((Date.now() - new Date(`${r.dob}T00:00:00`)) / 31557600000) : null;
             const place = a.type === 'city' ? `${a.district}, ${a.khoroo}` : a.type === 'aimag' ? `${a.aimag}, ${a.soum} сум` : '';
-            li.append(el('b', null, `${r.last} ${r.first}`), tel, el('time', null, String(r.t || '').slice(0, 10)),
+            const nb = el('b', null, `${r.last} ${r.first}`);
+            if (/^https:\/\/(www\.)?(facebook\.com|fb\.com|fb\.me)\//.test(r.fb || '')) { const fa = el('a', 'adm-fb', 'f'); fa.href = r.fb; fa.target = '_blank'; fa.rel = 'noopener noreferrer'; fa.title = `Facebook: ${r.fb}`; nb.append(fa); }
+            li.append(nb, tel, el('time', null, String(r.t || '').slice(0, 10)),
               el('span', 'ub-mdlg-regmeta', [r.gender, r.dob ? `${r.dob} (${age} нас)` : null, place].filter(Boolean).join(' · ') || '—'));
             ul.append(li);
           });

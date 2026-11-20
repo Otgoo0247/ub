@@ -47,8 +47,8 @@
     $('iv-dob').max = iso(today);
     form.hidden = false;
 
-    const LABEL = { last: 'овог', first: 'нэр', dob: 'төрсөн он, сар, өдөр', gender: 'хүйс', phone: 'утасны дугаар (8 оронтой)', addr: 'хаяг', consent: 'зөвшөөрөл' };
-    const FIELD = { last: 'iv-last', first: 'iv-first', dob: 'iv-dob', gender: 'iv-gender', phone: 'iv-phone', consent: 'iv-consent' };
+    const LABEL = { last: 'овог', first: 'нэр', dob: 'төрсөн он, сар, өдөр', gender: 'хүйс', phone: 'утасны дугаар (8 оронтой)', addr: 'хаяг', consent: 'зөвшөөрөл', fb: 'Facebook хаяг (facebook.com/… хэлбэртэй)' };
+    const FIELD = { last: 'iv-last', first: 'iv-first', dob: 'iv-dob', gender: 'iv-gender', phone: 'iv-phone', consent: 'iv-consent', fb: 'iv-fb' };
     const gender = () => { const g = form.querySelector('input[name=gender]:checked'); return g ? g.value : ''; };
     const msg = $('iv-msg'), btn = $('iv-btn');
     function mark(fields) {
@@ -69,6 +69,8 @@
       if (!gender()) bad.push('gender');
       if (!/^(\+?976)?[5-9]\d{7}$/.test($('iv-phone').value.replace(/\s/g, ''))) bad.push('phone');
       if (atype() === 'city' ? !(dist.value && kh.value) : !(aim.value && soum.value)) bad.push('addr');
+      const fbv = $('iv-fb').value.trim();
+      if (fbv && !/^(https?:\/\/)?([a-z]+\.)?(facebook\.com|fb\.com|fb\.me)\/\S+/i.test(fbv)) bad.push('fb');
       if (!$('iv-consent').checked) bad.push('consent');
       return bad;
     }
@@ -78,7 +80,7 @@
       if (bad.length) { msg.textContent = `Дараахыг шалгана уу: ${bad.map((f) => LABEL[f]).join(', ')}.`; mark(bad); return; }
       mark([]); msg.textContent = ''; btn.disabled = true; btn.firstChild.textContent = 'Илгээж байна… ';
       const body = {
-        c: code, last: $('iv-last').value.trim(), first: $('iv-first').value.trim(), dob: $('iv-dob').value, gender: gender(), phone: $('iv-phone').value, consent: true, website: $('iv-website').value,
+        c: code, last: $('iv-last').value.trim(), first: $('iv-first').value.trim(), dob: $('iv-dob').value, gender: gender(), phone: $('iv-phone').value, fb: $('iv-fb').value.trim(), consent: true, website: $('iv-website').value,
         addr: atype() === 'city' ? { type: 'city', district: dist.value, khoroo: kh.value } : { type: 'aimag', aimag: aim.value, soum: soum.value },
       };
       fetch('/api/register', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })

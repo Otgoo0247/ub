@@ -10,6 +10,7 @@ const { loadMembers, normalizeInvite, INVITE_RE, fmtInvite, phoneOf } = require(
 const { storeConfigured, pipeline, seal, phoneKey, KEYS, randomCode } = require('./_lib/store');
 const { findByCode } = require('./_lib/people');
 const { setMember } = require('./_lib/membersession');
+const { cleanFbProfile } = require('./_lib/settings');
 const ADDR = require('./_lib/address.json');
 
 const NAME_RE = /^[\p{L}][\p{L}\s.'’-]{0,39}$/u;
@@ -54,6 +55,7 @@ module.exports = async function handler(req, res) {
 
   const last = clean(b.last), first = clean(b.first), phone = phoneOf(b.phone), addr = addressOf(b.addr);
   const dob = dobOf(b.dob), gender = GENDERS.includes(b.gender) ? b.gender : null;
+  const fb = cleanFbProfile(b.fb); // Facebook профайл — заавал биш
   const bad = [];
   if (!NAME_RE.test(last)) bad.push('last');
   if (!NAME_RE.test(first)) bad.push('first');
@@ -61,6 +63,7 @@ module.exports = async function handler(req, res) {
   if (!gender) bad.push('gender');
   if (!phone) bad.push('phone');
   if (!addr) bad.push('addr');
+  if (fb === null) bad.push('fb');
   if (b.consent !== true) bad.push('consent');
   if (bad.length) return send(res, 400, { error: 'invalid', fields: bad });
 
@@ -82,7 +85,7 @@ module.exports = async function handler(req, res) {
       if (okSet === 'OK') own = cand;
     }
     if (!own) { await pipeline([['DEL', phoneKey(phone)]]).catch(() => {}); return send(res, 502, { error: 'store_error' }); }
-    const rec = { t: new Date().toISOString(), invite: fmtInvite(c), own: fmtInvite(own), last, first, dob, gender, phone, addr };
+    const rec = { t: new Date().toISOString(), invite: fmtInvite(c), own: fmtInvite(own), last, first, dob, gender, phone, addr, fb: fb || null };
     const sealed = seal(rec);
     try { await pipeline([['SET', KEYS.code + own, sealed], ['RPUSH', KEYS.list, sealed], ['HINCRBY', KEYS.by, c, '1'], ['SET', phoneKey(phone), own]]); }
     catch (e) { await pipeline([['DEL', phoneKey(phone)], ['DEL', KEYS.code + own]]).catch(() => {}); throw e; }

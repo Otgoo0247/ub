@@ -22,6 +22,8 @@
   const stamp = (iso) => { const d = new Date(iso); return Number.isNaN(+d) ? '' : `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`; };
   const place = (a) => (!a ? '' : a.type === 'city' ? `${a.district}, ${a.khoroo}` : a.type === 'aimag' ? `${a.aimag} аймаг, ${a.soum} сум` : '');
   const PAGE = 200;
+  /* Facebook профайлын жижиг холбоос (зөвхөн facebook.com хаяг) */
+  const fbLink = (url) => { if (!/^https:\/\/(www\.)?(facebook\.com|fb\.com|fb\.me)\//.test(url || '')) return null; const a = el('a', 'adm-fb', 'f'); a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.title = `Facebook: ${url}`; a.setAttribute('aria-label', 'Facebook профайл'); return a; };
 
   /* ---------- Табууд ---------- */
   const TABS = { people: ['tab-people', 'adm-people', 'urisan'], ann: ['tab-ann', 'adm-ann', 'zarlal'], cfg: ['tab-cfg', 'adm-cfg', 'tokhirgoo'], att: ['tab-att', 'adm-att', 'irts'], cred: ['tab-cred', 'adm-cred', 'erh'] };
@@ -288,7 +290,7 @@
         : p ? { kind: 'reg', name: `${p.last} ${p.first}`, place: place(p.addr) } : { kind: '', name: '', place: '' };
       const name = `${r.last} ${r.first}`;
       return { ...r, name, inv, invCode: norm(r.invite), age: age(r.dob), where: place(r.addr), invited: r.own ? kids.get(norm(r.own)) || 0 : 0,
-        hay: [name, r.phone, inv.name, fmtCode(r.invite), norm(r.invite), r.own, norm(r.own)].join(' ').toLowerCase() };
+        hay: [name, r.phone, inv.name, fmtCode(r.invite), norm(r.invite), r.own, norm(r.own), r.fb || ''].join(' ').toLowerCase() };
     });
   }
 
@@ -343,7 +345,8 @@
       const row = el('tr');
       const tel = el('a', null, r.phone); tel.href = `tel:${r.phone}`;
       const ph = el('td'); ph.append(tel);
-      row.append(el('td', 'n', String(i + 1)), el('td', 'adm-name', r.name), ph, el('td', null, r.gender || '—'), el('td', 'n', r.age == null ? '—' : String(r.age)),
+      const nm = el('td', 'adm-name', r.name); const fa = fbLink(r.fb); if (fa) nm.append(fa);
+      row.append(el('td', 'n', String(i + 1)), nm, ph, el('td', null, r.gender || '—'), el('td', 'n', r.age == null ? '—' : String(r.age)),
         el('td', null, r.where || '—'), invCell(r), el('td', r.invited ? 'n adm-has' : 'n', String(r.invited)), el('td', 'adm-date', stamp(r.t)));
       tb.append(row);
     });
@@ -405,7 +408,8 @@
       g.items.slice().sort((a, b) => String(b.t).localeCompare(String(a.t))).forEach((r) => {
         const li = el('li');
         const tel = el('a', null, r.phone); tel.href = `tel:${r.phone}`;
-        li.append(el('b', null, r.name), tel, el('time', null, day(r.t)),
+        const nb = el('b', null, r.name); const fa = fbLink(r.fb); if (fa) nb.append(fa);
+        li.append(nb, tel, el('time', null, day(r.t)),
           el('span', 'adm-g-sub', [r.gender, r.age != null ? `${r.age} нас` : null, r.where, r.invited ? `өөрөө ${r.invited} хүн урьсан` : null].filter(Boolean).join(' · ')));
         ul.append(li);
       });
@@ -430,11 +434,11 @@
   function exportXlsx() {
     if (!window.UBXlsx) { alert('Excel үүсгэх файл ачаалагдаагүй байна. Хуудсыг Ctrl+F5-аар шинэчилнэ үү.'); return; }
     const list = filtered().slice().sort((a, b) => String(a.t).localeCompare(String(b.t)));
-    const HEAD = ['№', 'Овог', 'Нэр', 'Төрсөн огноо', 'Нас', 'Хүйс', 'Утас', 'Хот/аймаг', 'Дүүрэг/сум', 'Хороо', 'Бүртгүүлсэн', 'Өөрийн урилгын код', 'Өөрөө урьсан', 'Урьсан хүн', 'Урьсан хүний төрөл', 'Урьсан хүний код', 'Урьсан хүний байршил'];
-    const WIDTH = [5, 16, 16, 13, 6, 10, 12, 14, 16, 12, 17, 18, 12, 26, 14, 16, 26];
+    const HEAD = ['№', 'Овог', 'Нэр', 'Төрсөн огноо', 'Нас', 'Хүйс', 'Утас', 'Facebook', 'Хот/аймаг', 'Дүүрэг/сум', 'Хороо', 'Бүртгүүлсэн', 'Өөрийн урилгын код', 'Өөрөө урьсан', 'Урьсан хүн', 'Урьсан хүний төрөл', 'Урьсан хүний код', 'Урьсан хүний байршил'];
+    const WIDTH = [5, 16, 16, 13, 6, 10, 12, 36, 14, 16, 12, 17, 18, 12, 26, 14, 16, 26];
     const data = list.map((r, i) => {
       const a = r.addr || {};
-      return [i + 1, r.last, r.first, r.dob || '', r.age, r.gender || '', r.phone,
+      return [i + 1, r.last, r.first, r.dob || '', r.age, r.gender || '', r.phone, r.fb || '',
         a.type === 'city' ? a.city || 'Улаанбаатар' : a.aimag ? `${a.aimag} аймаг` : '', a.type === 'city' ? a.district : a.soum ? `${a.soum} сум` : '', a.khoroo || '',
         stamp(r.t), r.own ? fmtCode(r.own) : '', r.invited, r.inv.name, r.inv.kind === 'member' ? 'Намын гишүүн' : r.inv.kind === 'reg' ? 'Бүртгүүлэгч' : '', fmtCode(r.invite), r.inv.place];
     });

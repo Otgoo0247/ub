@@ -31,8 +31,8 @@
   let dlg = null, members = null, regs = null, regsError = null;
   const st = { district: '', khoroo: '', q: '', only: false };
 
-  const HEAD = ['№', 'Овог', 'Нэр', 'Төрсөн огноо', 'Нас', 'Хүйс', 'Утас', 'Хот/аймаг', 'Дүүрэг/сум', 'Хороо', 'Бүртгүүлсэн', 'Өөрийн урилгын код', 'Урьсан хүн', 'Урьсан хүний код', 'Урьсан хүний хороо'];
-  const WIDTH = [5, 16, 16, 13, 6, 10, 12, 14, 16, 12, 17, 18, 26, 16, 24];
+  const HEAD = ['№', 'Овог', 'Нэр', 'Төрсөн огноо', 'Нас', 'Хүйс', 'Утас', 'Facebook', 'Хот/аймаг', 'Дүүрэг/сум', 'Хороо', 'Бүртгүүлсэн', 'Өөрийн урилгын код', 'Урьсан хүн', 'Урьсан хүний код', 'Урьсан хүний хороо'];
+  const WIDTH = [5, 16, 16, 13, 6, 10, 12, 36, 14, 16, 12, 17, 18, 26, 16, 24];
   function inviterOf(r) {
     if (r.inviter) return [r.inviter, r.inviterPlace || ''];
     const p = regs.find((x) => norm(x.own) === norm(r.invite)); // урилгаар бүртгүүлсэн хүн урьсан бол
@@ -41,7 +41,7 @@
   function rowsFor(list) {
     return list.map((r, i) => {
       const a = r.addr || {}, [inv, invPlace] = inviterOf(r);
-      return [i + 1, r.last, r.first, r.dob || '', age(r.dob), r.gender || '', r.phone,
+      return [i + 1, r.last, r.first, r.dob || '', age(r.dob), r.gender || '', r.phone, r.fb || '',
         a.type === 'city' ? a.city || 'Улаанбаатар' : a.aimag ? `${a.aimag} аймаг` : '', a.type === 'city' ? a.district : a.soum ? `${a.soum} сум` : '', a.khoroo || '',
         stamp(r.t), r.own || '', inv, r.invite || '', invPlace];
     });

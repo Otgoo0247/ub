@@ -4,6 +4,7 @@
  * АНХААР: бүртгүүлэгчийн урилгын код түүний урилгын холбоосонд ил явдаг тул холбоос авсан хүн түүний хуудсыг нээж чадна.
  *   POST {action:'login', username, password} → НАМЫН ГИШҮҮН: ub_member күүки (7 хоног) — дашбоардын статистик, /me, ирц, зарлал
  *   POST {action:'login', code}               → УРИЛГААР БҮРТГҮҮЛЭГЧ өөрийн урилгын кодоор: зөвхөн өөрийн хуудас (/me)
+ *   POST {action:'set_fb', fb}                 → бүртгүүлэгч өөрийн Facebook холбоосыг нэмэх/засах ('' — устгана)
  *   POST {action:'logout'}                    → зөвхөн гишүүний сешнийг хаана (админых хэвээр)
  *   GET  → {authenticated:false} эсвэл өөрийн мэдээлэл, нэвтрэх эрх, өөрийн урилгаар бүртгүүлсэн хүмүүс
  * IP тутамд цагт 20, нэг нэвтрэх нэрд цагт 10 оролдлого; буруу бол 1.2 сек хүлээлгэнэ.
@@ -11,10 +12,10 @@
 const crypto = require('crypto');
 const { send, readJson } = require('./_lib/session');
 const { normalizeInvite, INVITE_RE, fmtInvite, shortName, phoneOf, loadMembers } = require('./_lib/members');
-const { storeConfigured, pipeline, open, KEYS } = require('./_lib/store');
+const { storeConfigured, pipeline, open, seal, KEYS } = require('./_lib/store');
 const { findByCode, fullName } = require('./_lib/people');
 const { memberCode, setMember, clearMember } = require('./_lib/membersession');
-const { readGroup } = require('./_lib/settings');
+const { readGroup, cleanFbProfile } = require('./_lib/settings');
 const { verify, ensureCred, normUser } = require('./_lib/creds');
 const givenOf = (p) => (p.kind === 'member' ? String(p.m.n).trim().split(/\s+/).pop() : p.r.first);
 
@@ -76,7 +77,7 @@ async function me(req, res) {
     const r = p.r;
     const inv = r.invite ? await findByCode(normalizeInvite(r.invite)).catch(() => null) : null;
     profile = { kind: 'registrant', name: `${r.last} ${r.first}`, dob: r.dob || null, age: age(r.dob), gender: r.gender || null,
-      phone: r.phone, addr: r.addr, registered: r.t, invitedBy: inv ? shortName(fullName(inv)) : null };
+      phone: r.phone, addr: r.addr, registered: r.t, invitedBy: inv ? shortName(fullName(inv)) : null, fb: r.fb || null };
   }
   let invitees = [], tree = [], storage = storeConfigured();
   if (storage) {
@@ -86,7 +87,7 @@ async function me(req, res) {
       const all = (raw || []).map(open).filter(Boolean);
       tree = buildTree(all, c);
       invitees = all.filter((r) => normalizeInvite(r.invite) === c).reverse()
-        .map((r) => ({ t: r.t, last: r.last, first: r.first, dob: r.dob || null, age: age(r.dob), gender: r.gender || null, phone: r.phone, addr: r.addr,
+        .map((r) => ({ t: r.t, last: r.last, first: r.first, dob: r.dob || null, age: age(r.dob), gender: r.gender || null, phone: r.phone, addr: r.addr, fb: r.fb || null,
           invited: r.own ? counts[normalizeInvite(r.own)] || 0 : 0 }));
     } catch (e) { storage = false; }
   }
@@ -99,6 +100,27 @@ async function me(req, res) {
   return send(res, 200, { authenticated: true, code: fmtInvite(c), profile, invitees, tree, storage, group, cred });
 }
 
+/* Бүртгүүлэгч өөрийн Facebook профайлын холбоосыг шинэчилнэ: code түлхүүр ба жагсаалтын бичлэгийг хоёуланг нь */
+async function setFb(req, res) {
+  const c = memberCode(req);
+  if (!c) return send(res, 401, { error: 'login_required' });
+  if (!storeConfigured()) return send(res, 503, { error: 'storage_not_configured' });
+  const b = await readJson(req);
+  const fb = cleanFbProfile(b.fb);
+  if (fb === null) return send(res, 400, { error: 'bad_fb' });
+  try {
+    const [raw, list] = await pipeline([['GET', KEYS.code + c], ['LRANGE', KEYS.list, '0', '-1']]);
+    const r = raw ? open(raw) : null;
+    if (!r) return send(res, 403, { error: 'registrants_only' });
+    const next = { ...r, fb: fb || null };
+    const sealed = seal(next);
+    const cmds = [['SET', KEYS.code + c, sealed]];
+    (list || []).forEach((x, i) => { const o = open(x); if (o && normalizeInvite(o.own) === c) cmds.push(['LSET', KEYS.list, String(i), sealed]); });
+    await pipeline(cmds);
+    return send(res, 200, { ok: true, fb: next.fb });
+  } catch (e) { return send(res, 502, { error: 'store_error' }); }
+}
+
 module.exports = async function handler(req, res) {
   try { loadMembers(); } catch (e) { return send(res, 503, { error: 'not_configured' }); }
   if (req.method === 'GET') return me(req, res);
@@ -106,6 +128,7 @@ module.exports = async function handler(req, res) {
     if (!/application\/json/i.test(req.headers['content-type'] || '')) return send(res, 415, { error: 'json_only' });
     const peek = await readJson(req); req.body = peek;
     if (peek.action === 'login') return login(req, res);
+    if (peek.action === 'set_fb') return setFb(req, res);
     if (peek.action === 'logout') { clearMember(req, res); return send(res, 200, { ok: true }); }
     return send(res, 400, { error: 'action' });
   }

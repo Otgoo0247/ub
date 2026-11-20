@@ -25,6 +25,42 @@
     })
     .catch(() => { status.textContent = 'Сервертэй холбогдож чадсангүй.'; });
 
+  /* Бүртгүүлэгчийн Facebook хаяг: харах, нэмэх, засах (POST /api/me set_fb) */
+  const FB_RE = /^(https?:\/\/)?([a-z]+\.)?(facebook\.com|fb\.com|fb\.me)\/\S+/i;
+  function fbRow(dl, initial) {
+    const w = el('div', 'me-wide me-fbrow'); const dd = el('dd');
+    w.append(el('dt', null, 'Facebook хаяг'), dd); dl.append(w);
+    let cur = initial || '';
+    const view = () => {
+      dd.replaceChildren();
+      if (cur) { const a = el('a', 'me-fblink', cur.replace(/^https:\/\/(www\.)?/, '')); a.href = cur; a.target = '_blank'; a.rel = 'noopener noreferrer'; dd.append(a); }
+      else dd.append(el('span', 'me-muted', 'Оруулаагүй'));
+      const b = el('button', 'me-btn me-fbedit', cur ? 'Засах' : '+ Нэмэх'); b.type = 'button'; b.addEventListener('click', edit); dd.append(b);
+    };
+    const edit = () => {
+      const inp = el('input', 'me-link'); inp.type = 'url'; inp.value = cur; inp.placeholder = 'https://www.facebook.com/таны.нэр'; inp.maxLength = 300;
+      const save = el('button', 'me-btn is-brand', 'Хадгалах'); save.type = 'button';
+      const cancel = el('button', 'me-btn', 'Болих'); cancel.type = 'button'; cancel.addEventListener('click', view);
+      const msg = el('p', 'me-fbmsg');
+      const help = el('p', 'me-fbhelp', 'Facebook апп → профайл → ⋯ → «Профайлын холбоос хуулах» дараад энд буулгана.');
+      save.addEventListener('click', async () => {
+        const v = inp.value.trim();
+        if (v && !FB_RE.test(v)) { msg.textContent = 'facebook.com/… хэлбэрийн холбоос оруулна уу.'; return; }
+        save.disabled = true; msg.textContent = '';
+        try {
+          const r = await fetch('/api/me', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set_fb', fb: v }) });
+          const j = await r.json().catch(() => ({}));
+          if (r.ok) { cur = j.fb || ''; view(); return; }
+          msg.textContent = j.error === 'bad_fb' ? 'Холбоос буруу байна. facebook.com/… хэлбэртэй байх ёстой.' : 'Хадгалж чадсангүй. Дахин оролдоно уу.';
+        } catch (e) { msg.textContent = 'Сервертэй холбогдож чадсангүй.'; }
+        save.disabled = false;
+      });
+      const row = el('div', 'me-fbedit-row'); row.append(inp, save, cancel);
+      dd.replaceChildren(row, help, msg); inp.focus();
+    };
+    view();
+  }
+
   function render(d) {
     const p = d.profile;
     const welcome = new URLSearchParams(location.search).get('welcome') === '1';
@@ -47,6 +83,7 @@
       item('Төрсөн огноо', p.dob ? `${p.dob} (${p.age} нас)` : null); item('Хүйс', p.gender);
       item('Утас', p.phone); item('Бүртгүүлсэн', day(p.registered));
       item('Хаяг', addrText(p.addr)); item('Урьсан', p.invitedBy);
+      fbRow(dl, p.fb);
     }
     // Facebook групп (админ /admin → «Тохиргоо»-нд оруулна) — урилгаар бүртгүүлэгчдэд, мэдээллийн доор
     let anchor = dl;

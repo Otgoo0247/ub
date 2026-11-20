@@ -17,6 +17,20 @@ function cleanFbUrl(raw) {
   } catch (e) { return null; }
 }
 
+/* Хүний Facebook профайлын холбоос: facebook.com/нэр, profile.php?id=…, /share/… гэх мэт. Хоосон бол '' (заавал биш), буруу бол null */
+function cleanFbProfile(raw) {
+  if (raw == null || String(raw).trim() === '') return '';
+  const s = cleanFbUrl(raw);
+  if (!s) return null;
+  const u = new URL(s);
+  if (u.pathname === '/' || u.pathname === '') return null;
+  const id = u.pathname === '/profile.php' ? u.searchParams.get('id') : null;
+  if (u.pathname === '/profile.php' && !/^\d{5,25}$/.test(id || '')) return null;
+  u.search = id ? `?id=${id}` : ''; u.hash = '';
+  if (u.hostname === 'm.facebook.com' || u.hostname === 'web.facebook.com' || u.hostname === 'facebook.com') u.hostname = 'www.facebook.com';
+  return u.toString().slice(0, 300);
+}
+
 async function readGroup() {
   if (!storeConfigured()) return { fbUrl: '', fbText: '' };
   const [vals] = await pipeline([['HMGET', CFG_KEY, 'fbUrl', 'fbText']]);
@@ -24,4 +38,4 @@ async function readGroup() {
   return { fbUrl: cleanFbUrl(fbUrl) || '', fbText: fbText || '' };
 }
 
-module.exports = { CFG_KEY, cleanFbUrl, readGroup };
+module.exports = { CFG_KEY, cleanFbUrl, cleanFbProfile, readGroup };

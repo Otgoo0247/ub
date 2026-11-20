@@ -8,9 +8,9 @@
   <meta name="color-scheme" content="light dark">
   <title>Урилга</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/css/tokens.css?v=20261119-3">
-  <link rel="stylesheet" href="/css/login.css?v=20261119-3">
-  <script src="/js/invite.js?v=20261119-3" defer></script>
+  <link rel="stylesheet" href="/css/tokens.css?v=20261120-6">
+  <link rel="stylesheet" href="/css/login.css?v=20261120-6">
+  <script src="/js/invite.js?v=20261120-6" defer></script>
 </head>
 <body>
   <main class="lg">
@@ -40,6 +40,15 @@
       </div>
       <label class="lg-field"><span>Утасны дугаар</span>
         <input type="tel" name="phone" id="iv-phone" inputmode="numeric" autocomplete="tel-national" placeholder="99112233" maxlength="16" required></label>
+      <label class="lg-field"><span>Facebook хаяг <small class="iv-opt">(заавал биш)</small></span>
+        <input type="url" name="fb" id="iv-fb" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="300" placeholder="https://www.facebook.com/таны.нэр"></label>
+      <details class="iv-help">
+        <summary>Facebook хаягаа хэрхэн хуулах вэ?</summary>
+        <ol>
+          <li><b>Утсаар:</b> Facebook апп → доод/дээд цэсний <b>профайл зураг</b> дээрээ дарна → нэрийн доорх <b>⋯</b> товч → <b>«Профайлын холбоос хуулах»</b> (Copy profile link) → энд буулгана.</li>
+          <li><b>Компьютерээр:</b> facebook.com → зүүн дээд буланд нэр/зураг дээрээ дарна → хөтчийн хаягийн мөрийг бүхэлд нь хуулж энд буулгана.</li>
+        </ol>
+      </details>
 
       <fieldset class="iv-addr">
         <legend>Оршин суугаа хаяг</legend>
@@ -58,7 +67,7 @@
       </fieldset>
 
       <label class="iv-consent"><input type="checkbox" id="iv-consent" required>
-        <span>Миний овог нэр, төрсөн огноо, хүйс, утас, хаягийг гишүүнчлэлийн бүртгэлд ашиглахыг зөвшөөрч байна.</span></label>
+        <span>Миний овог нэр, төрсөн огноо, хүйс, утас, хаяг, Facebook хаягийг гишүүнчлэлийн бүртгэлд ашиглахыг зөвшөөрч байна.</span></label>
       <label class="iv-hp" aria-hidden="true">Вэбсайт <input type="text" name="website" id="iv-website" tabindex="-1" autocomplete="off"></label>
       <p class="lg-msg" id="iv-msg" role="alert"></p>
       <button type="submit" class="lg-btn" id="iv-btn">Бүртгүүлэх <span aria-hidden="true">→</span></button>

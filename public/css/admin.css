@@ -127,3 +127,5 @@
 .cred-gen{align-self:flex-end;min-height:34px}
 .cred-gen.is-confirm{background:#B25E09;border-color:#B25E09}
 .cred-gen:disabled{opacity:.5;cursor:default}
+.adm-fb{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;margin-left:6px;border-radius:5px;background:#1877F2;color:#fff !important;font:800 12px/1 system-ui,sans-serif;text-decoration:none;vertical-align:1px}
+.adm-fb:hover{filter:brightness(1.1)}
