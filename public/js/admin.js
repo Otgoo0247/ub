@@ -4,6 +4,7 @@
  *                    шүүлт, хайлт, урилгын мод, Excel татах. Өгөгдөл: /api/registrations (зөвхөн админ сешн).
  *                    «Нийт урилгын мод»: бүх гишүүний урилгыг нэг модонд (tree.js, offset: 1).
  *   «Үйл ажиллагааны зарлал»: announce.js (UBAnnAdmin.mount).
+ *   «Ирц»: гишүүдийн ирц — зураг, байршил (жижиг газрын зураг), цаг; шүүх, устгах, Excel (/api/attendance).
  *   «Тохиргоо»: Facebook группын холбоос (/api/settings) — урилгаар бүртгүүлэгчдийн /me хуудсанд харагдана.
  */
 (function () {
@@ -22,16 +23,18 @@
   const PAGE = 200;
 
   /* ---------- Табууд ---------- */
-  const TABS = { people: ['tab-people', 'adm-people', 'urisan'], ann: ['tab-ann', 'adm-ann', 'zarlal'], cfg: ['tab-cfg', 'adm-cfg', 'tokhirgoo'] };
+  const TABS = { people: ['tab-people', 'adm-people', 'urisan'], ann: ['tab-ann', 'adm-ann', 'zarlal'], cfg: ['tab-cfg', 'adm-cfg', 'tokhirgoo'], att: ['tab-att', 'adm-att', 'irts'] };
   function show(name, push) {
     Object.entries(TABS).forEach(([k, [t, p]]) => { $(t).setAttribute('aria-selected', String(k === name)); $(p).hidden = k !== name; });
     if (name === 'ann' && window.UBAnnAdmin) { window.UBAnnAdmin.mount($('adm-ann-box')); }
     if (name === 'cfg') loadCfg();
+    if (name === 'att') loadAtt();
     if (push) history.replaceState(null, '', `#${TABS[name][2]}`);
   }
   $('tab-people').addEventListener('click', () => show('people', true));
   $('tab-ann').addEventListener('click', () => show('ann', true));
   $('tab-cfg').addEventListener('click', () => show('cfg', true));
+  $('tab-att').addEventListener('click', () => show('att', true));
   const startTab = Object.keys(TABS).find((k) => `#${TABS[k][2]}` === location.hash) || 'people';
 
   /* ---------- Тохиргоо: Facebook групп ---------- */
@@ -70,6 +73,100 @@
     } catch (err) { fbMsg('Сервертэй холбогдож чадсангүй.', 'err'); }
     btn.disabled = false;
   });
+  /* ---------- Ирц ---------- */
+  const att = { items: null, ev: '', date: '', q: '', loading: false };
+  const ubDay = (iso) => new Date(Date.parse(iso) + 8 * 3600000).toISOString().slice(0, 10); // Улаанбаатарын огноо
+  const hm = (iso) => { const d = new Date(iso); return `${p2(d.getHours())}:${p2(d.getMinutes())}`; };
+  const osm = (r) => `https://www.openstreetmap.org/?mlat=${r.lat.toFixed(6)}&mlon=${r.lng.toFixed(6)}#map=18/${r.lat.toFixed(6)}/${r.lng.toFixed(6)}`;
+  let lightbox = null;
+  function showPhoto(r) {
+    if (!lightbox) {
+      lightbox = el('dialog', 'att-lb');
+      lightbox.addEventListener('click', () => lightbox.close());
+      document.getElementById('ub').append(lightbox);
+    }
+    const img = el('img'); img.src = `/api/attendance?photo=${r.id}`; img.alt = `${r.name} — ирцийн зураг`;
+    lightbox.replaceChildren(img, el('p', null, `${r.name} · ${r.eventTitle} · ${stamp(r.t)}`));
+    lightbox.showModal();
+  }
+  function loadAtt(force) {
+    if (att.loading || (att.items && !force)) return;
+    att.loading = true; $('att-sum').textContent = 'Ачаалж байна…';
+    fetch('/api/attendance', { credentials: 'same-origin' }).then(async (r) => ({ status: r.status, d: await r.json().catch(() => ({})) })).then(({ status, d }) => {
+      att.loading = false;
+      if (status === 401) { location.assign('/admin-login?next=/admin%23irts'); return; }
+      if (status === 503) { $('att-sum').textContent = 'Ирцийн сан (Upstash Redis) холбогдоогүй байна.'; return; }
+      if (status !== 200) { $('att-sum').textContent = 'Ирцийг ачаалж чадсангүй.'; return; }
+      att.items = d.items || [];
+      const evs = new Map(); att.items.forEach((r) => { const k = r.event === 'general' ? `general|${r.date}` : r.event; if (!evs.has(k)) evs.set(k, `${r.date} · ${r.eventTitle}`); });
+      const sel = $('att-ev');
+      sel.replaceChildren(new Option('Бүх үйл ажиллагаа', ''), ...[...evs.entries()].sort((a, b) => b[1].localeCompare(a[1])).map(([k, v]) => new Option(v, k)));
+      sel.value = evs.has(att.ev) ? att.ev : (att.ev = '');
+      attKpis(); renderAtt();
+    }).catch(() => { att.loading = false; $('att-sum').textContent = 'Сервертэй холбогдож чадсангүй.'; });
+  }
+  function attFiltered() {
+    const q = att.q.trim().toLowerCase();
+    return att.items.filter((r) => (!att.ev || (r.event === 'general' ? `general|${r.date}` : r.event) === att.ev)
+      && (!att.date || r.date === att.date) && (!q || `${r.name} ${r.code} ${r.place}`.toLowerCase().includes(q)));
+  }
+  function attKpis() {
+    const today = ubDay(new Date().toISOString());
+    const its = att.items;
+    const items = [['Өнөөдөр', its.filter((r) => r.date === today).length, 'ирц', true], ['Нийт ирц', its.length, 'бүртгэл'],
+      ['Оролцсон гишүүн', new Set(its.map((r) => r.code)).size, 'хүн'], ['Үйл ажиллагаа', new Set(its.map((r) => (r.event === 'general' ? `g${r.date}` : r.event))).size, 'удаа']];
+    $('att-kpis').replaceChildren(...items.map(([l, v, u, brand]) => { const k = el('div', `adm-kpi${brand ? ' is-brand' : ''}`); k.append(el('span', 'adm-kpi-l', l), el('b', 'adm-kpi-v', int(v)), el('span', 'adm-kpi-u', u)); return k; }));
+  }
+  function attCard(r) {
+    const c = el('article', 'att-card');
+    const ph = el('button', 'att-photo'); ph.type = 'button'; ph.title = 'Томоор харах';
+    const img = el('img'); img.loading = 'lazy'; img.src = `/api/attendance?photo=${r.id}`; img.alt = `${r.name} — ирцийн зураг`;
+    ph.append(img); ph.addEventListener('click', () => showPhoto(r));
+    const body = el('div', 'att-body');
+    const nm = el('div', 'att-name'); nm.append(el('b', null, r.name), el('span', `adm-badge${r.kind === 'registrant' ? ' is-reg' : ''}`, r.kind === 'member' ? 'Гишүүн' : 'Бүртгүүлэгч'));
+    body.append(nm, el('p', 'att-meta', [r.place, r.code].filter(Boolean).join(' · ')));
+    const ev = el('p', 'att-ev'); ev.append(el('b', null, r.eventTitle), document.createTextNode(` · ${r.date} ${hm(r.t)}`)); body.append(ev);
+    if (window.UBMiniMap) body.append(window.UBMiniMap(r.lat, r.lng, r.acc, { w: 340, h: 120 }));
+    const loc = el('p', `att-loc${r.acc > 150 ? ' is-warn' : ''}`);
+    const a = el('a', null, 'Газрын зураг ↗'); a.href = osm(r); a.target = '_blank'; a.rel = 'noopener noreferrer';
+    loc.append(document.createTextNode(`±${int(Math.round(r.acc || 0))} м · `), a); body.append(loc);
+    if (r.shot && Math.abs(Date.parse(r.t) - Date.parse(r.shot)) > 15 * 60000) body.append(el('p', 'att-flag', `⚠ Зураг ${stamp(r.shot)}-д авсан`));
+    const del = el('button', 'att-del', 'Устгах'); del.type = 'button';
+    del.addEventListener('click', async () => {
+      if (!del.classList.contains('is-confirm')) { del.classList.add('is-confirm'); del.textContent = 'Устгах уу?'; setTimeout(() => { del.classList.remove('is-confirm'); del.textContent = 'Устгах'; }, 3000); return; }
+      del.disabled = true;
+      const res = await fetch('/api/attendance', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', id: r.id }) }).catch(() => null);
+      if (res && res.ok) { att.items = att.items.filter((x) => x.id !== r.id); attKpis(); renderAtt(); } else { del.disabled = false; del.textContent = 'Алдаа — дахин'; }
+    });
+    body.append(del);
+    c.append(ph, body);
+    return c;
+  }
+  function renderAtt() {
+    const list = attFiltered();
+    const any = att.ev || att.date || att.q;
+    $('att-reset').hidden = !any;
+    $('att-xl').disabled = !list.length;
+    $('att-sum').textContent = `${int(list.length)} ирц${any ? ` (нийт ${int(att.items.length)})` : ''} · зураг дээр дарж томоор харна`;
+    const grid = $('att-grid');
+    if (!list.length) { grid.replaceChildren(el('p', 'adm-empty', att.items.length ? 'Шүүлтэд тохирох ирц алга.' : 'Одоогоор ирц бүртгэгдээгүй байна. Гишүүд дашбоардын «Ирц бүртгүүлэх» товчоор бүртгүүлнэ.')); return; }
+    grid.replaceChildren(...list.map(attCard));
+  }
+  function exportAtt() {
+    if (!window.UBXlsx) { alert('Хуудсыг Ctrl+F5-аар шинэчилнэ үү.'); return; }
+    const list = attFiltered().slice().sort((a, b) => String(a.t).localeCompare(String(b.t)));
+    const HEAD = ['№', 'Огноо', 'Цаг', 'Үйл ажиллагаа', 'Нэр', 'Төрөл', 'Код', 'Хороо/хаяг', 'Өргөрөг', 'Уртраг', 'Нарийвчлал (м)', 'Газрын зураг', 'Зураг авсан'];
+    const WIDTH = [5, 12, 8, 30, 26, 12, 14, 26, 11, 11, 12, 40, 17];
+    const rows = list.map((r, i) => [i + 1, r.date, hm(r.t), r.eventTitle, r.name, r.kind === 'member' ? 'Намын гишүүн' : 'Бүртгүүлэгч', r.code, r.place, r.lat, r.lng, Math.round(r.acc || 0), osm(r), r.shot ? stamp(r.shot) : '']);
+    window.UBXlsx.download(`irts_${new Date().toISOString().slice(0, 10)}.xlsx`, 'Ирц', HEAD, rows, WIDTH);
+  }
+  $('att-ev').addEventListener('change', (e) => { att.ev = e.target.value; renderAtt(); });
+  $('att-date').addEventListener('change', (e) => { att.date = e.target.value; renderAtt(); });
+  $('att-q').addEventListener('input', (e) => { att.q = e.target.value; renderAtt(); });
+  $('att-reset').addEventListener('click', () => { att.ev = att.date = att.q = ''; $('att-ev').value = ''; $('att-date').value = ''; $('att-q').value = ''; renderAtt(); });
+  $('att-refresh').addEventListener('click', () => loadAtt(true));
+  $('att-xl').addEventListener('click', exportAtt);
+
   show(startTab, false);
 
   /* ---------- Урьсан хүмүүс ---------- */

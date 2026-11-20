@@ -11,6 +11,7 @@ ub-dashboard/
 ├── api/auth.js            # Нэвтрэх / гарах
 ├── api/_lib/session.js    # Сешний күүки (middleware.js-тэй ижил аргаар)
 ├── api/announcements.js # Үйл ажиллагааны зарлал: админ оруулна, гишүүдэд харагдана (Upstash Redis)
+├── api/attendance.js    # Ирц: гишүүд байршил + камерын зургаар бүртгүүлнэ (/irts), зөвхөн админ харна (/admin → «Ирц»)
 ├── api/settings.js      # Админы тохиргоо: Facebook группын холбоос (бүртгүүлэгчдийн /me-д харагдана)
 ├── api/members.js         # Нууц үгээр хамгаалсан гишүүдийн нэрсийн API (Vercel функц)
 ├── private/members.enc    # Гишүүдийн нэрс, AES-256-GCM шифртэй (түлхүүр нь зөвхөн Vercel-д)
@@ -18,6 +19,7 @@ ub-dashboard/
 │   ├── index.html
 │   ├── admin.html         # Админ хэсэг (/admin): урьсан хүмүүс, үйл ажиллагааны зарлал
 │   ├── login.html         # Гишүүн нэвтрэх (/login, өөрийн кодоор)
+│   ├── irts.html          # Гишүүний ирц бүртгэл (/irts)
 │   ├── admin-login.html   # Админ нэвтрэх (/admin-login)
 │   ├── favicon.svg
 │   ├── fonts/             # Inter фонт (SIL OFL), кирилл Ө/Ү орно

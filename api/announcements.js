@@ -10,6 +10,7 @@ const crypto = require('crypto');
 const { sessionUser, send, readJson } = require('./_lib/session');
 const { memberCode } = require('./_lib/membersession');
 const { storeConfigured, pipeline, seal, open } = require('./_lib/store');
+const { listAnnouncements } = require('./_lib/ann');
 
 const KEY = 'ubann:v1';
 const MAX_ITEMS = 100;
@@ -28,13 +29,7 @@ function fields(b) {
   return { f };
 }
 
-async function all() {
-  const [flat] = await pipeline([['HGETALL', KEY]]);
-  const out = [];
-  for (let i = 0; i + 1 < (flat || []).length; i += 2) { const a = open(flat[i + 1]); if (a) out.push({ ...a, id: flat[i] }); }
-  // Шинээр оруулсан нь эхэнд
-  return out.sort((a, b) => String(b.t).localeCompare(String(a.t)));
-}
+const all = listAnnouncements;
 
 /* Өөр сайтаас илгээсэн хүсэлтийг хаана (күүки SameSite=Lax ч нэмэлт хамгаалалт). */
 function sameOrigin(req) {

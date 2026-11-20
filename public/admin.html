@@ -7,20 +7,22 @@
   <meta name="color-scheme" content="light dark">
   <title>Админ хэсэг</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <script src="js/role.js?v=20261120-17"></script>
-  <link rel="stylesheet" href="css/tokens.css?v=20261120-17">
-  <link rel="stylesheet" href="css/ub.css?v=20261120-17">
-  <link rel="stylesheet" href="css/tree.css?v=20261120-17">
-  <link rel="stylesheet" href="css/ann.css?v=20261120-17">
+  <script src="js/role.js?v=20261120-18"></script>
+  <link rel="stylesheet" href="css/tokens.css?v=20261120-18">
+  <link rel="stylesheet" href="css/ub.css?v=20261120-18">
+  <link rel="stylesheet" href="css/tree.css?v=20261120-18">
+  <link rel="stylesheet" href="css/ann.css?v=20261120-18">
   <link rel="stylesheet" href="css/me.css?v=20261120-8">
-  <link rel="stylesheet" href="css/admin.css?v=20261120-17">
-  <script src="js/d3.min.js?v=20261120-17" defer></script>
-  <script src="js/tree.js?v=20261120-17" defer></script>
-  <script src="js/xlsx-lite.js?v=20261120-17" defer></script>
-  <script src="js/ann.js?v=20261120-17" defer></script>
-  <script src="js/announce.js?v=20261120-17" defer></script>
-  <script src="js/session.js?v=20261120-17" defer></script>
-  <script src="js/admin.js?v=20261120-17" defer></script>
+  <link rel="stylesheet" href="css/irts.css?v=20261120-18">
+  <link rel="stylesheet" href="css/admin.css?v=20261120-18">
+  <script src="js/d3.min.js?v=20261120-18" defer></script>
+  <script src="js/tree.js?v=20261120-18" defer></script>
+  <script src="js/xlsx-lite.js?v=20261120-18" defer></script>
+  <script src="js/ann.js?v=20261120-18" defer></script>
+  <script src="js/announce.js?v=20261120-18" defer></script>
+  <script src="js/session.js?v=20261120-18" defer></script>
+  <script src="js/minimap.js?v=20261120-18" defer></script>
+  <script src="js/admin.js?v=20261120-18" defer></script>
 </head>
 <body data-require="admin">
   <main id="dash-root">
@@ -33,6 +35,7 @@
       <nav class="adm-tabs" role="tablist" aria-label="Админ хэсгүүд">
         <button type="button" role="tab" class="adm-tab" id="tab-people" aria-controls="adm-people" aria-selected="true">Урьсан хүмүүс</button>
         <button type="button" role="tab" class="adm-tab" id="tab-ann" aria-controls="adm-ann" aria-selected="false">Үйл ажиллагааны зарлал</button>
+        <button type="button" role="tab" class="adm-tab" id="tab-att" aria-controls="adm-att" aria-selected="false">Ирц</button>
         <button type="button" role="tab" class="adm-tab" id="tab-cfg" aria-controls="adm-cfg" aria-selected="false">Тохиргоо</button>
       </nav>
 
@@ -59,6 +62,22 @@
 
       <section class="adm-pane" id="adm-ann" role="tabpanel" aria-labelledby="tab-ann" hidden>
         <div class="ub-card" id="adm-ann-box"></div>
+      </section>
+
+      <section class="adm-pane" id="adm-att" role="tabpanel" aria-labelledby="tab-att" hidden>
+        <div class="adm-kpis" id="att-kpis"></div>
+        <div class="ub-card">
+          <div class="adm-bar">
+            <label class="ub-field ub-field-wide"><span>Үйл ажиллагаа</span><select class="dash-select" id="att-ev"></select></label>
+            <label class="ub-field"><span>Огноо</span><input type="date" class="ub-names-q adm-q" id="att-date"></label>
+            <label class="ub-field"><span>Хайх</span><input type="search" class="ub-names-q adm-q" id="att-q" placeholder="Нэр, код, хороо"></label>
+            <button type="button" class="ub-reset" id="att-reset" hidden>Шүүлтүүр цэвэрлэх</button>
+            <button type="button" class="me-ghost adm-refresh" id="att-refresh">↻ Шинэчлэх</button>
+            <button type="button" class="ub-xl-btn is-big adm-xl" id="att-xl" disabled>Excel-ээр татах</button>
+          </div>
+          <p class="adm-sum" id="att-sum" role="status">Ачаалж байна…</p>
+          <div class="att-grid" id="att-grid"></div>
+        </div>
       </section>
 
       <section class="adm-pane" id="adm-cfg" role="tabpanel" aria-labelledby="tab-cfg" hidden>

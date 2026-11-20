@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="mn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="light dark">
+  <title>Ирц бүртгүүлэх</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/tokens.css?v=20261120-18">
+  <link rel="stylesheet" href="/css/me.css?v=20261120-18">
+  <link rel="stylesheet" href="/css/irts.css?v=20261120-18">
+  <script src="/js/minimap.js?v=20261120-18" defer></script>
+  <script src="/js/irts.js?v=20261120-18" defer></script>
+</head>
+<body>
+  <main class="me irts">
+    <header class="me-top">
+      <p class="me-pill">Ирц бүртгэл</p>
+      <div class="me-topr"><a class="me-ghost" href="/">← Дашбоард</a><a class="me-ghost" href="/me">Миний мэдээлэл</a></div>
+    </header>
+    <p class="me-note" id="ir-status">Ачаалж байна…</p>
+
+    <section class="me-card" id="ir-main" hidden>
+      <p class="me-eyebrow" id="ir-who"></p>
+      <h1 class="me-name">Ирц бүртгүүлэх</h1>
+      <p class="me-sub" id="ir-today"></p>
+
+      <ol class="ir-steps">
+        <li class="ir-step" id="ir-s1">
+          <h2 class="ir-h"><span>1</span>Үйл ажиллагаа сонгох</h2>
+          <div class="ir-events" id="ir-events" role="radiogroup" aria-label="Үйл ажиллагаа"></div>
+        </li>
+        <li class="ir-step" id="ir-s2">
+          <h2 class="ir-h"><span>2</span>Байршил</h2>
+          <p class="ir-hint">Та яг одоо байгаа газраа баталгаажуулна. Хөтөч байршил асуувал «Зөвшөөрөх» дарна уу.</p>
+          <div class="ir-loc" id="ir-loc"></div>
+          <button type="button" class="me-btn" id="ir-locbtn">Байршил тогтоох</button>
+        </li>
+        <li class="ir-step" id="ir-s3">
+          <h2 class="ir-h"><span>3</span>Зураг</h2>
+          <p class="ir-hint">Өөрийгөө тухайн газарт байгаагаар нь камераар зургаа авна. Өмнө нь авсан зураг ашиглах боломжгүй.</p>
+          <div class="ir-cam" id="ir-cam">
+            <video id="ir-video" playsinline muted hidden></video>
+            <img id="ir-shot" alt="Авсан зураг" hidden>
+            <p class="ir-camph" id="ir-camph">Камер нээгдээгүй байна</p>
+          </div>
+          <div class="ir-camrow">
+            <button type="button" class="me-btn" id="ir-camopen">Камер нээх</button>
+            <button type="button" class="me-btn is-brand" id="ir-snap" hidden>📷 Зураг авах</button>
+            <button type="button" class="me-btn" id="ir-retake" hidden>Дахин авах</button>
+            <label class="me-btn ir-file" id="ir-filelbl" hidden>📷 Камераар зураг авах<input type="file" id="ir-file" accept="image/*" capture="user"></label>
+          </div>
+        </li>
+      </ol>
+      <p class="ir-msg" id="ir-msg" role="alert"></p>
+      <button type="button" class="ir-submit" id="ir-submit" disabled>Ирц бүртгүүлэх</button>
+    </section>
+
+    <section class="me-card ir-done" id="ir-done" hidden>
+      <div class="ir-check" aria-hidden="true">✓</div>
+      <h1 class="me-name">Ирц бүртгэгдлээ</h1>
+      <p class="me-sub" id="ir-done-sub"></p>
+      <div class="ir-camrow"><button type="button" class="me-btn" id="ir-again">Өөр үйл ажиллагаанд бүртгүүлэх</button><a class="me-btn is-brand" href="/">Дашбоард руу</a></div>
+    </section>
+  </main>
+</body>
+</html>

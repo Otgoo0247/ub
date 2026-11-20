@@ -92,3 +92,26 @@
 .adm-sub{margin:22px 0 8px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--color-fg-muted)}
 .adm-fb-preview{max-width:640px}
 .adm-fb-preview .me-fb{margin-top:0}
+/* Ирц */
+.adm-refresh{min-height:34px;align-self:flex-end}
+.att-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin-top:14px}
+.att-card{display:flex;flex-direction:column;border:1px solid var(--color-border-line);border-radius:16px;overflow:hidden;background:var(--color-panel)}
+.att-photo{appearance:none;display:block;padding:0;border:0;background:#111;cursor:zoom-in;aspect-ratio:3/4;overflow:hidden}
+.att-photo img{display:block;width:100%;height:100%;object-fit:cover}
+.att-body{display:flex;flex-direction:column;gap:6px;padding:12px}
+.att-name{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.att-name b{font-size:14.5px}
+.att-meta{margin:0;font-size:12px;color:var(--color-fg-muted)}
+.att-ev{margin:0;font-size:12.5px;font-variant-numeric:tabular-nums}
+.att-ev b{color:var(--series-1)}
+.att-body .umm{width:100% !important}  /* зураг төвөөс байрлана */
+.att-loc{margin:0;font-size:12px;font-weight:600;color:var(--color-fg-muted)}
+.att-loc.is-warn{color:#B25E09}
+.att-loc a{color:var(--series-1)}
+.att-flag{margin:0;font-size:12px;font-weight:700;color:#B25E09}
+.att-del{appearance:none;align-self:flex-end;font:inherit;font-size:12px;font-weight:700;color:var(--series-1);background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:8px;padding:5px 10px;cursor:pointer}
+.att-del.is-confirm{background:var(--series-1);border-color:var(--series-1);color:#fff}
+.att-lb{padding:0;border:0;border-radius:16px;background:#111;max-width:min(92vw,620px);max-height:92vh;overflow:hidden;cursor:zoom-out}
+.att-lb::backdrop{background:rgba(0,0,0,.7)}
+.att-lb img{display:block;max-width:100%;max-height:calc(92vh - 40px);margin:0 auto}
+.att-lb p{margin:0;padding:10px 14px;color:#fff;font-size:13px}
