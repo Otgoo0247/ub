@@ -322,3 +322,33 @@
 .ub-filters > .ub-field-wide{flex-basis:190px;min-width:172px}
 .ub-elx-bar .ub-pm-q{min-height:38px}
 .ub-name-plain{font-weight:600}
+/* Их, дээд сургуулийн суралцагчид */
+.ub-uni .ub-h3{margin:18px 0 6px;font-size:15px;font-weight:800;letter-spacing:-.01em}
+.ub-uni-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:12px}
+.ub-uni-stat{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:14px;background:var(--color-bg);border:1px solid var(--color-border-line)}
+.ub-uni-stat span{font-size:12px;font-weight:600;color:var(--color-fg-muted)}
+.ub-uni-stat b{font-size:22px;font-weight:850;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.ub-uni-stat small{font-size:11.5px;color:var(--color-fg-muted)}
+.ub-uni-stat.is-main{background:var(--ub-brand-soft,#FDECEC);border-color:color-mix(in oklab,var(--series-1) 25%,transparent)}
+.ub-uni-stat.is-main b{color:var(--series-1)}
+.ub-chart-uni{position:relative}
+.ub-chart-uni .ub-bar-l{dominant-baseline:auto;font-weight:600}
+.ub-chart-uni .ub-row{cursor:pointer}
+.ub-uni-grp{border-top:1px solid var(--color-border-line)}
+.ub-uni-grp:last-child{border-bottom:1px solid var(--color-border-line)}
+.ub-uni-grp summary{display:grid;grid-template-columns:minmax(0,1fr) auto 64px;gap:12px;align-items:center;padding:11px 6px;cursor:pointer;list-style:none;font-size:14px}
+.ub-uni-grp summary::-webkit-details-marker{display:none}
+.ub-uni-grp summary::before{content:"›";position:absolute;left:4px;top:50%;margin-top:-.6em;line-height:1.2;font-weight:800;transition:transform .15s;color:var(--color-fg-muted)}
+.ub-uni-grp summary{position:relative;padding-left:20px}
+.ub-uni-grp[open] summary::before{transform:rotate(90deg)}
+.ub-uni-grp summary:hover{background:color-mix(in oklab,var(--color-fg) 4%,transparent)}
+.ub-uni-gname{font-weight:700}
+.ub-uni-gval{font-weight:800;font-variant-numeric:tabular-nums}
+.ub-uni-gpct{color:var(--color-fg-muted);font-variant-numeric:tabular-nums;text-align:right;font-size:13px}
+.ub-uni-grp .ub-tablewrap{margin:0 0 12px}
+.ub-uni-t{min-width:720px}
+.ub-uni-t th,.ub-uni-t td{padding:7px 10px;font-size:13px;vertical-align:top}
+.ub-uni-t td.n,.ub-uni-t th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ub-uni-t .ub-uni-sp{color:var(--color-fg-muted)}
+.ub-uni-t tr.is-zero td{color:var(--color-fg-muted)}
+.ub-uni-t tfoot td{font-weight:800;border-top:1px solid var(--color-border-line)}

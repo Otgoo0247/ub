@@ -612,6 +612,96 @@
       .on('click', (e, r) => dash.setParams({ district: p.district === r.district ? '' : r.district, khoroo: '' }));
   });
 
+  /* ---------- Их, дээд сургуулийн суралцагчид (мэргэжлийн чиглэлээр) ---------- */
+  const UNI_NUM = ['total', 'male', 'female', 'dip', 'dip_m', 'dip_f', 'bach', 'bach_m', 'bach_f'];
+  function uniRows() {
+    const rows = ok('uni_students');
+    return rows ? rows.map((r) => { const o = { ...r }; UNI_NUM.forEach((k) => { o[k] = +r[k] || 0; }); return o; }) : null;
+  }
+  function uniGroups(rows) {
+    return d3.groups(rows, (r) => r.gcode).map(([code, list]) => {
+      const o = { code, name: list[0].general, list };
+      UNI_NUM.forEach((k) => { o[k] = d3.sum(list, (r) => r[k]); });
+      return o;
+    });
+  }
+  const pct1 = (a, b) => (b ? `${dec1((100 * a) / b)}%` : '—');
+
+  dash.draw('uni-stats', (el) => {
+    const rows = uniRows();
+    el.replaceChildren();
+    if (!rows) { el.textContent = '—'; return; }
+    const T = {}; UNI_NUM.forEach((k) => { T[k] = d3.sum(rows, (r) => r[k]); });
+    [['Нийт суралцагчид', T.total, null, true], ['Эмэгтэй', T.female, pct1(T.female, T.total)], ['Эрэгтэй', T.male, pct1(T.male, T.total)],
+      ['Бакалаврын боловсрол', T.bach, pct1(T.bach, T.total)], ['Дипломын боловсрол', T.dip, pct1(T.dip, T.total)]].forEach(([l, v, sub, big]) => {
+      const d = document.createElement('div'); d.className = `ub-uni-stat${big ? ' is-main' : ''}`;
+      const a = document.createElement('span'); a.textContent = l;
+      const b = document.createElement('b'); b.textContent = int(v);
+      d.append(a, b);
+      if (sub) { const s = document.createElement('small'); s.textContent = `нийтийн ${sub}`; d.append(s); }
+      el.append(d);
+    });
+  });
+
+  dash.draw('chart-uni', (el) => {
+    const rows = uniRows();
+    el.replaceChildren();
+    if (!rows) { el.textContent = '—'; return; }
+    const groups = uniGroups(rows).sort((a, b) => b.total - a.total);
+    const grand = d3.sum(groups, (g) => g.total);
+    const W = Math.max(280, el.clientWidth), rowH = 46, H = groups.length * rowH;
+    const svg = d3.select(el).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H).attr('role', 'img')
+      .attr('aria-label', 'Их, дээд сургуулийн суралцагчид ерөнхий чиглэлээр, хүйсээр');
+    const tip = d3.select(el).append('div').attr('class', 'ub-tip').attr('hidden', true);
+    const probe = svg.append('text').attr('class', 'ub-bar-v').attr('opacity', 0).text('00,000 · 00.0%');
+    const valW = probe.node().getComputedTextLength() + 10; probe.remove();
+    const x = d3.scaleLinear().domain([0, d3.max(groups, (g) => g.total)]).range([0, Math.max(60, W - valW)]);
+    const g = svg.selectAll('g').data(groups).join('g').attr('class', 'ub-row').attr('transform', (r, i) => `translate(0,${i * rowH})`);
+    g.append('rect').attr('class', 'ub-rowhit').attr('width', W).attr('height', rowH - 2).attr('rx', 4);
+    g.append('text').attr('class', 'ub-bar-l').attr('x', 0).attr('y', 13).text((r) => `${+r.code}. ${r.name}`);
+    const by = 22, bh = 16;
+    g.append('rect').attr('x', 0).attr('y', by).attr('height', bh).attr('rx', 3).attr('width', (r) => Math.max(0, x(r.male) - 1)).style('fill', dash.colors[1]);
+    g.append('rect').attr('x', (r) => x(r.male) + 1).attr('y', by).attr('height', bh).attr('rx', 3).attr('width', (r) => Math.max(0, x(r.female) - 1)).style('fill', dash.colors[0]);
+    g.append('text').attr('class', 'ub-bar-v').attr('y', by + bh / 2).attr('x', (r) => x(r.total) + 8).text((r) => `${int(r.total)} · ${dec1((100 * r.total) / grand)}%`);
+    g.on('pointermove', (e, r) => showTip(tip, el, e, `${+r.code}. ${r.name}`, [
+      ['Нийт', int(r.total)], ['Эрэгтэй', `${int(r.male)} (${pct1(r.male, r.total)})`], ['Эмэгтэй', `${int(r.female)} (${pct1(r.female, r.total)})`],
+      ['Бакалавр', int(r.bach)], ['Диплом', int(r.dip)]]))
+      .on('pointerleave', () => tip.attr('hidden', true))
+      .on('click', (e, r) => {
+        const d = document.querySelector(`.ub-uni-table details[data-code="${r.code}"]`);
+        if (d) { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+      });
+  });
+
+  dash.draw('uni-table', (el) => {
+    const rows = uniRows();
+    el.replaceChildren();
+    if (!rows) { el.textContent = '—'; return; }
+    const groups = uniGroups(rows), grand = d3.sum(groups, (g) => g.total);
+    const mk = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+    const num = (v) => (v ? int(v) : '—');
+    groups.forEach((gr) => {
+      const det = mk('details', 'ub-uni-grp'); det.dataset.code = gr.code;
+      const sum = mk('summary');
+      sum.append(mk('span', 'ub-uni-gname', `${+gr.code}. ${gr.name}`), mk('span', 'ub-uni-gval', `${int(gr.total)}`), mk('span', 'ub-uni-gpct', pct1(gr.total, grand)));
+      det.append(sum);
+      const wrap = mk('div', 'ub-tablewrap'); const t = mk('table', 'ub-table ub-uni-t');
+      const hr = mk('tr');
+      [['Төрөлжсөн чиглэл'], ['Нарийвчилсан чиглэл'], ['Нийт', 'n'], ['Эрэгтэй', 'n'], ['Эмэгтэй', 'n'], ['Диплом', 'n'], ['Бакалавр', 'n']].forEach(([h, c]) => { const th = mk('th', c || null, h); th.scope = 'col'; hr.append(th); });
+      const th = mk('thead'); th.append(hr);
+      const tb = mk('tbody');
+      gr.list.forEach((r) => {
+        const tr = mk('tr', r.total ? null : 'is-zero');
+        tr.append(mk('td', 'ub-uni-sp', r.special), mk('td', null, r.detail), mk('td', 'n', num(r.total)), mk('td', 'n', num(r.male)), mk('td', 'n', num(r.female)), mk('td', 'n', num(r.dip)), mk('td', 'n', num(r.bach)));
+        tb.append(tr);
+      });
+      const tf = mk('tfoot'); const fr = mk('tr');
+      fr.append(mk('td', null, 'Дүн'), mk('td'), mk('td', 'n', int(gr.total)), mk('td', 'n', int(gr.male)), mk('td', 'n', int(gr.female)), mk('td', 'n', num(gr.dip)), mk('td', 'n', int(gr.bach)));
+      tf.append(fr);
+      t.append(th, tb, tf); wrap.append(t); det.append(wrap); el.append(det);
+    });
+  });
+
   /* ---------- Хүснэгт ---------- */
   const tbl = { key: 'pop', dir: -1, q: '' };
   function tableRows() {
@@ -673,6 +763,7 @@
     document.querySelectorAll('#ub-base').forEach((s) => { s.value = BASEMAPS[p.base] ? p.base : 'none'; });
     document.querySelectorAll('#ub-uni').forEach((c) => { c.checked = p.uni !== '0'; });
     document.querySelectorAll('.ub-field-op').forEach((f) => { f.hidden = !canBase || !BASEMAPS[p.base]; });
+    document.querySelectorAll('#ub-unistud').forEach((sec) => { sec.hidden = p.uni === '0'; });
     document.querySelectorAll('.ub-seg-btn').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.level === p.level)));
     document.querySelectorAll('#ub-reset').forEach((b) => { b.hidden = !(p.district || p.khoroo); });
     const zero = !!(mrow && mrow.members === 0);

@@ -16,6 +16,7 @@
     members_scope: { url: 'data/members_scope.csv', format: 'csv' },
     members_monthly: { url: 'data/members_monthly.csv', format: 'csv' },
     universities: { url: 'data/universities.csv', format: 'csv' },
+    uni_students: { url: 'data/uni_students.csv', format: 'csv' },
   };
   const DEFAULTS = { district: '', khoroo: '', metric: 'pop', level: 'khoroo', base: 'none', uni: '1' };
   const ALLOWED = {
