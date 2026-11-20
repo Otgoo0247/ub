@@ -7,10 +7,9 @@
     area: safe((v) => (v >= 100 ? int(v) : v >= 10 ? dec1(v) : dec2(v))), text: (v) => (v == null ? '—' : String(v)),
   };
   const METRICS = {
-    dens: { label: 'Хүн амын нягтрал', unit: 'хүн/км²', fmt: int },
     pop: { label: 'Хүн амын тоо', unit: 'хүн', fmt: int },
-    hh: { label: 'Өрхийн тоо', unit: 'өрх', fmt: int },
-    hhsize: { label: 'Өрхийн дундаж хэмжээ', unit: 'хүн/өрх', fmt: dec2 },
+    vote18: { label: 'Сонгуулийн нас (18+)', unit: 'хүн', fmt: int },
+    age18_25: { label: '18–25 насны хүн ам', unit: 'хүн', fmt: int },
     members: { label: 'Гишүүдийн тоо', unit: 'гишүүн', fmt: int },
     mem_rate: { label: '10 000 хүнд ногдох гишүүн', unit: 'гишүүн / 10 000 хүн', fmt: dec1 },
     gerpct: { label: 'Гэр хорооллын хүн амын хувь (хилийн файл)', unit: '%', fmt: dec1 },
@@ -45,8 +44,8 @@
     return BASEMAPS[P().base] || null;
   }
   const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const P = () => ({ district: '', khoroo: '', metric: 'dens', level: 'khoroo', base: 'none', uni: '1', ...dash.params() });
-  const M = () => METRICS[P().metric] || METRICS.dens;
+  const P = () => ({ district: '', khoroo: '', metric: 'pop', level: 'khoroo', base: 'none', uni: '1', ...dash.params() });
+  const M = () => METRICS[P().metric] || METRICS.pop;
   const ok = (id) => { const d = dash.data(id); return d.status === 'ok' && d.data ? d.data : null; };
 
   /* ---------- Тооцоолол ---------- */
@@ -133,7 +132,8 @@
     mem_rate: { br: [0.001, 1, 2, 4, 8], labels: ['0', '0 – 1', '1 – 2', '2 – 4', '4 – 8', '8+'] },
   };
   function niceBreak(v, metric) {
-    if (metric === 'pop') return Math.round(v / 100) * 100;
+    if (metric === 'pop' || metric === 'vote18') return Math.round(v / 100) * 100;
+    if (metric === 'age18_25') return Math.round(v / 50) * 50;
     if (metric === 'hh') return Math.round(v / 50) * 50;
     if (metric === 'dens') return Math.round(v / 10) * 10;
     if (metric === 'members') return Math.round(v);
@@ -141,7 +141,7 @@
     return Math.round(v * 10) / 10;
   }
   function classes(metric, level, kRows, dRows) {
-    const f = (METRICS[metric] || METRICS.dens).fmt;
+    const f = (METRICS[metric] || METRICS.pop).fmt;
     let br, labels;
     if (level === 'khoroo' && CUSTOM[metric]) ({ br, labels } = CUSTOM[metric]);
     else {
@@ -666,7 +666,7 @@
     const p = P();
     const ms = dash.data('mem_scope'), mrow = ms.status === 'ok' && ms.data ? ms.data[0] : null;
     const supp = !!(mrow && mrow.suppressed);
-    document.querySelectorAll('#ub-metric').forEach((s) => { s.value = METRICS[p.metric] ? p.metric : 'dens'; });
+    document.querySelectorAll('#ub-metric').forEach((s) => { s.value = METRICS[p.metric] ? p.metric : 'pop'; });
     const g = dash.data('boundaries').status === 'ok' ? geo() : null;
     const canBase = !!(window.UB_CONFIG && window.UB_CONFIG.basemap && g && g.crs === 'EPSG:3857');
     document.querySelectorAll('.ub-field-base').forEach((f) => { f.hidden = !canBase; });

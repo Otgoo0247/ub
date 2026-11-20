@@ -3,20 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Улаанбаатар хотын хүн ам, өрх, гишүүнчлэлийн дашбоард</title>
+  <title>Улаанбаатар хотын хүн ам, гишүүнчлэл</title>
   <meta name="description" content="Улаанбаатар хотын 9 дүүрэг, 204 хорооны хүн ам, өрх, нягтрал, гишүүнчлэлийг газрын зураг, графикаар харуулсан дашбоард.">
   <meta name="color-scheme" content="light dark">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/tokens.css?v=20261120-1">
-  <link rel="stylesheet" href="css/ub.css?v=20261120-1">
-  <script src="js/d3.min.js?v=20261120-1" defer></script>
-  <script src="js/dash-runtime.js?v=20261120-1" defer></script>
-  <script src="js/config.js?v=20261120-1" defer></script>
-  <script src="js/app.js?v=20261120-1" defer></script>
-  <script src="js/members.js?v=20261120-1" defer></script>
-  <script src="js/xlsx-lite.js?v=20261120-1" defer></script>
-  <script src="js/party.js?v=20261120-1" defer></script>
-  <script src="js/session.js?v=20261120-1" defer></script>
+  <link rel="stylesheet" href="css/tokens.css?v=20261120-2">
+  <link rel="stylesheet" href="css/ub.css?v=20261120-2">
+  <script src="js/d3.min.js?v=20261120-2" defer></script>
+  <script src="js/dash-runtime.js?v=20261120-2" defer></script>
+  <script src="js/config.js?v=20261120-2" defer></script>
+  <script src="js/app.js?v=20261120-2" defer></script>
+  <script src="js/members.js?v=20261120-2" defer></script>
+  <script src="js/xlsx-lite.js?v=20261120-2" defer></script>
+  <script src="js/party.js?v=20261120-2" defer></script>
+  <script src="js/session.js?v=20261120-2" defer></script>
 </head>
 <body>
   <main id="dash-root">
@@ -26,7 +26,7 @@
       <header class="ub-head" id="ub-head">
         <div class="ub-userbar"><span class="ub-user" id="ub-user"></span><button type="button" class="ub-btn ub-btn-ghost" id="ub-logout">Гарах</button></div>
         <p class="ub-eyebrow">2026.11.19-ний нэгтгэл · Улаанбаатар</p>
-        <h1 class="ub-title">Улаанбаатар хотын хүн ам, өрх, гишүүнчлэлийн дашбоард</h1>
+        <h1 class="ub-title">Улаанбаатар хотын хүн ам, гишүүнчлэл</h1>
       </header>
 
       <div class="ub-filters" id="ub-filters" role="group" aria-label="Шүүлтүүр">
@@ -36,10 +36,9 @@
           <select class="dash-select" data-draw="sel-khoroo" data-source="khoroo_m" aria-label="Хороо сонгох"></select></label>
         <label class="ub-field ub-field-wide"><span>Үзүүлэлт</span>
           <select class="dash-select" id="ub-metric" aria-label="Үзүүлэлт сонгох">
-            <option value="dens">Хүн амын нягтрал</option>
             <option value="pop">Хүн амын тоо</option>
-            <option value="hh">Өрхийн тоо</option>
-            <option value="hhsize">Өрхийн дундаж хэмжээ</option>
+            <option value="vote18">Сонгуулийн нас (18+)</option>
+            <option value="age18_25">18–25 насны хүн ам</option>
             <option value="members">Гишүүдийн тоо</option>
             <option value="mem_rate">10 000 хүнд ногдох гишүүн</option>
             <option value="gerpct">Гэр хорооллын хүн амын хувь (хилийн файл)</option>

@@ -17,9 +17,9 @@
     members_monthly: { url: 'data/members_monthly.csv', format: 'csv' },
     universities: { url: 'data/universities.csv', format: 'csv' },
   };
-  const DEFAULTS = { district: '', khoroo: '', metric: 'dens', level: 'khoroo', base: 'none', uni: '1' };
+  const DEFAULTS = { district: '', khoroo: '', metric: 'pop', level: 'khoroo', base: 'none', uni: '1' };
   const ALLOWED = {
-    metric: ['dens', 'pop', 'hh', 'hhsize', 'members', 'mem_rate', 'gerpct'],
+    metric: ['pop', 'vote18', 'age18_25', 'members', 'mem_rate', 'gerpct'],
     level: ['khoroo', 'district'],
     base: ['carto', 'osm', 'sat', 'none'],
     uni: ['1', '0'],
