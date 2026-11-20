@@ -44,7 +44,7 @@
     return BASEMAPS[P().base] || null;
   }
   const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const P = () => ({ district: '', khoroo: '', metric: 'pop', level: 'khoroo', base: 'none', uni: '1', ...dash.params() });
+  const P = () => ({ district: '', khoroo: '', metric: 'pop', level: 'khoroo', base: 'none', uni: '0', ...dash.params() });
   const M = () => METRICS[P().metric] || METRICS.pop;
   const ok = (id) => { const d = dash.data(id); return d.status === 'ok' && d.data ? d.data : null; };
 
