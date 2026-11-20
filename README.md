@@ -10,6 +10,7 @@ ub-dashboard/
 ├── middleware.js          # Нэвтрэлт: нэвтрээгүй хүнд бүх хуудас, өгөгдлийг хаана
 ├── api/auth.js            # Нэвтрэх / гарах
 ├── api/_lib/session.js    # Сешний күүки (middleware.js-тэй ижил аргаар)
+├── api/announcements.js # Үйл ажиллагааны зарлал: админ оруулна, гишүүдэд харагдана (Upstash Redis)
 ├── api/members.js         # Нууц үгээр хамгаалсан гишүүдийн нэрсийн API (Vercel функц)
 ├── private/members.enc    # Гишүүдийн нэрс, AES-256-GCM шифртэй (түлхүүр нь зөвхөн Vercel-д)
 ├── public/                # Вэбд гарах бүх файл

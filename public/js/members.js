@@ -105,7 +105,7 @@
     return p.length < 2 ? title(p[0] || '') : `${p[0].charAt(0).toLocaleUpperCase('mn')}. ${p.slice(1).map(title).join(' ')}`;
   }
   const inviteUrl = (code) => `${location.origin}/invite?c=${encodeURIComponent(code)}`;
-  let dlg = null;
+  let dlg = null, annSeq = 0;
 
   function copy(text, btn) {
     const label = btn.textContent;
@@ -178,7 +178,16 @@
         reg.hidden = false;
       }).catch(() => {});
     }
-    d.replaceChildren(head, dl, inv, ...(reg ? [reg] : []));
+    // Үйл ажиллагааны зарлал — «Анкет бөглөлт»-ийн доор (ann.js)
+    const ann = el('div', 'ub-mdlg-annslot');
+    const annTok = String(++annSeq); d.dataset.ann = annTok;
+    if (window.UBAnn) {
+      window.UBAnn.load().then((data) => {
+        if (d.dataset.ann !== annTok) return;
+        ann.replaceWith(window.UBAnn.section(data, { cls: 'in-dlg', empty: 'Одоогоор зарлал алга.' }));
+      });
+    }
+    d.replaceChildren(head, dl, ann, inv, ...(reg ? [reg] : []));
     if (!d.open) d.showModal();
     close.focus();
   }

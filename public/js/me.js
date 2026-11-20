@@ -47,6 +47,11 @@
       item('Утас', p.phone); item('Бүртгүүлсэн', day(p.registered));
       item('Хаяг', addrText(p.addr)); item('Урьсан', p.invitedBy);
     }
+    // Үйл ажиллагааны зарлал — мэдээллийн доор (ann.js); зарлалгүй бол хэсэг харагдахгүй
+    if (window.UBAnn) {
+      const slot = el('div'); dl.after(slot);
+      window.UBAnn.load().then((data) => { if (data) slot.replaceWith(window.UBAnn.section(data, { cls: 'in-card', empty: null })); });
+    }
     $('me-profile').hidden = false;
 
     $('me-code').textContent = d.code;

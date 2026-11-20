@@ -16,6 +16,8 @@ const PUBLIC = [/^\/login\/?$/, /^\/login\.html$/, /^\/api\/auth\/?$/, /^\/css\/
   // Гишүүний өөрийн хуудас — /api/me өөрөө ub_member күүкиг шалгана; HTML/JS-д өгөгдөл байхгүй
   /^\/me\/?$/, /^\/me\.html$/, /^\/js\/me\.js$/, /^\/css\/me\.css$/, /^\/api\/me\/?$/,
   // Урилгын мод (/me-д): өгөгдөлгүй сан, загвар
+  // Үйл ажиллагааны зарлал: GET — админ эсвэл гишүүний сешн, POST — зөвхөн админ (функц өөрөө шалгана)
+  /^\/api\/announcements\/?$/, /^\/js\/ann\.js$/, /^\/css\/ann\.css$/,
   /^\/js\/tree\.js$/, /^\/js\/d3\.min\.js$/, /^\/css\/tree\.css$/];
 const enc = new TextEncoder();
 

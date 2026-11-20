@@ -1,0 +1,55 @@
+/* Үйл ажиллагааны зарлал — дашбоард (ub.css) болон /me (me.css) хоёуланд ашиглагдана */
+.ann [hidden],.ann-admin [hidden]{display:none !important}
+.ann{border:1px solid var(--color-border-line);border-radius:16px;padding:14px 16px;background:var(--color-panel)}
+.ann.in-dlg{margin:0 16px 16px}
+.ann.in-card{margin-top:16px}
+.ann-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ann-h{margin:0;font-size:14px;font-weight:800;display:flex;align-items:center;gap:8px}
+.ann-h::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--series-1)}
+.ann-count{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:var(--ub-brand-soft,#FDECEC);color:var(--series-1);font-size:12px;font-weight:800}
+.ann-empty{margin:0;font-size:13px;color:var(--color-fg-muted)}
+.ann-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.ann-item{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;padding:12px;border-radius:12px;background:var(--ub-brand-soft,#FDECEC)}
+.ann-item.is-past{background:color-mix(in oklab,var(--color-fg) 5%,transparent)}
+.ann-item.is-past .ann-date{color:var(--color-fg-muted)}
+.ann-date{display:flex;flex-direction:column;align-items:center;justify-content:center;align-self:start;width:52px;height:52px;border-radius:12px;background:var(--color-panel);color:var(--series-1);line-height:1}
+.ann-date b{font-size:20px;font-weight:850;letter-spacing:-.02em}
+.ann-date span{margin-top:3px;font-size:10px;font-weight:700;color:var(--color-fg-muted)}
+.ann-date.is-icon svg{width:24px;height:24px}
+.ann-main{min-width:0}
+.ann-titlerow{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:4px 8px}
+.ann-title{flex:1 1 160px;margin:0;font-size:14.5px;font-weight:800;line-height:1.3;overflow-wrap:break-word}
+.ann-tag{flex:none;font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#fff;background:var(--series-1);border-radius:999px;padding:3px 8px}
+.ann-tag.is-past{color:var(--color-fg-muted);background:color-mix(in oklab,var(--color-fg) 9%,transparent)}
+.ann-meta{margin:3px 0 0;font-size:12.5px;font-weight:600;color:var(--series-1);font-variant-numeric:tabular-nums}
+.ann-item.is-past .ann-meta{color:var(--color-fg-muted)}
+.ann-body{margin:6px 0 0;font-size:13.5px;line-height:1.5;white-space:pre-wrap;overflow-wrap:break-word;color:var(--color-fg)}
+.ann-body.is-clamped{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ann-more,.ann-all{appearance:none;font:inherit;font-size:12.5px;font-weight:700;color:var(--series-1);background:none;border:0;padding:4px 0 0;cursor:pointer}
+.ann-all{display:block;margin:10px auto 0;padding:6px 12px;border-radius:999px;border:1px solid color-mix(in oklab,var(--series-1) 25%,transparent)}
+.ann-more:hover,.ann-all:hover{text-decoration:underline}
+
+/* Админы «Зарлал» цонх */
+.ann-admin{width:min(760px,calc(100vw - 24px));max-height:calc(100vh - 24px);padding:0;border:0;border-radius:20px;background:var(--color-panel);color:var(--color-fg);box-shadow:0 24px 64px rgba(11,12,16,.28);font-family:inherit;overflow:auto}
+.ann-admin::backdrop{background:rgba(11,12,16,.45)}
+.ann-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:18px 24px;border-bottom:1px solid var(--color-border-line)}
+.ann-form .ann-f{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:var(--color-fg-muted)}
+.ann-form .ann-f.is-wide{grid-column:1/-1}
+.ann-form input,.ann-form textarea{font:inherit;font-size:14px;font-weight:500;color:var(--color-fg);background:var(--color-bg);border:1px solid var(--color-border-line);border-radius:10px;padding:10px 12px;min-height:42px;width:100%;box-sizing:border-box}
+.ann-form textarea{min-height:120px;resize:vertical;line-height:1.5}
+.ann-form input:focus,.ann-form textarea:focus{outline:2px solid var(--series-1);outline-offset:1px;border-color:transparent}
+.ann-form .ann-len{align-self:flex-end;font-size:11px;font-weight:600;color:var(--color-fg-muted)}
+.ann-formbar{grid-column:1/-1;display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.ann-formbar .ann-msg{margin-right:auto;font-size:13px;font-weight:600}
+.ann-msg.is-err{color:var(--series-1)}
+.ann-msg.is-ok{color:#1C8A4B}
+.ann-adminlist{padding:16px 24px 24px}
+.ann-adminlist .ann-item{grid-template-columns:52px minmax(0,1fr) auto}
+.ann-ops{display:flex;flex-direction:column;gap:6px;align-self:start}
+.ann-ops button{appearance:none;font:inherit;font-size:12px;font-weight:700;color:var(--color-fg);background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:8px;padding:6px 10px;cursor:pointer;white-space:nowrap}
+.ann-ops button:hover{border-color:var(--color-fg-muted)}
+.ann-ops button.is-del{color:var(--series-1)}
+.ann-ops button.is-del.is-confirm{background:var(--series-1);border-color:var(--series-1);color:#fff}
+.ann-item.is-editing{outline:2px solid var(--series-1);outline-offset:-2px}
+@media (max-width:620px){.ann-form{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.ann-form .ann-f.is-place{grid-column:1/-1}.ann-adminlist .ann-item{grid-template-columns:44px minmax(0,1fr)}.ann-adminlist .ann-ops{grid-column:1/-1;flex-direction:row;justify-content:flex-end}.ann-date{width:44px;height:44px}}
+@media (max-width:480px){.ann{padding:12px}.ann-item{grid-template-columns:44px minmax(0,1fr);gap:10px;padding:10px}.ann-date{width:44px;height:44px}.ann-date b{font-size:17px}}

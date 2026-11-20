@@ -58,11 +58,11 @@ function send(res, status, body) {
   res.setHeader('X-Robots-Tag', 'noindex');
   res.end(body === undefined ? '' : JSON.stringify(body));
 }
-async function readJson(req) {
+async function readJson(req, max = 4096) {
   if (req.body && typeof req.body === 'object') return req.body;
   if (typeof req.body === 'string') { try { return JSON.parse(req.body); } catch { return {}; } }
   const chunks = []; let size = 0;
-  for await (const c of req) { size += c.length; if (size > 4096) return {}; chunks.push(c); }
+  for await (const c of req) { size += c.length; if (size > max) return {}; chunks.push(c); }
   try { return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'); } catch { return {}; }
 }
 
