@@ -2,7 +2,8 @@
  * members.js — газрын зургийн хажууд гишүүдийн нэрсийг харуулна (зөвхөн Vercel хувилбар).
  * Юу ч сонгоогүй бол хотын бүх гишүүд, дүүрэг сонгоход дүүргийнх, хороо сонгоход хорооных.
  * Нэрс /api/members-ээс ирнэ; сайтад нэвтэрсэн хүнд л өгөгдөл буцаана.
- * Нэрийн ард «Дэлгэрэнгүй» товч: гишүүний мэдээлэл, урилгын код, холбоос (/invite?c=КОД) бүхий цонх.
+ * «Бүртгэл», «Намын гишүүд» цонхны нэрийн ард «Дэлгэрэнгүй» товч: гишүүний мэдээлэл, урилгын код, холбоос бүхий цонх.
+ * Газрын зургийн хажуугийн жагсаалтад зөвхөн нэр.
  * «Бүртгэл» товч: бүх гишүүдийн жагсаалтыг (шүүлт, хайлттай) тусдаа цонхонд нээнэ.
  */
 (function () {
@@ -38,8 +39,7 @@
       if (level !== 'khoroo') cells.push([m.kh.replace('-р хороо', '')]);
       cells.push([m.a == null ? '—' : m.a, 'n'], [m.g], [m.u || '—'], [m.d ? `${SHORT[m.m] || m.m} (${m.d})` : (SHORT[m.m] || m.m), null, m.m], [m.k == null ? '—' : `${m.k}%`, 'n']);
       cells.forEach(([v, c, full], j) => {
-        const td = el('td', c || null, j === 1 ? null : String(v));
-        if (j === 1) nameCell(td, m);
+        const td = el('td', j === 1 ? 'ub-name-plain' : c || null, String(v)); // газрын зургийн хажуу: зөвхөн нэр
         if (full && SHORT[full]) td.title = full; row.append(td);
       });
       return row;
@@ -79,7 +79,6 @@
     return p.length < 2 ? title(p[0] || '') : `${p[0].charAt(0).toLocaleUpperCase('mn')}. ${p.slice(1).map(title).join(' ')}`;
   }
   const inviteUrl = (code) => `${location.origin}/invite?c=${encodeURIComponent(code)}`;
-  const inviteText = (m) => `Сайн байна уу! ${shortName(m.n)} таныг гишүүнээр элсэхийг урьж байна. Урилгын код: ${m.i}. Холбоос: ${inviteUrl(m.i)}`;
   let dlg = null;
 
   function copy(text, btn) {
@@ -130,19 +129,8 @@
       link.addEventListener('focus', () => link.select());
       const lb = el('button', 'ub-mdlg-btn is-brand', 'Холбоос хуулах'); lb.type = 'button'; lb.addEventListener('click', () => copy(inviteUrl(m.i), lb));
       linkRow.append(link, lb);
-      const share = el('div', 'ub-mdlg-share');
-      const msg = inviteText(m);
-      if (navigator.share) {
-        const sb = el('button', 'ub-mdlg-btn', 'Илгээх…'); sb.type = 'button';
-        sb.addEventListener('click', () => navigator.share({ title: 'Урилга', text: msg.replace(/ Холбоос: .*$/, ''), url: inviteUrl(m.i) }).catch(() => {}));
-        share.append(sb);
-      }
-      const sms = el('a', 'ub-mdlg-btn', 'SMS-ээр'); sms.href = `sms:?&body=${encodeURIComponent(msg)}`;
-      const mail = el('a', 'ub-mdlg-btn', 'И-мэйлээр'); mail.href = `mailto:?subject=${encodeURIComponent('Урилга')}&body=${encodeURIComponent(msg)}`;
-      const mb = el('button', 'ub-mdlg-btn', 'Мессеж хуулах'); mb.type = 'button'; mb.addEventListener('click', () => copy(msg, mb));
-      share.append(sms, mail, mb);
       reg = el('div', 'ub-mdlg-reg'); reg.hidden = true;
-      inv.append(codeRow, linkRow, share, el('p', 'ub-mdlg-hint', 'Энэ код, холбоос зөвхөн энэ гишүүнд хамаарна. Холбоосоор бүртгүүлсэн хүн энэ гишүүний урилгаар бүртгэгдэнэ.'));
+      inv.append(codeRow, linkRow);
       d.dataset.member = m.i;
       fetch(`/api/registrations?invite=${encodeURIComponent(m.i)}`, { credentials: 'same-origin' }).then((r) => (r.ok ? r.json() : null)).then((j) => {
         if (!j || d.dataset.member !== m.i) return; // өөр гишүүний цонх нээгдсэн бол хаяна
