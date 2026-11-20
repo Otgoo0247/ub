@@ -24,8 +24,8 @@ const PUBLIC = [/^\/login\/?$/, /^\/login\.html$/, /^\/admin-login\/?$/, /^\/adm
   /^\/js\/tree\.js$/, /^\/js\/d3\.min\.js$/, /^\/css\/tree\.css$/];
 const ADMIN_ONLY = [/^\/admin\/?$/, /^\/admin\.html$/, /^\/api\/settings\/?$/, /^\/api\/credentials\/?$/, /^\/api\/members\/?$/, /^\/api\/registrations\/?$/];
 const MCOOKIE = 'ub_member';
-// Намын гишүүнд ч хаалттай өгөгдөл (зөвхөн админ): гишүүдийн бүтцийн задаргаа
-const MEMBER_DENY = [/^\/data\/members_scope\.csv$/];
+// Намын гишүүнд ч хаалттай өгөгдөл (зөвхөн админ): гишүүдийн бүтцийн задаргаа, сар бүрийн шинэ гишүүд
+const MEMBER_DENY = [/^\/data\/members_(scope|monthly)\.csv$/];
 const enc = new TextEncoder();
 
 const next = () => new Response(null, { headers: { 'x-middleware-next': '1' } });
