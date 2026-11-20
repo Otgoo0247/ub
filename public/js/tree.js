@@ -23,7 +23,8 @@
     const t = el('h2', 'ubt-t'); t.id = 'ubt-t';
     hw.append(el('p', 'ubt-eyebrow', 'Урилгын мод'), t, el('p', 'ubt-sub'));
     const x = el('button', 'ubt-x', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Хаах'); x.addEventListener('click', () => dlg.close());
-    head.append(hw, x);
+    const bw = el('div', 'ubt-brand'); const lg = el('img', 'ubt-logo'); lg.src = '/logo.png?v=20261120-1'; lg.alt = 'SDS лого'; lg.width = 48; lg.height = 48; bw.append(lg, hw);
+    head.append(bw, x);
     const stats = el('div', 'ubt-stats');
     const legend = el('div', 'ubt-legend');
     const stage = el('div', 'ubt-stage');

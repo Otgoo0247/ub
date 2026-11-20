@@ -16,6 +16,8 @@
   const SHORT = { 'Намын хороо дотор үүр солигдсон': 'Үүр солигдсон', 'Намын баг/хороо солигдсон': 'Хороо солигдсон', 'Гишүүнчлэл сэргээсэн': 'Сэргээсэн', 'Шилжих хүсэлт илгээсэн': 'Шилжих хүсэлт' };
 
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  /* Цонхны гарчгийн өмнө лого */
+  const brand = (hw) => { const w = el('div', 'ub-pm-headl'); const lg = el('img', 'ub-pm-logo'); lg.src = '/logo.png?v=20261120-1'; lg.alt = 'SDS лого'; lg.width = 48; lg.height = 48; w.append(lg, hw); return w; };
   const note = (text) => el('p', 'ub-note ub-names-note', text);
   const int = (v) => Number(v).toLocaleString('en-US');
 
@@ -131,7 +133,7 @@
     const h = el('h2', 'ub-mdlg-t', m.n); h.id = 'ub-mdlg-t';
     const close = el('button', 'ub-mdlg-x', '×'); close.type = 'button'; close.setAttribute('aria-label', 'Хаах'); close.addEventListener('click', () => d.close());
     const hw = el('div'); hw.append(el('p', 'ub-mdlg-eyebrow', 'Гишүүний мэдээлэл'), h, el('p', 'ub-mdlg-sub', [m.dist && `${m.dist} дүүрэг`, m.kh, m.u].filter(Boolean).join(' · ')));
-    head.append(hw, close);
+    head.append(brand(hw), close);
 
     const dl = el('dl', 'ub-mdlg-dl');
     const item = (k, v) => { const w = el('div'); w.append(el('dt', null, k), el('dd', null, v == null || v === '' ? '—' : String(v))); dl.append(w); };
@@ -228,7 +230,7 @@
     const t = el('h2', 'ub-elx-t', 'Бүртгэл'); t.id = 'ub-elx-t';
     hw.append(el('p', 'ub-mdlg-eyebrow', 'Гишүүдийн жагсаалт'), t, el('p', 'ub-mdlg-sub ub-elx-sub', 'Ачаалж байна…'));
     const x = el('button', 'ub-mdlg-x', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Хаах'); x.addEventListener('click', () => elx.close());
-    head.append(hw, x);
+    head.append(brand(hw), x);
     const bar = el('div', 'ub-elx-bar');
     const field = (label, ctrl) => { const l = el('label', 'ub-field'); l.append(el('span', null, label), ctrl); return l; };
     const dSel = el('select', 'dash-select ub-elx-d'), kSel = el('select', 'dash-select ub-elx-k'), q = el('input', 'ub-names-q ub-elx-q');

@@ -22,7 +22,9 @@ ub-dashboard/
 │   ├── login.html         # Гишүүн нэвтрэх (/login, өөрийн кодоор)
 │   ├── irts.html          # Гишүүний ирц бүртгэл (/irts)
 │   ├── admin-login.html   # Админ нэвтрэх (/admin-login)
-│   ├── favicon.svg
+│   ├── logo.png, favicon.svg, favicon.ico, icons/   # SDS лого: таб, утасны нүүр дэлгэц (manifest.webmanifest)
+│   ├── og-image.png       # Холбоос хуваалцахад (Facebook, Messenger) гарах зураг — og:image-д ub-ecru.vercel.app хаягаар заасан
+│   ├── 404.html           # Хуудас олдоогүй үед
 │   ├── fonts/             # Inter фонт (SIL OFL), кирилл Ө/Ү орно
 │   ├── css/tokens.css     # Өнгө, үсэг, зай (гэрэл/харанхуй горим)
 │   ├── css/ub.css         # Дашбоардын загвар

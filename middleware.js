@@ -12,7 +12,7 @@
 export const config = { matcher: '/:path*', runtime: 'nodejs' };
 
 const COOKIE = 'ub_session';
-const PUBLIC = [/^\/login\/?$/, /^\/login\.html$/, /^\/admin-login\/?$/, /^\/admin-login\.html$/, /^\/api\/auth\/?$/, /^\/css\/(tokens|login)\.css$/, /^\/fonts\//, /^\/favicon\.svg$/, /^\/logo\.png$/, /^\/js\/login\.js$/,
+const PUBLIC = [/^\/login\/?$/, /^\/login\.html$/, /^\/admin-login\/?$/, /^\/admin-login\.html$/, /^\/api\/auth\/?$/, /^\/css\/(tokens|login)\.css$/, /^\/fonts\//, /^\/favicon\.svg$/, /^\/logo\.png$/, /^\/favicon\.ico$/, /^\/icons\//, /^\/manifest\.webmanifest$/, /^\/og-image\.png$/, /^\/404(\.html)?$/, /^\/js\/login\.js$/,
   // Урилгын холбоос — нийтэд нээлттэй (зөвхөн урьсан гишүүний товч нэр, дүүрэг харагдана)
   /^\/invite\/?$/, /^\/invite\.html$/, /^\/api\/invite\/?$/, /^\/js\/invite\.js$/,
   /^\/api\/register\/?$/, /^\/js\/invite-address\.json$/,

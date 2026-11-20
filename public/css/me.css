@@ -67,3 +67,5 @@ a.me-ghost{text-decoration:none;display:inline-flex;align-items:center}
 .me-fbhelp{margin:2px 0 0;width:100%;font-size:12px;font-weight:500;color:var(--color-fg-muted)}
 .me-fbmsg{margin:0;width:100%;font-size:12.5px;color:var(--series-1)}
 .me-fbmsg:empty{display:none}
+.me-brand{display:flex;align-items:center;gap:10px;min-width:0}
+.me-logo{flex:none;width:44px;height:auto;filter:drop-shadow(0 2px 6px rgba(11,12,16,.12))}

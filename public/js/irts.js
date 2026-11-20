@@ -79,6 +79,7 @@
       useFileFallback(e && e.name === 'NotAllowedError' ? 'Камерын эрх өгөөгүй байна. Доорх товчоор утасныхаа камераар зураг авч болно.' : 'Камер нээгдсэнгүй. Доорх товчоор утасныхаа камераар зураг авна уу.');
     }
   }
+  const LOGO = new Image(); LOGO.src = '/logo.png?v=20261120-1'; // зургийн тэмдэглэгээнд
   /* Эх зургийг 3:4 хэлбэрээр тайрч, 600×800 болгон, доор нь огноо, цаг, нэр бичнэ */
   function compose(src, sw, sh) {
     const W = 600, H = 800, c = document.createElement('canvas'); c.width = W; c.height = H;
@@ -87,8 +88,10 @@
     g.drawImage(src, (W - dw) / 2, (H - dh) / 2, dw, dh);
     const now = new Date();
     g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(0, H - 56, W, 56);
+    let tx = 16;
+    if (LOGO.complete && LOGO.naturalWidth) { g.drawImage(LOGO, 10, H - 52, 48, 48); tx = 68; } // SDS лого
     g.fillStyle = '#fff'; g.font = '600 22px system-ui, -apple-system, Segoe UI, sans-serif'; g.textBaseline = 'middle';
-    g.fillText(`${stampText(now)} · ${st.user}`.slice(0, 48), 16, H - 28);
+    g.fillText(`${stampText(now)} · ${st.user}`.slice(0, 44), tx, H - 28);
     let q = 0.78, url = c.toDataURL('image/jpeg', q);
     while (url.length > 440000 && q > 0.4) { q -= 0.08; url = c.toDataURL('image/jpeg', q); } // ≈ 330 КБ-аас бага
     st.photo = url; st.shotAt = now.toISOString();

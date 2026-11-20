@@ -43,3 +43,5 @@
 .ubt-headrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .ubt-headrow h2,.ubt-headrow h3{margin:0}
 .ubt-name,.ubt-num,.ubt-rootnum,.ubt-rootname{paint-order:stroke;stroke:var(--color-bg);stroke-width:4px;stroke-linejoin:round}
+.ubt-brand{display:flex;align-items:center;gap:14px;min-width:0}
+.ubt-logo{flex:none;width:48px;height:auto;filter:drop-shadow(0 3px 8px rgba(11,12,16,.10))}
