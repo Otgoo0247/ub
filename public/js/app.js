@@ -521,27 +521,31 @@
   function hbars(el, rows, opt) {
     el.replaceChildren();
     if (!rows.length) { el.textContent = '—'; return; }
-    const W = Math.max(220, el.clientWidth), rowH = opt.rowH || 28, H = rows.length * rowH;
+    const W = Math.max(220, el.clientWidth), rowH = opt.rowH || 30, H = rows.length * rowH;
     const svg = d3.select(el).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H)
       .attr('role', 'img').attr('aria-label', opt.aria);
     const tip = d3.select(el).append('div').attr('class', 'ub-tip').attr('hidden', true);
+    const total = opt.total || 0;
+    const valText = (r) => opt.fmt(r[opt.key]);
+    const shareText = (r) => (total ? `${dec1((100 * (r[opt.key] || 0)) / total)}%` : '');
     const probe = svg.append('text').attr('class', 'ub-bar-l').attr('opacity', 0);
-    const measure = (arr) => d3.max(arr, (s) => { probe.text(s); return probe.node().getComputedTextLength(); });
-    const nameW = Math.min(W * 0.46, measure(rows.map(opt.name)) + 10), valW = measure(rows.map((r) => opt.fmt(r[opt.key]))) + 10;
+    const measure = (arr, cls) => { probe.attr('class', cls); return d3.max(arr, (s0) => { probe.text(s0); return probe.node().getComputedTextLength(); }) || 0; };
+    const nameW = Math.min(W * 0.42, measure(rows.map(opt.name), 'ub-bar-l') + 12);
+    const vW = measure(rows.map(valText), 'ub-bar-v ub-bar-strong') + 6, sW = total ? measure(rows.map(shareText), 'ub-bar-v') + 10 : 0;
     probe.remove();
-    const x = d3.scaleLinear().domain([0, opt.max || d3.max(rows, (r) => r[opt.key]) || 1]).range([0, Math.max(30, W - nameW - valW)]);
+    const trackW = Math.max(40, W - nameW - vW - sW - 10);
+    const x = d3.scaleLinear().domain([0, opt.max || d3.max(rows, (r) => r[opt.key]) || 1]).range([0, trackW]);
     const sel = opt.sel || (() => false);
     const g = svg.selectAll('g').data(rows).join('g').attr('class', (r) => `ub-row${sel(r) ? ' sel' : ''}${opt.click ? '' : ' static'}`).attr('transform', (r, i) => `translate(0,${i * rowH})`);
-    g.append('rect').attr('class', 'ub-rowhit').attr('width', W).attr('height', rowH).attr('rx', 3);
+    g.append('rect').attr('class', 'ub-rowhit').attr('width', W).attr('height', rowH).attr('rx', 6);
     g.append('text').attr('class', 'ub-bar-l').attr('y', rowH / 2).text(opt.name);
-    const bh = Math.min(16, rowH - 10);
-    g.append('path').attr('transform', `translate(${nameW},${rowH / 2 - bh / 2})`)
-      .attr('d', (r) => {
-        const w = r[opt.key] > 0 ? Math.max(2, x(r[opt.key])) : 0, c = Math.min(4, w);
-        return w ? `M0,0H${w - c}Q${w},0 ${w},${c}V${bh - c}Q${w},${bh} ${w - c},${bh}H0Z` : '';
-      })
-      .style('fill', dash.colors[0]).style('opacity', (r) => (opt.anySel && !sel(r) ? 0.4 : 1));
-    g.append('text').attr('class', 'ub-bar-v').attr('y', rowH / 2).attr('x', (r) => nameW + (r[opt.key] > 0 ? Math.max(2, x(r[opt.key])) : 0) + 6).text((r) => opt.fmt(r[opt.key]));
+    const bh = Math.min(10, rowH - 14);
+    g.append('rect').attr('class', 'ub-track').attr('x', nameW).attr('y', rowH / 2 - bh / 2).attr('width', trackW).attr('height', bh).attr('rx', bh / 2);
+    g.append('rect').attr('class', 'ub-fill').attr('x', nameW).attr('y', rowH / 2 - bh / 2).attr('height', bh).attr('rx', bh / 2)
+      .attr('width', (r) => (r[opt.key] > 0 ? Math.max(bh, x(r[opt.key])) : 0))
+      .style('fill', dash.colors[0]).style('opacity', (r) => (opt.anySel && !sel(r) ? 0.35 : 1));
+    g.append('text').attr('class', 'ub-bar-v ub-bar-strong').attr('y', rowH / 2).attr('x', nameW + trackW + 10 + vW).attr('text-anchor', 'end').text(valText);
+    if (total) g.append('text').attr('class', 'ub-bar-v').attr('y', rowH / 2).attr('x', W).attr('text-anchor', 'end').text(shareText);
     g.on('pointermove', (e, r) => showTip(tip, el, e, opt.title(r), opt.lines(r))).on('pointerleave', () => tip.attr('hidden', true));
     if (opt.click) g.on('click', (e, r) => opt.click(r));
   }
@@ -578,11 +582,55 @@
     if (!row || row.suppressed) { el.replaceChildren(); return; }
     const rows = defs.map(([k, label]) => ({ label, v: row[k] }));
     hbars(el, rows, {
-      key: 'v', fmt: int, name: (r) => r.label, rowH: 24, aria: `${row.scope}: гишүүд ${what}`,
+      key: 'v', fmt: int, name: (r) => r.label, rowH: 30, total: row.members, aria: `${row.scope}: гишүүд ${what}`,
       title: (r) => `${r.label}`, lines: (r) => [['Гишүүд', int(r.v)], ['Эзлэх хувь', `${dec1((100 * r.v) / row.members)}%`]],
     });
   }
   dash.draw('mem-age', (el) => memBars(el, AGE, 'насны бүлгээр'));
+
+  /* Хүйсийн дугуй график: 2 хэсэг, хооронд 2px зай, төвд нийт */
+  dash.draw('mem-gender', (el) => {
+    const row = (ok('mem_scope') || [])[0];
+    el.replaceChildren();
+    if (!row || row.suppressed || row.male == null) return;
+    const parts = [{ k: 'Эрэгтэй', v: row.male, c: dash.colors[0] }, { k: 'Эмэгтэй', v: row.female, c: dash.colors[1] }];
+    const S = 132, R0 = S / 2, r1 = R0 - 16;
+    const svg = d3.select(el).append('svg').attr('class', 'ub-donut').attr('viewBox', `0 0 ${S} ${S}`).attr('width', S).attr('height', S)
+      .attr('role', 'img').attr('aria-label', `Хүйс: эрэгтэй ${row.male}, эмэгтэй ${row.female}`);
+    const tip = d3.select(el).append('div').attr('class', 'ub-tip').attr('hidden', true);
+    const arcs = d3.pie().value((d) => d.v).sort(null).padAngle(0.03)(parts);
+    svg.append('g').attr('transform', `translate(${R0},${R0})`).selectAll('path').data(arcs).join('path')
+      .attr('d', d3.arc().innerRadius(r1).outerRadius(R0 - 2).cornerRadius(4)).style('fill', (d) => d.data.c)
+      .on('pointermove', (e, d) => showTip(tip, el, e, d.data.k, [['Гишүүд', int(d.data.v)], ['Эзлэх хувь', `${dec1((100 * d.data.v) / row.members)}%`]]))
+      .on('pointerleave', () => tip.attr('hidden', true));
+    svg.append('text').attr('class', 'ub-donut-v').attr('x', R0).attr('y', R0 - 2).attr('text-anchor', 'middle').text(int(row.members));
+    svg.append('text').attr('class', 'ub-donut-l').attr('x', R0).attr('y', R0 + 16).attr('text-anchor', 'middle').text('гишүүн');
+    const legend = document.createElement('div'); legend.className = 'ub-donut-legend';
+    parts.forEach((d) => {
+      const it = document.createElement('div'); it.className = 'ub-dl-item';
+      const sw = document.createElement('i'); sw.style.background = d.c;
+      const lab = document.createElement('span'); lab.textContent = d.k;
+      const v = document.createElement('b'); v.textContent = `${dec1((100 * d.v) / row.members)}%`;
+      const n = document.createElement('small'); n.textContent = `${int(d.v)} гишүүн`;
+      it.append(sw, lab, v, n); legend.append(it);
+    });
+    el.append(legend);
+  });
+  /* Анкетын бөглөлтийн цагираг */
+  dash.draw('mem-anket', (el) => {
+    const row = (ok('mem_scope') || [])[0];
+    el.replaceChildren();
+    if (!row || row.suppressed || row.anket_avg == null) return;
+    const v = Math.max(0, Math.min(100, row.anket_avg)), R = 22, C = 2 * Math.PI * R;
+    const svg = d3.select(el).append('svg').attr('class', 'ub-anket-ring').attr('viewBox', '0 0 56 56').attr('aria-hidden', 'true');
+    svg.append('circle').attr('class', 'ub-ring-bg').attr('cx', 28).attr('cy', 28).attr('r', R);
+    svg.append('circle').attr('class', 'ub-ring-fg').attr('cx', 28).attr('cy', 28).attr('r', R).attr('stroke-dasharray', `${(C * v) / 100} ${C}`).attr('transform', 'rotate(-90 28 28)');
+    svg.append('text').attr('class', 'ub-ring-t').attr('x', 28).attr('y', 28).attr('dy', '0.35em').attr('text-anchor', 'middle').text(`${Math.round(v)}%`);
+    const t = document.createElement('div'); t.className = 'ub-anket-t';
+    const a = document.createElement('b'); a.textContent = 'Анкетын дундаж бөглөлт';
+    const b = document.createElement('span'); b.textContent = `Бүрэн бөглөсөн ${int(row.anket_full)} гишүүн (${dec1((100 * row.anket_full) / row.members)}%)`;
+    t.append(a, b); el.append(t);
+  });
   const KH_LIMIT = 12;
   function districtKhoroos() {
     const rows = ok('khoroo_m'), p = P();
@@ -593,7 +641,7 @@
     if (!all) { el.replaceChildren(); return; }
     const p = P(), list = all.filter((r) => r.members > 0).sort((a, b) => b.members - a.members || a.khoroo_no - b.khoroo_no).slice(0, KH_LIMIT);
     hbars(el, list, {
-      key: 'members', fmt: int, name: (r) => r.khoroo, rowH: 24, sel: (r) => r.code === p.khoroo,
+      key: 'members', fmt: int, name: (r) => r.khoroo, rowH: 30, sel: (r) => r.code === p.khoroo,
       aria: `${p.district} дүүргийн хороодын гишүүдийн тоо`, title: (r) => `${r.district} · ${r.khoroo}`,
       lines: (r) => [['Гишүүд', int(r.members)], ['10 000 хүнд', dec1(r.mem_rate)], ['Хүн ам', int(r.pop)]],
       click: (r) => dash.setParams({ district: r.district, khoroo: r.code }),
@@ -611,42 +659,83 @@
   });
   dash.draw('mem-move', (el) => memBars(el, MOVE, 'хөдөлгөөний төрлөөр'));
 
+  let monthlyRange = 'all';
+  dash.draw('monthly-stats', (el) => {
+    const rows = ok('members_monthly');
+    el.replaceChildren();
+    if (!rows || !rows.length) return;
+    const data = rows.map((r) => ({ month: r.month, v: +r.new_members }));
+    const total = d3.sum(data, (d) => d.v), last12 = d3.sum(data.slice(-12), (d) => d.v), last3 = d3.sum(data.slice(-3), (d) => d.v);
+    const peak = d3.greatest(data, (d) => d.v);
+    const fm = (m) => `${m.slice(0, 4)}.${m.slice(5)}`;
+    [['Нийт шинэ гишүүн', int(total), `${fm(data[0].month)}–${fm(data[data.length - 1].month)}`, true],
+      ['Сүүлийн 12 сард', int(last12), `нийтийн ${dec1((100 * last12) / total)}%`],
+      ['Сүүлийн 3 сард', int(last3), `нийтийн ${dec1((100 * last3) / total)}%`],
+      ['Хамгийн их сар', int(peak.v), fm(peak.month)]].forEach(([l, v, sub, main]) => {
+      const d = document.createElement('div'); d.className = `ub-mstat${main ? ' is-main' : ''}`;
+      const a = document.createElement('span'); a.textContent = l;
+      const b = document.createElement('b'); b.textContent = v;
+      const c = document.createElement('small'); c.textContent = sub;
+      d.append(a, b, c); el.append(d);
+    });
+  });
+  document.querySelectorAll('#ub-mrange button').forEach((b) => b.addEventListener('click', () => {
+    monthlyRange = b.dataset.r;
+    document.querySelectorAll('#ub-mrange button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    dash.draw('chart-monthly');
+  }));
+
   dash.draw('chart-monthly', (el) => {
     const rows = ok('members_monthly');
     el.replaceChildren();
     if (!rows || !rows.length) { el.textContent = '—'; return; }
-    const data = rows.map((r) => ({ month: r.month, v: +r.new_members, date: d3.utcParse('%Y-%m')(r.month) }));
-    const W = Math.max(260, el.clientWidth), H = W < 520 ? 220 : 300;
+    const allData = rows.map((r) => ({ month: r.month, v: +r.new_members }));
+    const recent = new Set(allData.slice(-12).map((d) => d.month));
+    const data = monthlyRange === 'all' ? allData : allData.slice(-Number(monthlyRange));
+    const W = Math.max(260, el.clientWidth), H = W < 520 ? 230 : 300;
     const svg = d3.select(el).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H).attr('role', 'img')
       .attr('aria-label', 'Сар бүр шинээр бүртгэгдсэн гишүүдийн тоо');
     const tip = d3.select(el).append('div').attr('class', 'ub-tip').attr('hidden', true);
-    const y = d3.scaleLinear().domain([0, d3.max(data, (d) => d.v) || 1]).nice(4);
+    const y = d3.scaleLinear().domain([0, (d3.max(data, (d) => d.v) || 1) * 1.12]).nice(4);
     const ticks = y.ticks(4);
     const probe = svg.append('text').attr('class', 'ub-axis-t');
-    const left = d3.max(ticks, (t) => { probe.text(int(t)); return probe.node().getComputedTextLength(); }) + 8;
+    const left = d3.max(ticks, (t) => { probe.text(int(t)); return probe.node().getComputedTextLength(); }) + 10;
     probe.remove();
-    const m = { t: 8, r: 4, b: 22, l: left };
+    const m = { t: 14, r: 6, b: 26, l: left };
     y.range([H - m.b, m.t]);
-    const x = d3.scaleBand().domain(data.map((d) => d.month)).range([m.l, W - m.r]).paddingInner(0.2);
-    svg.append('g').selectAll('line').data(ticks).join('line').attr('class', 'ub-grid')
+    const x = d3.scaleBand().domain(data.map((d) => d.month)).range([m.l, W - m.r]).paddingInner(data.length > 30 ? 0.25 : 0.35).paddingOuter(0.1);
+    svg.append('g').selectAll('line').data(ticks.filter((t) => t > 0)).join('line').attr('class', 'ub-grid ub-grid-dash')
       .attr('x1', m.l).attr('x2', W - m.r).attr('y1', (t) => y(t)).attr('y2', (t) => y(t));
     svg.append('g').selectAll('text').data(ticks).join('text').attr('class', 'ub-axis-t')
-      .attr('x', m.l - 6).attr('y', (t) => y(t)).attr('text-anchor', 'end').attr('dominant-baseline', 'central').text((t) => int(t));
-    const years = data.filter((d, i) => i === 0 || d.month.endsWith('-01'));
-    const minGap = 34; let lastX = -Infinity;
-    svg.append('g').selectAll('text').data(years.filter((d) => { const px = x(d.month); if (px - lastX < minGap) return false; lastX = px; return true; }))
-      .join('text').attr('class', 'ub-axis-t').attr('x', (d) => x(d.month)).attr('y', H - 6).text((d) => d.month.slice(0, 4));
+      .attr('x', m.l - 8).attr('y', (t) => y(t)).attr('text-anchor', 'end').attr('dominant-baseline', 'central').text((t) => int(t));
+    // X тэнхлэг: урт хугацаанд он, богинод сар
+    const short = data.length <= 24;
+    const marks = short ? data.filter((d, i) => i % (data.length > 12 ? 3 : 1) === 0) : data.filter((d, i) => i === 0 || d.month.endsWith('-01'));
+    const minGap = short ? 30 : 34; let lastX = -Infinity;
+    svg.append('g').selectAll('text').data(marks.filter((d) => { const px = x(d.month); if (px - lastX < minGap) return false; lastX = px; return true; }))
+      .join('text').attr('class', 'ub-axis-t').attr('x', (d) => x(d.month) + x.bandwidth() / 2).attr('text-anchor', 'middle').attr('y', H - 8)
+      .text((d) => (short ? `${d.month.slice(2, 4)}.${d.month.slice(5)}` : d.month.slice(0, 4)));
     const bw = x.bandwidth();
-    svg.append('g').selectAll('path').data(data.filter((d) => d.v > 0)).join('path')
+    const bars = svg.append('g').selectAll('path').data(data.filter((d) => d.v > 0)).join('path')
+      .attr('class', (d) => `ub-mbar${recent.has(d.month) ? ' is-recent' : ''}`)
       .attr('transform', (d) => `translate(${x(d.month)},${y(d.v)})`)
-      .attr('d', (d) => { const h = y(0) - y(d.v), c = Math.min(3, bw / 2, h); return `M0,${h}V${c}Q0,0 ${c},0H${bw - c}Q${bw},0 ${bw},${c}V${h}Z`; })
-      .style('fill', dash.colors[0]);
+      .attr('d', (d) => { const h = y(0) - y(d.v), c = Math.min(4, bw / 2, h); return `M0,${h}V${c}Q0,0 ${c},0H${bw - c}Q${bw},0 ${bw},${c}V${h}Z`; });
     svg.append('line').attr('class', 'ub-base').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(0)).attr('y2', y(0));
+    // Сонгомол утгын шошго: хамгийн их ба сүүлийн сар
+    const peak = d3.greatest(data, (d) => d.v), last = data[data.length - 1];
+    const lab = [peak, last].filter((d, i, a) => d && d.v > 0 && a.indexOf(d) === i);
+    svg.append('g').selectAll('text').data(lab).join('text').attr('class', 'ub-mlab').attr('text-anchor', 'middle')
+      .attr('x', (d) => Math.min(W - m.r - 8, x(d.month) + bw / 2)).attr('y', (d) => y(d.v) - 6).text((d) => int(d.v));
     const fmtMonth = (d) => `${d.month.slice(0, 4)} оны ${+d.month.slice(5)}-р сар`;
+    const cross = svg.append('rect').attr('class', 'ub-mcross').attr('y', m.t).attr('height', H - m.t - m.b).attr('width', x.step()).attr('opacity', 0);
     svg.append('g').selectAll('rect').data(data).join('rect').attr('class', 'ub-hit')
       .attr('x', (d) => x(d.month) - (x.step() - bw) / 2).attr('width', x.step()).attr('y', m.t).attr('height', H - m.t - m.b)
-      .on('pointermove', (e, d) => showTip(tip, el, e, fmtMonth(d), [['Шинэ гишүүн', int(d.v)]]))
-      .on('pointerleave', () => tip.attr('hidden', true));
+      .on('pointermove', (e, d) => {
+        cross.attr('x', x(d.month) - (x.step() - bw) / 2).attr('opacity', 1);
+        bars.classed('is-hover', (b) => b.month === d.month);
+        showTip(tip, el, e, fmtMonth(d), [['Шинэ гишүүн', int(d.v)]]);
+      })
+      .on('pointerleave', () => { tip.attr('hidden', true); cross.attr('opacity', 0); bars.classed('is-hover', false); });
   });
 
   dash.draw('chart-housing', (el) => {
@@ -654,21 +743,23 @@
     el.replaceChildren();
     if (!rows) { el.textContent = '—'; return; }
     const p = P(), list = [...rows].sort((a, b) => b.gerpct - a.gerpct);
-    const W = Math.max(260, el.clientWidth), rowH = 28, H = list.length * rowH;
+    const W = Math.max(260, el.clientWidth), rowH = 34, H = list.length * rowH;
     const svg = d3.select(el).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H).attr('role', 'img')
-      .attr('aria-label', 'Дүүрэг бүрийн хүн амын орон сууц ба гэр хорооллын хувь');
+      .attr('aria-label', 'Дүүрэг бүрийн хүн амын гэр хороолол ба орон сууцны хорооллын хувь');
     const tip = d3.select(el).append('div').attr('class', 'ub-tip').attr('hidden', true);
     const probe = svg.append('text').attr('class', 'ub-bar-l').attr('opacity', 0);
-    const nameW = d3.max(list, (r) => { probe.text(r.district); return probe.node().getComputedTextLength(); }) + 10;
-    probe.text('100.0%'); const valW = probe.node().getComputedTextLength() + 8; probe.remove();
-    const x = d3.scaleLinear().domain([0, 100]).range([0, Math.max(40, W - nameW - valW)]);
+    const nameW = d3.max(list, (r) => { probe.text(r.district); return probe.node().getComputedTextLength(); }) + 14;
+    probe.remove();
+    const x = d3.scaleLinear().domain([0, 100]).range([0, Math.max(60, W - nameW)]);
+    const bh = 18, by = rowH / 2 - bh / 2;
     const g = svg.selectAll('g').data(list).join('g').attr('class', (r) => `ub-row${r.district === p.district ? ' sel' : ''}`).attr('transform', (r, i) => `translate(0,${i * rowH})`);
-    g.append('rect').attr('class', 'ub-rowhit').attr('width', W).attr('height', rowH).attr('rx', 3);
+    g.append('rect').attr('class', 'ub-rowhit').attr('width', W).attr('height', rowH).attr('rx', 6);
     g.append('text').attr('class', 'ub-bar-l').attr('y', rowH / 2).text((r) => r.district);
-    g.append('rect').attr('x', nameW).attr('y', rowH / 2 - 8).attr('height', 16).attr('rx', 3).attr('width', (r) => Math.max(0, x(r.aptpct) - 1)).style('fill', dash.colors[0]);
-    g.append('rect').attr('x', (r) => nameW + x(r.aptpct) + 1).attr('y', rowH / 2 - 8).attr('height', 16).attr('rx', 3).attr('width', (r) => Math.max(0, x(r.gerpct) - 1)).style('fill', dash.colors[1]);
-    g.append('text').attr('class', 'ub-bar-v').attr('y', rowH / 2).attr('x', W).attr('text-anchor', 'end').text((r) => `${dec1(r.gerpct)}%`);
-    g.on('pointermove', (e, r) => showTip(tip, el, e, `${r.district} дүүрэг`, [['Орон сууц', `${dec1(r.aptpct)}%`], ['Гэр хороолол', `${dec1(r.gerpct)}%`]]))
+    g.append('rect').attr('class', 'ub-hseg-ger').attr('x', nameW).attr('y', by).attr('height', bh).attr('rx', 5).attr('width', (r) => Math.max(0, x(r.gerpct) - 1));
+    g.append('rect').attr('class', 'ub-hseg-apt').attr('x', (r) => nameW + x(r.gerpct) + 1).attr('y', by).attr('height', bh).attr('rx', 5).attr('width', (r) => Math.max(0, x(r.aptpct) - 1));
+    g.filter((r) => x(r.gerpct) > 46).append('text').attr('class', 'ub-hlab-in').attr('x', nameW + 8).attr('y', rowH / 2).text((r) => `${dec1(r.gerpct)}%`);
+    g.filter((r) => x(r.aptpct) > 46).append('text').attr('class', 'ub-hlab-apt').attr('x', W - 8).attr('text-anchor', 'end').attr('y', rowH / 2).text((r) => `${dec1(r.aptpct)}%`);
+    g.on('pointermove', (e, r) => showTip(tip, el, e, `${r.district} дүүрэг`, [['Гэр хороолол', `${dec1(r.gerpct)}%`], ['Орон сууцны хороолол', `${dec1(r.aptpct)}%`]]))
       .on('pointerleave', () => tip.attr('hidden', true))
       .on('click', (e, r) => dash.setParams({ district: p.district === r.district ? '' : r.district, khoroo: '' }));
   });

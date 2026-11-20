@@ -7,18 +7,18 @@
   <meta name="description" content="Улаанбаатар хотын 9 дүүрэг, 204 хорооны хүн ам, өрх, нягтрал, гишүүнчлэлийг газрын зураг, графикаар харуулсан дашбоард.">
   <meta name="color-scheme" content="light dark">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/tokens.css?v=20261120-6">
-  <link rel="stylesheet" href="css/ub.css?v=20261120-6">
-  <link rel="stylesheet" href="css/tree.css?v=20261120-6">
-  <script src="js/d3.min.js?v=20261120-6" defer></script>
-  <script src="js/dash-runtime.js?v=20261120-6" defer></script>
-  <script src="js/config.js?v=20261120-6" defer></script>
-  <script src="js/app.js?v=20261120-6" defer></script>
-  <script src="js/members.js?v=20261120-6" defer></script>
-  <script src="js/xlsx-lite.js?v=20261120-6" defer></script>
-  <script src="js/party.js?v=20261120-6" defer></script>
-  <script src="js/tree.js?v=20261120-6" defer></script>
-  <script src="js/session.js?v=20261120-6" defer></script>
+  <link rel="stylesheet" href="css/tokens.css?v=20261120-7">
+  <link rel="stylesheet" href="css/ub.css?v=20261120-7">
+  <link rel="stylesheet" href="css/tree.css?v=20261120-7">
+  <script src="js/d3.min.js?v=20261120-7" defer></script>
+  <script src="js/dash-runtime.js?v=20261120-7" defer></script>
+  <script src="js/config.js?v=20261120-7" defer></script>
+  <script src="js/app.js?v=20261120-7" defer></script>
+  <script src="js/members.js?v=20261120-7" defer></script>
+  <script src="js/xlsx-lite.js?v=20261120-7" defer></script>
+  <script src="js/party.js?v=20261120-7" defer></script>
+  <script src="js/tree.js?v=20261120-7" defer></script>
+  <script src="js/session.js?v=20261120-7" defer></script>
 </head>
 <body>
   <main id="dash-root">
@@ -144,16 +144,9 @@
         <div class="ub-mem-grid">
           <div class="ub-mem-detail">
             <div class="ub-mem-col">
-              <div class="ub-split">
-                <p class="ub-split-t">Хүйс</p>
-                <div class="ub-splitbar" data-draw="split" data-a="malepct" data-source="mem_scope"></div>
-                <div class="ub-split-v">
-                  <span><i class="ub-swatch ub-c1"></i>Эрэгтэй <b data-draw="sum" data-k="male" data-f="int" data-source="mem_scope" data-field="male" data-row="0">—</b> · <b data-draw="sum" data-k="malepct" data-f="pct" data-source="mem_scope" data-field="malepct" data-row="0">—</b>%</span>
-                  <span><i class="ub-swatch ub-c2"></i>Эмэгтэй <b data-draw="sum" data-k="female" data-f="int" data-source="mem_scope" data-field="female" data-row="0">—</b> · <b data-draw="sum" data-k="femalepct" data-f="pct" data-source="mem_scope" data-field="femalepct" data-row="0">—</b>%</span>
-                </div>
-              </div>
-              <p class="ub-anket">Анкетын дундаж бөглөлт <b data-draw="sum" data-k="anket_avg" data-f="pct" data-source="mem_scope" data-field="anket_avg" data-row="0">—</b>%,
-                бүрэн бөглөсөн <b data-draw="sum" data-k="anket_full" data-f="int" data-source="mem_scope" data-field="anket_full" data-row="0">—</b> гишүүн.</p>
+              <p class="ub-split-t">Хүйс</p>
+              <div class="ub-gender" data-draw="mem-gender" data-source="mem_scope"></div>
+              <div class="ub-anket-box" data-draw="mem-anket" data-source="mem_scope"></div>
             </div>
             <div class="ub-mem-col">
               <div class="ub-msub">
@@ -177,17 +170,27 @@
       </section>
 
       <section class="ub-card" id="ub-monthly">
-        <h2 class="ub-h2">Шинээр бүртгэгдсэн гишүүд, сараар</h2>
-        <p class="ub-note">Хот даяар, «Шинэ» төлөвтэй гишүүдийн бүртгэлийн огноогоор.</p>
+        <div class="ub-card-top">
+          <div>
+            <h2 class="ub-h2">Шинээр бүртгэгдсэн гишүүд, сараар</h2>
+            <p class="ub-note">Хот даяар, «Шинэ» төлөвтэй гишүүдийн бүртгэлийн огноогоор. Сүүлийн 12 сарыг тод улаанаар.</p>
+          </div>
+          <div class="ub-segmini" id="ub-mrange" role="group" aria-label="Хугацаа">
+            <button type="button" data-r="all" aria-pressed="true">Бүгд</button>
+            <button type="button" data-r="24" aria-pressed="false">24 сар</button>
+            <button type="button" data-r="12" aria-pressed="false">12 сар</button>
+          </div>
+        </div>
+        <div class="ub-mstats" data-draw="monthly-stats" data-source="members_monthly"></div>
         <div class="ub-chart ub-chart-m" data-draw="chart-monthly" data-source="members_monthly"></div>
       </section>
 
       <section class="ub-card" id="ub-housing">
         <h2 class="ub-h2">Хүн амын амьдрах орчин, дүүргээр</h2>
-        <p class="ub-note">Хилийн файлын (2024) мэдээгээр; шинэ нэгтгэлд энэ задаргаа байхгүй. Баруун талын тоо нь гэр хорооллын хүн амын хувь.</p>
+        <p class="ub-note">Хилийн файлын (2024) мэдээгээр; шинэ нэгтгэлд энэ задаргаа байхгүй. Гэр хорооллын хувиар эрэмбэлсэн.</p>
         <div class="ub-keys" aria-hidden="true">
-          <span class="ub-key"><i class="ub-swatch ub-c1"></i>Орон сууцны хороолол</span>
-          <span class="ub-key"><i class="ub-swatch ub-c2"></i>Гэр хороолол</span>
+          <span class="ub-key"><i class="ub-swatch ub-sw-ger"></i>Гэр хороолол</span>
+          <span class="ub-key"><i class="ub-swatch ub-sw-apt"></i>Орон сууцны хороолол</span>
         </div>
         <div class="ub-chart ub-chart-h" data-draw="chart-housing" data-source="district_m"></div>
       </section>
