@@ -63,7 +63,9 @@
     const t = el('h2', 'ub-elx-t', 'Намын гишүүд'); t.id = 'ub-pm-t';
     hw.append(el('p', 'ub-mdlg-eyebrow', 'Урилгаар бүртгүүлсэн хүмүүс'), t, el('p', 'ub-mdlg-sub ub-pm-sub', 'Ачаалж байна…'));
     const x = el('button', 'ub-mdlg-x', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Хаах'); x.addEventListener('click', () => dlg.close());
-    head.append(hw, x);
+    const lg = el('img', 'ub-pm-logo'); lg.src = 'logo.png?v=20261120-1'; lg.alt = 'SDS лого'; lg.width = 52; lg.height = 52;
+    const hl = el('div', 'ub-pm-headl'); hl.append(lg, hw);
+    head.append(hl, x);
     const bar = el('div', 'ub-elx-bar');
     const field = (label, ctrl) => { const l = el('label', 'ub-field'); l.append(el('span', null, label), ctrl); return l; };
     const d = el('select', 'dash-select ub-pm-d'), k = el('select', 'dash-select ub-pm-k'), q = el('input', 'ub-names-q ub-pm-q');

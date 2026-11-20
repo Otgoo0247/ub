@@ -53,3 +53,4 @@
 .lg-tab[aria-selected="true"]{background:var(--series-1);color:#fff;box-shadow:0 4px 12px color-mix(in oklab,var(--series-1) 25%,transparent)}
 .lg-tab:focus-visible{outline:2px solid var(--color-fg);outline-offset:2px}
 #lg-code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.08em;font-weight:700}
+.lg-logo{display:block;width:clamp(72px,8vw,96px);height:auto;margin:0 0 18px;filter:drop-shadow(0 4px 12px rgba(11,12,16,.10))}
