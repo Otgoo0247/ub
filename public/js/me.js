@@ -58,6 +58,11 @@
     $('me-invite').hidden = false;
 
     $('me-people-t').textContent = d.storage ? `Миний урилгаар бүртгүүлсэн: ${d.invitees.length} хүн` : 'Миний урилгаар бүртгүүлсэн';
+    const tb = $('me-tree');
+    if (d.storage && window.UBTree) {
+      tb.hidden = false;
+      tb.addEventListener('click', () => window.UBTree.open({ name: p.name, sub: 'Миний урилгаар бүртгүүлсэн хүмүүс, тэдний урьсан хүмүүс', children: d.tree || [] }));
+    }
     const ul = $('me-list');
     if (!d.storage) ul.replaceWith(el('p', 'me-hint', 'Бүртгэлийн сан одоогоор холбогдоогүй байна.'));
     else if (!d.invitees.length) ul.replaceWith(el('p', 'me-hint', 'Одоогоор таны урилгаар бүртгүүлсэн хүн алга. Дээрх холбоосоо найз нөхөддөө илгээгээрэй.'));

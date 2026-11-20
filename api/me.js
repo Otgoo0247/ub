@@ -38,6 +38,18 @@ async function login(req, res) {
 
 const age = (dob) => { if (!dob) return null; const d = new Date(`${dob}T00:00:00Z`), n = new Date(); let a = n.getUTCFullYear() - d.getUTCFullYear(); if (n.getUTCMonth() < d.getUTCMonth() || (n.getUTCMonth() === d.getUTCMonth() && n.getUTCDate() < d.getUTCDate())) a -= 1; return a; };
 
+/* Урилгын мод: өөрийн кодоос доош бүх үе. Шууд бус хүмүүсийн зөвхөн нэр, бүртгүүлсэн огноо (утас, хаяг БИШ). */
+function buildTree(rows, rootCode) {
+  const kids = new Map();
+  rows.forEach((r) => { if (!r.own) return; const k = normalizeInvite(r.invite); if (!kids.has(k)) kids.set(k, []); kids.get(k).push(r); });
+  const seen = new Set([rootCode]);
+  const walk = (code, depth) => (kids.get(code) || []).filter((r) => !seen.has(normalizeInvite(r.own)) && depth < 60).map((r) => {
+    const own = normalizeInvite(r.own); seen.add(own);
+    return { n: `${r.last} ${r.first}`, t: String(r.t || '').slice(0, 10), children: walk(own, depth + 1) };
+  });
+  return walk(rootCode, 0);
+}
+
 async function me(req, res) {
   const c = memberCode(req);
   if (!c) return send(res, 200, { authenticated: false });
@@ -50,17 +62,19 @@ async function me(req, res) {
     profile = { kind: 'registrant', name: `${r.last} ${r.first}`, dob: r.dob || null, age: age(r.dob), gender: r.gender || null,
       phone: r.phone, addr: r.addr, registered: r.t, invitedBy: inv ? shortName(fullName(inv)) : null };
   }
-  let invitees = [], storage = storeConfigured();
+  let invitees = [], tree = [], storage = storeConfigured();
   if (storage) {
     try {
       const [raw, flat] = await pipeline([['LRANGE', KEYS.list, '0', '-1'], ['HGETALL', KEYS.by]]);
       const counts = {}; for (let i = 0; i + 1 < (flat || []).length; i += 2) counts[flat[i]] = Number(flat[i + 1]);
-      invitees = (raw || []).map(open).filter((r) => r && normalizeInvite(r.invite) === c).reverse()
+      const all = (raw || []).map(open).filter(Boolean);
+      tree = buildTree(all, c);
+      invitees = all.filter((r) => normalizeInvite(r.invite) === c).reverse()
         .map((r) => ({ t: r.t, last: r.last, first: r.first, dob: r.dob || null, age: age(r.dob), gender: r.gender || null, phone: r.phone, addr: r.addr,
           invited: r.own ? counts[normalizeInvite(r.own)] || 0 : 0 }));
     } catch (e) { storage = false; }
   }
-  return send(res, 200, { authenticated: true, code: fmtInvite(c), profile, invitees, storage });
+  return send(res, 200, { authenticated: true, code: fmtInvite(c), profile, invitees, tree, storage });
 }
 
 module.exports = async function handler(req, res) {

@@ -14,7 +14,9 @@ const PUBLIC = [/^\/login\/?$/, /^\/login\.html$/, /^\/api\/auth\/?$/, /^\/css\/
   /^\/invite\/?$/, /^\/invite\.html$/, /^\/api\/invite\/?$/, /^\/js\/invite\.js$/,
   /^\/api\/register\/?$/, /^\/js\/invite-address\.json$/,
   // Гишүүний өөрийн хуудас — /api/me өөрөө ub_member күүкиг шалгана; HTML/JS-д өгөгдөл байхгүй
-  /^\/me\/?$/, /^\/me\.html$/, /^\/js\/me\.js$/, /^\/css\/me\.css$/, /^\/api\/me\/?$/];
+  /^\/me\/?$/, /^\/me\.html$/, /^\/js\/me\.js$/, /^\/css\/me\.css$/, /^\/api\/me\/?$/,
+  // Урилгын мод (/me-д): өгөгдөлгүй сан, загвар
+  /^\/js\/tree\.js$/, /^\/js\/d3\.min\.js$/, /^\/css\/tree\.css$/];
 const enc = new TextEncoder();
 
 const next = () => new Response(null, { headers: { 'x-middleware-next': '1' } });

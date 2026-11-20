@@ -51,6 +51,32 @@
     }
   }
 
+  /* «Урилгын мод» товч: гишүүн → бүртгүүлэгчид → тэдний урьсан хүмүүс … (tree.js) */
+  const normCode = (c) => String(c || '').toUpperCase().replace(/[\s-]/g, '');
+  function treeButton(m) {
+    const b = el('button', 'ubt-open'); b.type = 'button';
+    b.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 8h3c3 0 3-5 6-5h3M5 8c3 0 3 5 6 5h3M5 8h9"/></svg>';
+    b.append(document.createTextNode('Урилгын мод'));
+    b.addEventListener('click', () => {
+      if (!window.UBTree) return;
+      b.disabled = true;
+      fetch('/api/registrations', { credentials: 'same-origin' }).then((r) => (r.ok ? r.json() : null)).then((j) => {
+        const rows = (j && j.rows) || [], kids = new Map();
+        rows.forEach((r) => { if (!r.own) return; const k = normCode(r.invite); if (!kids.has(k)) kids.set(k, []); kids.get(k).push(r); });
+        const seen = new Set([normCode(m.i)]);
+        const walk = (code, depth) => (kids.get(code) || []).filter((r) => !seen.has(normCode(r.own)) && depth < 60).map((r) => {
+          const own = normCode(r.own); seen.add(own);
+          return { n: `${r.last} ${r.first}`, t: String(r.t || '').slice(0, 10), children: walk(own, depth + 1) };
+        });
+        // Хуучин (өөрийн кодгүй) бүртгэлүүдийг эхний үед нэмнэ
+        const direct = walk(normCode(m.i), 0);
+        rows.filter((r) => !r.own && normCode(r.invite) === normCode(m.i)).forEach((r) => direct.push({ n: `${r.last} ${r.first}`, t: String(r.t || '').slice(0, 10), children: [] }));
+        window.UBTree.open({ name: m.n, sub: [m.dist && `${m.dist} дүүрэг`, m.kh, m.u].filter(Boolean).join(' · '), children: direct });
+      }).finally(() => { b.disabled = false; });
+    });
+    return b;
+  }
+
   /* Нэр + «Дэлгэрэнгүй» товч (нэрийн ард) */
   function nameCell(td, m) {
     td.classList.add('ub-namecell');
@@ -134,7 +160,7 @@
       d.dataset.member = m.i;
       fetch(`/api/registrations?invite=${encodeURIComponent(m.i)}`, { credentials: 'same-origin' }).then((r) => (r.ok ? r.json() : null)).then((j) => {
         if (!j || d.dataset.member !== m.i) return; // өөр гишүүний цонх нээгдсэн бол хаяна
-        reg.append(el('h3', null, `Энэ урилгаар бүртгүүлсэн: ${j.total} хүн`));
+        const hr = el('div', 'ubt-headrow'); hr.append(el('h3', null, `Энэ урилгаар бүртгүүлсэн: ${j.total} хүн`), treeButton(m)); reg.append(hr);
         if (j.total) {
           const ul = el('ul', 'ub-mdlg-reglist');
           j.rows.forEach((r) => {
